@@ -148,7 +148,7 @@ Scripts:
 | 1.3 Auth & RBAC | `[x]` | JWT access/refresh, Argon2id, RBAC, rate limit 429 lần 6 |
 | 1.4 Adapter + seed | `[x]`* | DemoAdapter 2 fixture; CSV stub; seed idempotent 2 traders/8 metrics/2 snapshots; *API null kiểm ở 1.5 |
 | 1.5 API trader detail | `[x]` | `/traders/{id}`: 10 metrics, tier, reasons, confidence, provenance; null giữ null |
-| 1.6 Frontend tối giản | `[ ]` | — |
+| 1.6 Frontend tối giản | `[x]` | Login, layout, detail 10 metrics, excluded badge; E2E Playwright pass |
 | 1.7 QA & gate | `[ ]` | — |
 
 ### 8.3. Lệnh kiểm tra 1.1
@@ -199,3 +199,12 @@ cd frontend; npm run build
 - 404 wrapper `TRADER_NOT_FOUND`; thiếu token 401.
 - Test: `scripts/smoke_trader.ps1` → PASS.
 - Tài liệu API: `docs/api.md`.
+
+### 8.8. Frontend 1.6
+
+- React 18 + Vite + TypeScript + Tailwind; TanStack Query.
+- Trang: `/login`, `/` (2 fixture), `/traders/:id`.
+- Layout sidebar/topbar; hiển thị user/role, nút đăng xuất, freshness demo.
+- Detail: 10 metric cards, tier badge, excluded banner + reasons, risk flags, what's missing, provenance.
+- Null hiển thị `N/A`; copy AUM = 0 ghi “Không có copier”.
+- E2E: `cd frontend; npm run test:e2e` → đăng nhập, qualified, excluded, đăng xuất, không console error.

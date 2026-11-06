@@ -205,13 +205,13 @@
 **Tham chiếu:** §13.2 Layout (2232–2251) · §13.4 Trader Detail (2342–2453) · §13.8 Component & style (2541–2573)  
 **→ đọc khi:** dựng layout, trang detail, component.
 
-- [ ] Vite + React + TS + Tailwind.
-- [ ] Layout + sidebar + topbar.
-- [ ] Login page.
-- [ ] Trader Detail tối giản: 10 chỉ số + tier.
-- [ ] API client + TanStack Query.
-- [ ] Loading/error/empty state.
-- [ ] Badge “Excluded” + lý do.
+- [x] Vite + React + TS + Tailwind. → Bằng chứng: `frontend/`; `npm run build` pass.
+- [x] Layout + sidebar + topbar. → Bằng chứng: `src/components/Layout.tsx`; sidebar + freshness + user menu.
+- [x] Login page. → Bằng chứng: `src/pages/LoginPage.tsx`; E2E đăng nhập OK.
+- [x] Trader Detail tối giản: 10 chỉ số + tier. → Bằng chứng: `src/pages/TraderDetailPage.tsx`; E2E render qualified/excluded OK.
+- [x] API client + TanStack Query. → Bằng chứng: `src/lib/api.ts`; `useQuery` trong detail.
+- [x] Loading/error/empty state. → Bằng chứng: skeleton, error panel, empty/N/A handling.
+- [x] Badge “Excluded” + lý do. → Bằng chứng: banner excluded + reasons map; E2E thấy “Runtime < 30 ngày”.
 
 ### Bước 1.7 — QA & gate Phase 1
 

@@ -47,6 +47,9 @@ pytest backend/tests -q
 
 # Build frontend
 cd frontend && npm run build
+
+# E2E frontend (cần Chrome/Edge; chạy sau khi compose up)
+cd frontend && npm run test:e2e
 ```
 
 ## Biến môi trường
