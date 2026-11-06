@@ -26,6 +26,7 @@ jobs:
     env:
       DATABASE_URL: postgresql+asyncpg://copytrade:copytrade_dev_password@localhost:5432/copytrade
       JWT_SECRET: ci-only-secret
+      RUN_INTEGRATION: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -35,6 +36,9 @@ jobs:
         run: pip install -r backend/requirements.txt
       - name: Lint
         run: ruff check backend
+      - name: Migration
+        working-directory: backend
+        run: alembic upgrade head
       - name: Test
         run: pytest backend/tests -q
 

@@ -45,6 +45,9 @@ docker compose exec backend alembic downgrade -1
 # Test backend
 pytest backend/tests -q
 
+# Full test (integration dùng PostgreSQL trong compose)
+docker compose exec -e RUN_INTEGRATION=1 backend pytest -q
+
 # Build frontend
 cd frontend && npm run build
 

@@ -1,4 +1,4 @@
-# SESSION — Phase 0 Data Spike
+# SESSION — Phase 0 & Phase 1
 
 > **Ngày:** 2026-11-06  
 > **Trạng thái:** Phase 0 hoàn tất — **GO CÓ ĐIỀU KIỆN**  
@@ -149,7 +149,7 @@ Scripts:
 | 1.4 Adapter + seed | `[x]`* | DemoAdapter 2 fixture; CSV stub; seed idempotent 2 traders/8 metrics/2 snapshots; *API null kiểm ở 1.5 |
 | 1.5 API trader detail | `[x]` | `/traders/{id}`: 10 metrics, tier, reasons, confidence, provenance; null giữ null |
 | 1.6 Frontend tối giản | `[x]` | Login, layout, detail 10 metrics, excluded badge; E2E Playwright pass |
-| 1.7 QA & gate | `[ ]` | — |
+| 1.7 QA & gate | `[x]` | 12 test pass; clean compose; E2E; secret scan; downgrade OK |
 
 ### 8.3. Lệnh kiểm tra 1.1
 
@@ -208,3 +208,21 @@ cd frontend; npm run build
 - Detail: 10 metric cards, tier badge, excluded banner + reasons, risk flags, what's missing, provenance.
 - Null hiển thị `N/A`; copy AUM = 0 ghi “Không có copier”.
 - E2E: `cd frontend; npm run test:e2e` → đăng nhập, qualified, excluded, đăng xuất, không console error.
+
+### 8.9. QA & gate 1.7
+
+| Kiểm tra | Kết quả |
+|---|---|
+| Backend test trong container | **12 passed** (11 unit + 1 integration) |
+| Compose từ máy sạch | `down -v` → `up -d --build` OK, 4 service chạy |
+| Auth/RBAC | smoke PASS; viewer → admin 403 |
+| Trader qualified | tier qualified; ROI 19,19%; MDD 8,54%; Sharpe 2,84 |
+| Trader excluded | banner + reason; MDD/Sharpe null |
+| Null ≠ 0 | API/UI giữ `null` / `N/A` |
+| Rate limit | lần 6 → 429 |
+| Migration | downgrade base → upgrade head trên volume mới |
+| Secret scan | không track `.env`; không match pattern secret |
+| Dependency scan | `npm audit --audit-level=high` → 0 vulnerability |
+| E2E frontend | Playwright PASS, 0 console error |
+
+**Gate Phase 1: ĐẠT.** Vertical slice chạy end-to-end với 2 fixture.

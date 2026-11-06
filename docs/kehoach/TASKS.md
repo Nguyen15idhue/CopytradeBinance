@@ -17,7 +17,7 @@
 | Phase | Trạng thái | Thời lượng | Gate chính | Tham chiếu nhanh |
 |---|---|---:|---|---|
 | 0 — Data spike & pre-filter | `[x]` hoàn thành | 3–5 ngày | GO có điều kiện | `phase0/PHASE0_REPORT.md` |
-| 1 — Foundation + vertical slice | `[ ]` | 5–7 ngày | 1 trader chạy E2E | §5.2 (416–438), §10.1 (1614–1920), §13.4 (2342–2453) |
+| 1 — Foundation + vertical slice | `[x]` hoàn thành | 5–7 ngày | 1 trader chạy E2E | §5.2 (416–438), §10.1 (1614–1920), §13.4 (2342–2453) |
 | 2 — Collector 2 tầng | `[ ]` | 4–6 ngày | Scan 11.124 ≥ 99%, Watch 400–700 | §6 (527–972), §12 (2102–2216) |
 | 3 — Quant + Scoring + Screener | `[ ]` | 7–9 ngày | Screener dùng được, score breakdown đúng | §8 (1186–1448), §9 (1449–1611) |
 | 4 — Detail + Compare + Risk | `[ ]` | 5–7 ngày | Detail sâu, compare 4 trader, risk evidence | §11.2–11.3 (2008–2056), §13.4–13.5 (2342–2486) |
@@ -138,7 +138,7 @@
 
 ---
 
-## Phase 1 — Foundation + vertical slice
+## Phase 1 — Foundation + vertical slice — HOÀN THÀNH
 
 **Mục tiêu:** một trader chạy end-to-end: collect → raw → quant → API → UI.  
 **Thời lượng:** 5–7 ngày.
@@ -218,13 +218,13 @@
 **Tham chiếu:** §14.1 Test pyramid (2616–2628) · §14.6 Integration test (2786–2818) · §14.10 Acceptance MVP (2895–2915) · §22.4 Quy ước trạng thái (3559–3576)  
 **→ đọc khi:** viết test, kiểm tra gate.
 
-- [ ] 3 unit test + 1 integration test.
-- [ ] `docker compose up` chạy từ máy sạch.
-- [ ] Đăng nhập được; viewer không vào trang admin.
-- [ ] Mở trader qualified thấy dữ liệu thật.
-- [ ] Mở trader excluded thấy badge + lý do.
-- [ ] Không có secret trong repo.
-- [ ] `alembic downgrade` chạy được trên DB trống.
+- [x] 3 unit test + 1 integration test. → Bằng chứng: `pytest` container: **12 passed** (11 unit + 1 integration API).
+- [x] `docker compose up` chạy từ máy sạch. → Bằng chứng: `docker compose down -v` → `up -d --build` → 4 service healthy/chạy.
+- [x] Đăng nhập được; viewer không vào trang admin. → Bằng chứng: `smoke_auth.ps1` PASS; viewer `/admin/ping` = 403.
+- [x] Mở trader qualified thấy dữ liệu thật. → Bằng chứng: `smoke_trader.ps1` + E2E: tier qualified, ROI 19.19%, MDD 8.54%, Sharpe 2.84.
+- [x] Mở trader excluded thấy badge + lý do. → Bằng chứng: E2E thấy banner excluded + `Runtime < 30 ngày`; MDD/Sharpe = null.
+- [x] Không có secret trong repo. → Bằng chứng: `git ls-files` không có `.env`; `git check-ignore .env` OK; grep secret pattern 0 match.
+- [x] `alembic downgrade` chạy được trên DB trống. → Bằng chứng: downgrade base → upgrade head trên volume mới; current = `0003_trader_universe`.
 
 **Gate:** mở được trader thật end-to-end; API trả `null` đúng, không trả `0`.
 

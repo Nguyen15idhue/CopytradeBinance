@@ -28,7 +28,7 @@ function assert(condition, message) {
 }
 
 try {
-  await page.goto(`${base}/login`, { waitUntil: "networkidle" });
+  await page.goto(`${base}/login`, { waitUntil: "domcontentloaded" });
   await page.getByRole("heading", { name: "Đăng nhập" }).waitFor();
   await page.getByLabel("Email").fill("admin@example.com");
   await page.getByLabel("Mật khẩu").fill("Admin123!ChangeMe");
@@ -47,7 +47,7 @@ try {
   assert(!body.includes("undefined") && !body.includes("NaN"), "UI có undefined/NaN");
   console.log("Trader qualified render: OK");
 
-  await page.goto(`${base}/`, { waitUntil: "networkidle" });
+  await page.goto(`${base}/`, { waitUntil: "domcontentloaded" });
   await page.getByRole("link", { name: /Excluded Fixture/ }).click();
   await page.getByRole("heading", { name: "10 chỉ số cốt lõi" }).waitFor();
   body = await page.locator("body").innerText();
