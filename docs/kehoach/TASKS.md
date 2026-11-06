@@ -183,12 +183,12 @@
 **Tham chiếu:** §12.1 Adapter interface (2104–2120) · §2.5 Sai lệch cần sửa (245–261) · §6.11 Bài học dữ liệu (896–972) · §7.4 Tiêu chí tier (1006–1020)  
 **→ đọc khi:** viết `DataSourceAdapter`, seed fixture, xử lý null/zero.
 
-- [ ] `DataSourceAdapter` interface.
-- [ ] `DemoAdapter` (và stub `CsvImportAdapter`).
-- [ ] Seed 1 trader excluded: `5296057151807357697`.
-- [ ] Seed 1 trader qualified từ shortlist.
-- [ ] Mỗi bản ghi có `source`, `collected_at`, `window`.
-- [ ] API trả `null` đúng cho field thiếu, không trả `0`.
+- [x] `DataSourceAdapter` interface. → Bằng chứng: `backend/app/services/collector/base.py`.
+- [x] `DemoAdapter` (và stub `CsvImportAdapter`). → Bằng chứng: `demo.py` 2 fixture; `csv_import.py` raise NotImplementedError.
+- [x] Seed 1 trader excluded: `5296057151807357697`. → Bằng chứng: `python -m app.seed all`; `trader_universe.tier=excluded`, reasons runtime/aum.
+- [x] Seed 1 trader qualified từ shortlist. → Bằng chứng: ID `4520644381136785152`; tier `qualified`; 4 window performance.
+- [x] Mỗi bản ghi có `source`, `collected_at`, `window`. → Bằng chứng: snapshot/metric `raw` có `source=demo`, `collectedAt`, `window`.
+- [~] API trả `null` đúng cho field thiếu, không trả `0`. → Bằng chứng DB: excluded 90D `mdd=NULL`, `sharpe=NULL`; API xác nhận ở bước 1.5.
 
 ### Bước 1.5 — API trader detail
 

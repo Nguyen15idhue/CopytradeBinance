@@ -146,7 +146,7 @@ Scripts:
 | 1.1 Khởi tạo repo & hạ tầng | `[x]` | compose up OK, `/health` OK, alembic OK, CI file có |
 | 1.2 Database & model | `[x]` | 4 bảng + migration `0001_core_tables`; downgrade/upgrade OK |
 | 1.3 Auth & RBAC | `[x]` | JWT access/refresh, Argon2id, RBAC, rate limit 429 lần 6 |
-| 1.4 Adapter + seed | `[ ]` | — |
+| 1.4 Adapter + seed | `[x]`* | DemoAdapter 2 fixture; CSV stub; seed idempotent 2 traders/8 metrics/2 snapshots; *API null kiểm ở 1.5 |
 | 1.5 API trader detail | `[ ]` | — |
 | 1.6 Frontend tối giản | `[ ]` | — |
 | 1.7 QA & gate | `[ ]` | — |
@@ -180,3 +180,12 @@ cd frontend; npm run build
 - Seed: `python -m app.seed all` tạo `admin@example.com` và `viewer@example.com`.
 - Smoke test: `scripts/smoke_auth.ps1`; rate limit: `scripts/test_rate_limit.ps1`.
 - Lưu ý: script `.ps1` lưu UTF-8 BOM, đặt `chcp 65001` để hiển thị tiếng Việt.
+
+### 8.6. Adapter & seed 1.4
+
+- `DataSourceAdapter` Protocol, `DemoAdapter`, `CsvImportAdapter` stub.
+- Fixture excluded: `5296057151807357697` (runtime 4,11 ngày, AUM 1.200).
+- Fixture qualified: `4520644381136785152` (B tier, ROI 19,19%, MDD 8,54%, Sharpe 2,84).
+- Thêm bảng `trader_universe` (migration `0003`) lưu tier/reason/pre_score.
+- Seed idempotent: chạy 2 lần vẫn 2 traders / 8 metrics / 2 snapshots.
+- Null được giữ nguyên: excluded 90D có `mdd=NULL`, `sharpe=NULL`.

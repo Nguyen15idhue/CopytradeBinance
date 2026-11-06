@@ -8,6 +8,7 @@ def test_core_tables_registered() -> None:
         "portfolio_snapshots",
         "performance_metrics",
         "sessions",
+        "trader_universe",
     } <= set(Base.metadata.tables)
 
 
