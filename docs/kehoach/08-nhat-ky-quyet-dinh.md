@@ -43,11 +43,11 @@
 3. **111 field** thô; ~26 chỉ số trực tiếp; ~35–40 suy ra.
 4. **Không có open positions**; `positionShow=false` nhưng position-history vẫn trả.
 5. **Không có per-copier, funding, liquidation, copy slippage**.
-6. **`chartItems` làm MDD sai**: 88,67% vs 31,34% thật.
+6. **MDD: 88,67% là lỗi công thức, không phải lỗi `chartItems`**. Coi ROI lũy kế là equity → 88,67%; đổi đúng `equity = 1 + ROI/100` → 31,3384%, khớp published 31,338369%. Vẫn dùng published làm nguồn hiển thị.
 7. **WinRate theo order ≠ theo position**: 50% vs 62,5%.
 8. **AUM ≠ chất lượng**: AUM 1,18M nhưng copyAum 22k.
 9. **Lead PnL ≠ Copier PnL**: 583k vs 1k.
-10. **Null/zero rates cao**: Sharpe 34,7% null; AI summary 97,8% null; badge 99,7% null; copier 69,8% zero.
+10. **Null/zero rates cao**: Sharpe 34,9% null; AI summary 97,8% null; badge 99,7% null; copier 69,8% zero.
 11. **Page cap**: list 30, trade 200.
 12. **Performance dùng `BASE_P`**, không phải `BASE_F`.
 13. **Trader 4 ngày tuổi** có ROI 7D/30D/90D/180D giống hệt.
@@ -87,8 +87,8 @@ Lý do loại (trên PUBLIC, có overlap):
 | D03 | **Bỏ Paper Copy** khỏi MVP | Mô phỏng sẽ tạo cảm giác chính xác giả | Đưa vào backlog v1.1 |
 | D04 | **3 bảng ranking** | 6 bảng là quá nhiều, dễ chase ROI | Overall, Low Risk, Consistency |
 | D05 | **Published metrics trước, derived sau** | Dữ liệu published có ngay; derived cần thời gian | Không block launch |
-| D06 | **Không tính MDD từ chartItems** | Đã có ví dụ sai 88,67% vs 31,34% | Chỉ dùng `performance.mdd` |
-| D07 | **Null ≠ 0** | Sharpe null 34,7%; zero rates cao | Renormalize + confidence |
+| D06 | **MDD hiển thị = `performance.mdd`** | Published là định nghĩa chính thức; `chartItems` chỉ có điểm ngày và từng bị tính sai thành 88,67% | Không dùng MDD tự tính để xếp hạng; tự tính chỉ để audit |
+| D07 | **Null ≠ 0** | Sharpe null 34,9%; zero rates cao | Renormalize + confidence |
 | D08 | **Runtime là hard filter** | Trader 4 ngày lọt bảng 90D | Min 30 ngày |
 | D09 | **AUM và Copy AUM tách biệt** | AUM 98% có thể là tiền lead | Hiển thị cả hai |
 | D10 | **WinRate order và position tách biệt** | Định nghĩa khác nhau | Ghi rõ nhãn |

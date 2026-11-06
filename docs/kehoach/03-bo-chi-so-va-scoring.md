@@ -200,7 +200,7 @@ dd_t   = (peak_t − NAV_t) / peak_t
 MDD    = max(dd_t)
 ```
 
-**Cấm:** tính MDD trực tiếp từ `chartItems` mà không điều chỉnh dòng tiền.
+**Cấm:** coi `chartItems.value` (ROI lũy kế %) là mức equity. Cách đúng để audit là `equity = 1 + value / 100`; cách này khớp published trên 63/63 trader Phase 0. Không dùng kết quả tự tính làm số hiển thị production.
 
 ### 3.3. Sharpe
 
@@ -318,7 +318,7 @@ confidence = 0.40 × coverage
 
 - Runtime 4 ngày → `history = 4/90 = 0.044`.
 - Sharpe null → coverage giảm.
-- Confidence ước tính < 0.4 → **không được xếp hạng**, dù ROI 59,23%.
+- Confidence ước tính < 0.4 → **không được xếp hạng**, dù ROI 61,75%.
 - Đồng thời **bị Excluded ở Stage 0** vì runtime < 30 → không deep fetch.
 
 ---
@@ -463,12 +463,12 @@ Mỗi lần chụp bảng xếp hạng phải lưu `ranking_snapshots` để v�
 | Chỉ số | Giá trị | Đánh giá |
 |---|---:|---|
 | Runtime | 4 ngày | ❌ Không đủ |
-| ROI 90D | 59,23% | Cao |
-| PnL | 583.369 | Cao |
+| ROI 90D | 61,75% | Cao |
+| PnL | 608.159 | Cao |
 | MDD | 31,34% | ❌ Critical |
 | Sharpe | null | ⚠️ Thiếu |
 | WinRate (order) | 50% (5/10) | Mẫu nhỏ |
-| Copier PnL | 1.005 | Rất thấp |
+| Copier PnL | 579 | Rất thấp |
 | AUM | 1.185.600 | Lớn nhưng 98% là tiền lead |
 | Copy AUM | 22.234 | Nhỏ |
 | Max leverage | 15x | ❌ High |

@@ -42,7 +42,7 @@ Tạo bộ fixture cố định, không phụ thuộc mạng.
 
 ### 2.2. Trader thật làm regression fixture
 
-`5296057151807357697` — SIGNAL, 4 ngày, ROI 59,23%, MDD 31,34%, Sharpe null, 5.292 fills, 8 positions.
+`5296057151807357697` — SIGNAL, ~4,1 ngày, ROI 61,75%, MDD 31,34%, Sharpe null, 5.292 fills, 8 positions.
 
 Kỳ vọng:
 
@@ -391,7 +391,7 @@ pg_dump -Fc copytrade > backup_$(date +%F).dump
 - [ ] Không duplicate sau 3 lần chạy.
 - [ ] Restart giữa crawl không mất dữ liệu.
 - [ ] Trader mẫu ra “Excluded”, không top, không deep fetch.
-- [ ] MDD hiển thị = published, không phải 88,67%.
+- [ ] MDD hiển thị = `performance.mdd`, không dùng 88,67% từ công thức sai.
 - [ ] Sharpe null hiển thị `N/A`, không 0.
 - [ ] WinRate order và position hiển thị tách biệt.
 - [ ] AUM và Copy AUM hiển thị tách biệt.

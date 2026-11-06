@@ -48,8 +48,8 @@
 
 | Rủi ro | Ví dụ thật | Giảm thiểu |
 |---|---|---|
-| **Flow distortion** | MDD 88,67% nếu tính từ chartItems; thật là 31,34% | Dùng published MDD; TWR nếu tự tính |
-| **Null ≠ 0** | Sharpe null 34,7% | Renormalize, confidence |
+| **Flow distortion** | Coi ROI là equity → MDD 88,67%; đổi đúng `equity = 1 + ROI/100` → 31,3384%, khớp published | Dùng published MDD; tự tính chỉ để audit, ghi rõ “estimated” |
+| **Null ≠ 0** | Sharpe null 34,9% | Renormalize, confidence |
 | **Zero ≠ missing** | copyAum zero 60,5% | Hiển thị “không có copier”, không “N/A” |
 | **Window confusion** | ROI 7D/30D/90D/180D | Luôn ghi cửa sổ |
 | **New portfolio** | 4 ngày tuổi, cả 4 window giống nhau | Hard filter runtime |

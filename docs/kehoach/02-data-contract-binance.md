@@ -292,9 +292,10 @@ Không phụ thuộc hoàn toàn vào `hideFull`.
 ```
 
 - Có **90 điểm** cho `90D`, 180 điểm cho `180D`, v.v.
-- Giá trị là **ROI lũy kế từ lúc mở**, không phải daily return.
+- Giá trị là **ROI lũy kế từ lúc mở**, không phải daily return và **không phải mức equity**.
 - Bị **pha loãng bởi nạp/rút**.
-- **Không dùng để tính MDD tuyệt đối.**
+- Chuyển đúng sang equity: `equity = 1 + value / 100`. Với cách này, MDD tính lại khớp `performance.mdd` trên 63/63 trader Phase 0.
+- **Không dùng `chartItems` làm nguồn MDD hiển thị.** Chỉ dùng để audit/sanity-check, vì chuỗi chỉ có điểm theo ngày và không có NAV thật.
 - Có thể dùng để xem shape, positive days, volatility (sau khi lọc dòng tiền).
 
 ### Giới hạn & lỗi
@@ -385,10 +386,10 @@ GET {BASE_P}/lead-portfolio/performance?portfolioId=5296057151807357697&timeRang
 | Field | Ví dụ | Ý nghĩa |
 |---|---|---|
 | `timeRange` | `90D` | Cửa sổ |
-| `roi` | `59.23318759` | ROI (%) |
-| `pnl` | `583369.67249509` | PnL (USDT) |
+| `roi` | `61.75017894` | ROI (%) |
+| `pnl` | `608158.75582491` | PnL (USDT) |
 | `mdd` | `31.338369` | Max drawdown (%) |
-| `copierPnl` | `1005.17878648` | PnL copier |
+| `copierPnl` | `579.37775126` | PnL copier |
 | `winRate` | `50.0` | Win rate (%) |
 | `winOrders` | `5` | Số order thắng |
 | `totalOrder` | `10` | Tổng order đóng |
@@ -398,17 +399,17 @@ GET {BASE_P}/lead-portfolio/performance?portfolioId=5296057151807357697&timeRang
 
 | Window | ROI | PnL | MDD | WinRate | Win/Total | Sharpe |
 |---|---:|---:|---:|---:|---:|---|
-| 7D | 59,23% | 583.369,67 | 31,34% | 50,00% | 5/10 | null |
-| 30D | 59,23% | 583.369,67 | 31,34% | 50,00% | 5/10 | null |
-| 90D | 59,23% | 583.369,67 | 31,34% | 50,00% | 5/10 | null |
-| 180D | 59,23% | 583.369,67 | 31,34% | 50,00% | 5/10 | null |
+| 7D | 61,75% | 608.158,76 | 31,34% | 50,00% | 5/10 | null |
+| 30D | 61,75% | 608.158,76 | 31,34% | 50,00% | 5/10 | null |
+| 90D | 61,75% | 608.158,76 | 31,34% | 50,00% | 5/10 | null |
+| 180D | 61,75% | 608.158,76 | 31,34% | 50,00% | 5/10 | null |
 
 > Cả 4 window giống hệt vì portfolio mới mở **2026-11-02 14:00 UTC**.  
 > Đây là lý do bắt buộc phải có `min_runtime_days`.
 
 ### Sharpe null
 
-- 34,7% trader PUBLIC 90D có `sharpRatio = null`.
+- 34,9% trader PUBLIC 90D có `sharpRatio = null`.
 - Nguyên nhân thường gặp: portfolio < 30 ngày, chưa đủ mẫu.
 - **Không được chấm điểm 0.** Phải renormalize hoặc giảm confidence.
 
@@ -578,8 +579,8 @@ POST {BASE_F}/lead-portfolio/transfer-history
 |---|---|---|---|
 | ROI 7/30/90/180 | performance | ✅ Published | Dùng trực tiếp |
 | PnL | performance | ✅ Published | Tổng, không tách realized/unrealized |
-| MDD | performance | ✅ Published | **Không tự tính từ chartItems** |
-| Sharpe | performance | ⚠️ Published, 34,7% null | Không chấm 0 |
+| MDD | performance | ✅ Published | Dùng published; tự tính từ `chartItems` chỉ để audit |
+| Sharpe | performance | ⚠️ Published, 34,9% null | Không chấm 0 |
 | WinRate | performance | ✅ Published | Theo order, không theo position |
 | WinOrders / TotalOrders | performance | ✅ Published | Dùng để kiểm tra mẫu |
 | Copier PnL | performance | ⚠️ 62,7% zero | Zero có thể là không có copier |
@@ -619,25 +620,35 @@ POST {BASE_F}/lead-portfolio/transfer-history
 
 ## 11. Bài học dữ liệu bắt buộc
 
-### 11.1. `chartItems` làm MDD sai
+### 11.1. MDD: dùng published, không dùng công thức sai trên `chartItems`
 
-Trader mẫu:
+Trader mẫu `5296057151807357697`, 6 điểm cuối của `chartItems`:
 
 ```
-2026-11-03: 17,68%
-2026-11-04: 54,66%
-2026-11-05:  6,19%   ← tụt do nạp/rút
-2026-11-06: 59,23%
+2026-10-31:  0,00%
+2026-11-01: -4,42%
+2026-11-02: 17,68%
+2026-11-03: 54,66%
+2026-11-04:  6,19%   ← tụt mạnh
+2026-11-06: 61,75%
 ```
 
-| Cách tính | MDD |
-|---|---:|
-| Từ `chartItems` | **88,67%** |
-| Binance công bố | **31,34%** |
+| Cách tính | MDD | Đánh giá |
+|---|---:|---|
+| Coi `chartItems.value` là mức equity (sai) | **88,67%** | ❌ Sai công thức |
+| `equity = 1 + value / 100` rồi tính drawdown | **31,3384%** | ✅ Khớp published |
+| Binance công bố (`performance.mdd`) | **31,338369%** | ✅ Nguồn chuẩn |
 
-Nguyên nhân: 17 lệnh nạp/rút, net +575.897,80 USDT. ROI bị pha loãng.
+**Đính chính:** con số 88,67% trước đây **không phải** bằng chứng “`chartItems` không thể dùng để tính MDD”. Nó là hệ quả của một lỗi công thức: lấy chuỗi ROI lũy kế (%) làm mức equity. Khi đổi đúng sang `equity = 1 + ROI/100`, MDD tính lại khớp published trên **63/63 trader** của Phase 0, sai số tuyệt đối lớn nhất **4,9 × 10⁻⁷ pp** (chỉ là làm tròn).
 
-**Quy tắc:** `mdd` hiển thị = `performance.mdd`. Nếu tự tính, phải dùng equity đã điều chỉnh dòng tiền (TWR), và ghi rõ “estimated”.
+**Vì sao production vẫn dùng `performance.mdd`:**
+
+1. Đó là định nghĩa chính thức của Binance, đã xử lý nạp/rút theo cách của họ.
+2. `chartItems` chỉ là **điểm chốt theo ngày**; drawdown trong ngày bị bỏ qua.
+3. Không có NAV/equity thật, nên mọi cách tự tính đều là xấp xỉ từ ROI.
+4. MDD **phụ thuộc cửa sổ**: trên 63 mẫu chỉ 6/63 trader có MDD giống nhau ở cả 4 window; chênh lệch tối đa giữa các window là **70,26 pp**. Luôn phải gắn nhãn window (7D/30D/90D/180D).
+
+**Quy tắc:** `mdd` hiển thị và dùng để xếp hạng = `performance.mdd`. Tự tính từ `chartItems` chỉ dùng để **audit/sanity-check**, không thay thế published.
 
 ### 11.2. WinRate theo order ≠ theo position
 
@@ -657,7 +668,7 @@ Cả hai đều đúng, nhưng định nghĩa khác nhau. UI phải ghi rõ:
 
 | Field | Null | Zero | Cách xử lý |
 |---|---:|---:|---|
-| `sharpRatio` | 34,7% | 0% | Null = thiếu; không chấm 0 |
+| `sharpRatio` | 34,9% | 0% | Null = thiếu; không chấm 0 |
 | `copierPnl` | 0% | 62,7% | Zero = không có copier PnL; không phải lỗi |
 | `copyAum` | 0% | 60,5% | Zero = không có vốn copier |
 | `currentCopyCount` | 0% | 69,8% | Zero = không có copier |
@@ -680,8 +691,8 @@ Nếu chỉ nhìn AUM, trader này trông rất lớn. Nhưng copier chỉ góp 
 
 ### 11.5. Lead PnL ≠ Copier PnL
 
-- Lead PnL: 583.369,67
-- Copier PnL: 1.005,18
+- Lead PnL: 608.158,76
+- Copier PnL: 579,38
 
 Copier vào muộn, vốn nhỏ, và chỉ có 5/10 order thắng. Đây là ví dụ thực tế cho việc không được đánh đồng hai chỉ số.
 

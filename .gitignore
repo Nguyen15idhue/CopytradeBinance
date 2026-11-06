@@ -1,0 +1,28 @@
+# Môi trường & bí mật
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Dữ liệu Phase 0 (không commit raw/large artifacts)
+phase0/data/
+phase0/__pycache__/
+
+# Hệ điều hành / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

@@ -324,7 +324,7 @@ Universe: 11.130 / 11.130
 Watch: 517 · Qualified: 113 · High: 13
 Deep fetch: 113–313 detail · 13–50 full trades
 Lỗi: 3 (0.02%)
-Null Sharpe: 34,7%
+Null Sharpe: 34,9%
 Null AI summary: 97,8%
 Stale > 150 phút: 12 trader
 ```
