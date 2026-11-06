@@ -188,17 +188,17 @@
 - [x] Seed 1 trader excluded: `5296057151807357697`. → Bằng chứng: `python -m app.seed all`; `trader_universe.tier=excluded`, reasons runtime/aum.
 - [x] Seed 1 trader qualified từ shortlist. → Bằng chứng: ID `4520644381136785152`; tier `qualified`; 4 window performance.
 - [x] Mỗi bản ghi có `source`, `collected_at`, `window`. → Bằng chứng: snapshot/metric `raw` có `source=demo`, `collectedAt`, `window`.
-- [~] API trả `null` đúng cho field thiếu, không trả `0`. → Bằng chứng DB: excluded 90D `mdd=NULL`, `sharpe=NULL`; API xác nhận ở bước 1.5.
+- [x] API trả `null` đúng cho field thiếu, không trả `0`. → Bằng chứng: API excluded trả `mdd=null`, `sharpe=null`; smoke 1.5 pass.
 
 ### Bước 1.5 — API trader detail
 
 **Tham chiếu:** §11.2 Trader & screener (2008–2048) · §8.2 10 chỉ số cốt lõi (1205–1219) · §8.9 Quy tắc missing/null (1437–1448)  
 **→ đọc khi:** định nghĩa response, field null, tier/reason.
 
-- [ ] API `/api/v1/traders/{id}`.
-- [ ] Trả 10 chỉ số + tier + confidence + provenance.
-- [ ] Trả lý do excluded/watch.
-- [ ] Không trả field không có nguồn.
+- [x] API `/api/v1/traders/{id}`. → Bằng chứng: `app/api/v1/traders.py`; smoke 200 cho qualified/excluded.
+- [x] Trả 10 chỉ số + tier + confidence + provenance. → Bằng chứng: response có `metrics` 10 item, `tier`, `confidence`, `provenance`.
+- [x] Trả lý do excluded/watch. → Bằng chứng: excluded trả `reasons=[runtime_lt_30,aum_lt_5000]`.
+- [x] Không trả field không có nguồn. → Bằng chứng: field derived chưa có → `null` + flag `derived_unavailable`; không bịa giá trị.
 
 ### Bước 1.6 — Frontend tối giản
 

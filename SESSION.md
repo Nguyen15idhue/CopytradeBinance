@@ -147,7 +147,7 @@ Scripts:
 | 1.2 Database & model | `[x]` | 4 bảng + migration `0001_core_tables`; downgrade/upgrade OK |
 | 1.3 Auth & RBAC | `[x]` | JWT access/refresh, Argon2id, RBAC, rate limit 429 lần 6 |
 | 1.4 Adapter + seed | `[x]`* | DemoAdapter 2 fixture; CSV stub; seed idempotent 2 traders/8 metrics/2 snapshots; *API null kiểm ở 1.5 |
-| 1.5 API trader detail | `[ ]` | — |
+| 1.5 API trader detail | `[x]` | `/traders/{id}`: 10 metrics, tier, reasons, confidence, provenance; null giữ null |
 | 1.6 Frontend tối giản | `[ ]` | — |
 | 1.7 QA & gate | `[ ]` | — |
 
@@ -189,3 +189,13 @@ cd frontend; npm run build
 - Thêm bảng `trader_universe` (migration `0003`) lưu tier/reason/pre_score.
 - Seed idempotent: chạy 2 lần vẫn 2 traders / 8 metrics / 2 snapshots.
 - Null được giữ nguyên: excluded 90D có `mdd=NULL`, `sharpe=NULL`.
+
+### 8.7. API trader detail 1.5
+
+- `GET /api/v1/traders/{id}` (bắt buộc access token).
+- Trả 10 chỉ số, `tier`, `reasons`, `pre_score`, `profile`, `confidence`, `flags`, `provenance`, `disclaimer`.
+- Null giữ null: excluded có `mdd=null`, `sharpe=null`, flags `missing_sharpe`/`missing_mdd`.
+- Derived chưa có dữ liệu (profit factor, avg holding) trả `null` + flag `derived_unavailable`.
+- 404 wrapper `TRADER_NOT_FOUND`; thiếu token 401.
+- Test: `scripts/smoke_trader.ps1` → PASS.
+- Tài liệu API: `docs/api.md`.
