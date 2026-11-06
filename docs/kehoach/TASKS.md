@@ -161,12 +161,12 @@
 **Tham chiếu:** §10.1 Nhóm bảng (1614–1920) · §10.3 Index bắt buộc (1927–1939) · §10.4 Chống trùng & resume (1940–1951)  
 **→ đọc khi:** viết migration/model, chọn kiểu dữ liệu, index.
 
-- [ ] Model `traders`.
-- [ ] Model `portfolio_snapshots`.
-- [ ] Model `performance_metrics`.
-- [ ] Model `users`.
-- [ ] Unique constraint + index tối thiểu.
-- [ ] Migration `upgrade` và `downgrade` chạy được.
+- [x] Model `traders`. → Bằng chứng: `backend/app/models/trader.py`.
+- [x] Model `portfolio_snapshots`. → Bằng chứng: `backend/app/models/snapshot.py`; unique `(lead_portfolio_id, collected_hour, source)`.
+- [x] Model `performance_metrics`. → Bằng chứng: `backend/app/models/performance.py`; unique `(lead_portfolio_id, time_range, collected_at)`.
+- [x] Model `users`. → Bằng chứng: `backend/app/models/user.py`; role check admin/viewer.
+- [x] Unique constraint + index tối thiểu. → Bằng chứng: `ix_users_email`, `ix_traders_portfolio_type`, `ix_snapshots_lookup`, `ix_perf_lookup`.
+- [x] Migration `upgrade` và `downgrade` chạy được. → Bằng chứng: `0001_core_tables`; downgrade base → upgrade head OK; `alembic current` = head.
 
 ### Bước 1.3 — Auth & RBAC
 

@@ -144,7 +144,7 @@ Scripts:
 | Bước | Trạng thái | Bằng chứng |
 |---|---|---|
 | 1.1 Khởi tạo repo & hạ tầng | `[x]` | compose up OK, `/health` OK, alembic OK, CI file có |
-| 1.2 Database & model | `[ ]` | — |
+| 1.2 Database & model | `[x]` | 4 bảng + migration `0001_core_tables`; downgrade/upgrade OK |
 | 1.3 Auth & RBAC | `[ ]` | — |
 | 1.4 Adapter + seed | `[ ]` | — |
 | 1.5 API trader detail | `[ ]` | — |
@@ -162,3 +162,11 @@ Invoke-WebRequest -UseBasicParsing http://localhost:8080/api/v1/health/db
 .\.venv\Scripts\pytest.exe backend\tests -q
 cd frontend; npm run build
 ```
+
+### 8.4. Database 1.2
+
+- 4 bảng lõi: `users`, `traders`, `portfolio_snapshots`, `performance_metrics`.
+- `users.id` UUID; `traders.lead_portfolio_id` là text PK; snapshot/metric dùng bigserial.
+- `portfolio_snapshots.raw` và `performance_metrics.raw` dùng JSONB.
+- Unique: snapshot theo giờ + source; performance theo `(lead, time_range, collected_at)`.
+- Migration `0001_core_tables`; đã test `downgrade base` → `upgrade head`.
