@@ -148,13 +148,13 @@
 **Tham chiếu:** §5.2 Stack (416–438) · §5.5 Cấu trúc repo (472–526) · §15.1 Topology (2918–2944) · §15.2 Biến môi trường (2945–2991)  
 **→ đọc khi:** dựng khung dự án, Docker, cấu hình ban đầu.
 
-- [ ] Khởi tạo repo cho ca ma nguon, khong duoc tao cac folder tung buoc nhu folder phase0, `.gitignore`, `.env.example`.
-- [ ] `docker-compose.yml` với db/backend/frontend/nginx.
-- [ ] FastAPI app + `/health`.
-- [ ] Config bằng Pydantic Settings.
-- [ ] SQLAlchemy async engine.
-- [ ] Alembic init + migration đầu.
-- [ ] CI tối thiểu: lint + typecheck + unit test.
+- [x] Khởi tạo repo cho ca ma nguon, khong duoc tao cac folder tung buoc nhu folder phase0, `.gitignore`, `.env.example`. → Bằng chứng: `backend/`, `frontend/`, `infra/`, `.gitignore`, `.env.example`; không tạo `phase1/`.
+- [x] `docker-compose.yml` với db/backend/frontend/nginx. → Bằng chứng: `docker compose config` OK; `docker compose up -d --build` OK.
+- [x] FastAPI app + `/health`. → Bằng chứng: `GET http://localhost:8000/health` → `{"status":"ok","database":"ok"}`.
+- [x] Config bằng Pydantic Settings. → Bằng chứng: `backend/app/core/config.py`.
+- [x] SQLAlchemy async engine. → Bằng chứng: `backend/app/core/database.py`.
+- [x] Alembic init + migration đầu. → Bằng chứng: `backend/alembic.ini`, `backend/migrations/`; `alembic upgrade head` OK.
+- [x] CI tối thiểu: lint + typecheck + unit test. → Bằng chứng: `.github/workflows/ci.yml`; local `ruff` pass, `pytest` 1 pass, `npm run build` OK.
 
 ### Bước 1.2 — Database & model lõi
 

@@ -125,3 +125,40 @@ Scripts:
 - `total` có thể đổi giữa các trang → luôn dedupe theo `leadPortfolioId`.
 - `positionShow=false` **không** chặn position-history.
 - Young portfolio: không giả định 4 window giống nhau; đã thấy ca 29,98 ngày khác window.
+
+---
+
+## 8. Phase 1 — Foundation + vertical slice
+
+### 8.1. Quyết định kỹ thuật
+
+- Backend: Python 3.12+, FastAPI async, SQLAlchemy 2.x async, Alembic.
+- DB URL dùng `postgresql+asyncpg://` cho app và migration.
+- Frontend: React 18 + Vite 6 + TypeScript + Tailwind 3.
+- Reverse proxy: Nginx, cổng ngoài **8080** (tránh xung đột cổng 80).
+- Compose gồm `db`, `backend`, `frontend`, `nginx`; volume `pgdata`.
+- CI: GitHub Actions, backend ruff + pytest, frontend `npm ci && npm run build`.
+
+### 8.2. Trạng thái bước
+
+| Bước | Trạng thái | Bằng chứng |
+|---|---|---|
+| 1.1 Khởi tạo repo & hạ tầng | `[x]` | compose up OK, `/health` OK, alembic OK, CI file có |
+| 1.2 Database & model | `[ ]` | — |
+| 1.3 Auth & RBAC | `[ ]` | — |
+| 1.4 Adapter + seed | `[ ]` | — |
+| 1.5 API trader detail | `[ ]` | — |
+| 1.6 Frontend tối giản | `[ ]` | — |
+| 1.7 QA & gate | `[ ]` | — |
+
+### 8.3. Lệnh kiểm tra 1.1
+
+```powershell
+docker compose config
+docker compose up -d --build
+Invoke-WebRequest -UseBasicParsing http://localhost:8000/health
+Invoke-WebRequest -UseBasicParsing http://localhost:8080/api/v1/health/db
+.\.venv\Scripts\ruff.exe check backend
+.\.venv\Scripts\pytest.exe backend\tests -q
+cd frontend; npm run build
+```

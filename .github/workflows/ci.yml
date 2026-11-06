@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: copytrade
+          POSTGRES_USER: copytrade
+          POSTGRES_PASSWORD: copytrade_dev_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U copytrade -d copytrade"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      DATABASE_URL: postgresql+asyncpg://copytrade:copytrade_dev_password@localhost:5432/copytrade
+      JWT_SECRET: ci-only-secret
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Cài dependency
+        run: pip install -r backend/requirements.txt
+      - name: Lint
+        run: ruff check backend
+      - name: Test
+        run: pytest backend/tests -q
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Cài dependency
+        run: npm ci
+        working-directory: frontend
+      - name: Build
+        run: npm run build
+        working-directory: frontend
