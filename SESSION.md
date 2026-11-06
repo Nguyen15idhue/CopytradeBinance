@@ -145,7 +145,7 @@ Scripts:
 |---|---|---|
 | 1.1 Khởi tạo repo & hạ tầng | `[x]` | compose up OK, `/health` OK, alembic OK, CI file có |
 | 1.2 Database & model | `[x]` | 4 bảng + migration `0001_core_tables`; downgrade/upgrade OK |
-| 1.3 Auth & RBAC | `[ ]` | — |
+| 1.3 Auth & RBAC | `[x]` | JWT access/refresh, Argon2id, RBAC, rate limit 429 lần 6 |
 | 1.4 Adapter + seed | `[ ]` | — |
 | 1.5 API trader detail | `[ ]` | — |
 | 1.6 Frontend tối giản | `[ ]` | — |
@@ -170,3 +170,13 @@ cd frontend; npm run build
 - `portfolio_snapshots.raw` và `performance_metrics.raw` dùng JSONB.
 - Unique: snapshot theo giờ + source; performance theo `(lead, time_range, collected_at)`.
 - Migration `0001_core_tables`; đã test `downgrade base` → `upgrade head`.
+
+### 8.5. Auth 1.3
+
+- Password hash: Argon2id (`argon2-cffi`).
+- JWT HS256: access 15 phút, refresh 7 ngày; refresh rotate và lưu hash trong `sessions`.
+- Endpoint: `/api/v1/auth/login`, `/refresh`, `/logout`, `/me`; admin check `/api/v1/admin/ping`.
+- Rate limit login 5/phút/IP bằng SlowAPI (in-memory Phase 1; Redis ở Phase 2).
+- Seed: `python -m app.seed all` tạo `admin@example.com` và `viewer@example.com`.
+- Smoke test: `scripts/smoke_auth.ps1`; rate limit: `scripts/test_rate_limit.ps1`.
+- Lưu ý: script `.ps1` lưu UTF-8 BOM, đặt `chcp 65001` để hiển thị tiếng Việt.

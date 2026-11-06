@@ -173,10 +173,10 @@
 **Tham chiếu:** §15.8 Security checklist (3070–3090) · §11.1 Quy ước API (1981–2007)  
 **→ đọc khi:** làm login/JWT/phân quyền.
 
-- [ ] Seed admin, login, JWT access/refresh.
-- [ ] RBAC `admin` / `viewer`, kiểm tra server-side.
-- [ ] Rate limit login 5/phút/IP.
-- [ ] Không trả token/secret về browser ngoài access token cần thiết.
+- [x] Seed admin, login, JWT access/refresh. → Bằng chứng: `app/seed.py`, `app/services/auth.py`; smoke login admin OK; refresh rotate OK, refresh cũ bị 401.
+- [x] RBAC `admin` / `viewer`, kiểm tra server-side. → Bằng chứng: `app/api/deps.py`; viewer gọi `/admin/ping` → 403.
+- [x] Rate limit login 5/phút/IP. → Bằng chứng: `slowapi`; `scripts/test_rate_limit.ps1` → lần 6 = 429.
+- [x] Không trả token/secret về browser ngoài access token cần thiết. → Bằng chứng: login chỉ trả access/refresh/user; không trả `password_hash`/`JWT_SECRET`.
 
 ### Bước 1.4 — Adapter + seed 2 trader
 
