@@ -17,12 +17,12 @@
 | Phase | Trạng thái | Thời lượng | Gate chính | Tham chiếu nhanh |
 |---|---|---:|---|---|
 | 0 — Data spike & pre-filter | `[x]` hoàn thành | 3–5 ngày | GO có điều kiện | `phase0/PHASE0_REPORT.md` |
-| 1 — Foundation + vertical slice | `[x]` hoàn thành | 5–7 ngày | 1 trader chạy E2E | §5.2 (416–438), §10.1 (1614–1920), §13.4 (2342–2453) |
-| 2 — Collector 2 tầng | `[ ]` | 4–6 ngày | Scan 11.124 ≥ 99%, Watch 400–700 | §6 (527–972), §12 (2102–2216) |
-| 3 — Quant + Scoring + Screener | `[ ]` | 7–9 ngày | Screener dùng được, score breakdown đúng | §8 (1186–1448), §9 (1449–1611) |
-| 4 — Detail + Compare + Risk | `[ ]` | 5–7 ngày | Detail sâu, compare 4 trader, risk evidence | §11.2–11.3 (2008–2056), §13.4–13.5 (2342–2486) |
-| 5 — AI + Settings + Hardening | `[ ]` | 5–7 ngày | AI không sửa score, config version/rollback | §11.5 (2070–2081), §13.6–13.7 (2487–2540), §15.8 (3070–3090) |
-| 6 — Testing + Deploy + Beta | `[ ]` | 4–6 ngày | Uptime 7 ngày, beta 3–5 user | §14 (2614–2915), §15 (2916–3123) |
+| 1 — Foundation + vertical slice | `[x]` hoàn thành | 5–7 ngày | 1 trader chạy E2E | §5.2 (417–439), §10.1 (1615–1921), §13.4 (2345–2456) |
+| 2 — Collector 2 tầng | `[ ]` | 4–6 ngày | Scan 11.124 ≥ 99%, Watch 400–700 | §6 (528–973), §12 (2105–2219) |
+| 3 — Quant + Scoring + Screener | `[ ]` | 7–9 ngày | Screener dùng được, score breakdown đúng | §8 (1187–1449), §9 (1450–1612) |
+| 4 — Detail + Compare + Risk | `[ ]` | 5–7 ngày | Detail sâu, compare 4 trader, risk evidence | §11.2–11.3 (2009–2057), §13.4–13.5 (2345–2489) |
+| 5 — AI + Settings + Hardening | `[ ]` | 5–7 ngày | AI không sửa score, config version/rollback | §11.5 (2071–2084), §13.6–13.7 (2490–2543), §15.8 (3075–3095) |
+| 6 — Testing + Deploy + Beta | `[ ]` | 4–6 ngày | Uptime 7 ngày, beta 3–5 user | §14 (2617–2918), §15 (2919–3128) |
 | | | **33–47 ngày** | +20% buffer → **40–56 ngày** | |
 
 **Đường găng:** Phase 1 → Phase 2 → Phase 3. Phase 4–5 có thể song song một phần nếu có thêm người.  
@@ -34,8 +34,8 @@
 
 | Ký hiệu | Nghĩa | Ví dụ |
 |---|---|---|
-| `§X.Y (A–B)` | Mục X.Y trong `KE-HOACH-TONG-THE.md`, từ dòng A đến dòng B | `§7.4 (1006–1020)` |
-| `§X (A–B)` | Toàn bộ mục X | `§12 (2102–2216)` |
+| `§X.Y (A–B)` | Mục X.Y trong `KE-HOACH-TONG-THE.md`, từ dòng A đến dòng B | `§7.4 (1007–1021)` |
+| `§X (A–B)` | Toàn bộ mục X | `§12 (2105–2219)` |
 | `→ đọc khi` | Thời điểm nên mở tài liệu | `→ đọc khi viết parser` |
 
 **Nguyên tắc:**  
@@ -145,7 +145,7 @@
 
 ### Bước 1.1 — Khởi tạo repo & hạ tầng
 
-**Tham chiếu:** §5.2 Stack (416–438) · §5.5 Cấu trúc repo (472–526) · §15.1 Topology (2918–2944) · §15.2 Biến môi trường (2945–2991)  
+**Tham chiếu:** §5.2 Stack (417–439) · §5.5 Cấu trúc repo (473–527) · §15.1 Topology (2921–2947) · §15.2 Biến môi trường (2948–2996)  
 **→ đọc khi:** dựng khung dự án, Docker, cấu hình ban đầu.
 
 - [x] Khởi tạo repo cho ca ma nguon, khong duoc tao cac folder tung buoc nhu folder phase0, `.gitignore`, `.env.example`. → Bằng chứng: `backend/`, `frontend/`, `infra/`, `.gitignore`, `.env.example`; không tạo `phase1/`.
@@ -158,7 +158,7 @@
 
 ### Bước 1.2 — Database & model lõi
 
-**Tham chiếu:** §10.1 Nhóm bảng (1614–1920) · §10.3 Index bắt buộc (1927–1939) · §10.4 Chống trùng & resume (1940–1951)  
+**Tham chiếu:** §10.1 Nhóm bảng (1615–1921) · §10.3 Index bắt buộc (1928–1940) · §10.4 Chống trùng & resume (1941–1952)  
 **→ đọc khi:** viết migration/model, chọn kiểu dữ liệu, index.
 
 - [x] Model `traders`. → Bằng chứng: `backend/app/models/trader.py`.
@@ -170,7 +170,7 @@
 
 ### Bước 1.3 — Auth & RBAC
 
-**Tham chiếu:** §15.8 Security checklist (3070–3090) · §11.1 Quy ước API (1981–2007)  
+**Tham chiếu:** §15.8 Security checklist (3075–3095) · §11.1 Quy ước API (1982–2008)  
 **→ đọc khi:** làm login/JWT/phân quyền.
 
 - [x] Seed admin, login, JWT access/refresh. → Bằng chứng: `app/seed.py`, `app/services/auth.py`; smoke login admin OK; refresh rotate OK, refresh cũ bị 401.
@@ -180,7 +180,7 @@
 
 ### Bước 1.4 — Adapter + seed 2 trader
 
-**Tham chiếu:** §12.1 Adapter interface (2104–2120) · §2.5 Sai lệch cần sửa (245–261) · §6.11 Bài học dữ liệu (896–972) · §7.4 Tiêu chí tier (1006–1020)  
+**Tham chiếu:** §12.1 Adapter interface (2107–2123) · §2.5 Sai lệch cần sửa (245–261) · §6.11 Bài học dữ liệu (897–973) · §7.4 Tiêu chí tier (1007–1021)  
 **→ đọc khi:** viết `DataSourceAdapter`, seed fixture, xử lý null/zero.
 
 - [x] `DataSourceAdapter` interface. → Bằng chứng: `backend/app/services/collector/base.py`.
@@ -192,7 +192,7 @@
 
 ### Bước 1.5 — API trader detail
 
-**Tham chiếu:** §11.2 Trader & screener (2008–2048) · §8.2 10 chỉ số cốt lõi (1205–1219) · §8.9 Quy tắc missing/null (1437–1448)  
+**Tham chiếu:** §11.2 Trader & screener (2009–2049) · §8.2 10 chỉ số cốt lõi (1206–1220) · §8.9 Quy tắc missing/null (1438–1449)  
 **→ đọc khi:** định nghĩa response, field null, tier/reason.
 
 - [x] API `/api/v1/traders/{id}`. → Bằng chứng: `app/api/v1/traders.py`; smoke 200 cho qualified/excluded.
@@ -202,7 +202,7 @@
 
 ### Bước 1.6 — Frontend tối giản
 
-**Tham chiếu:** §13.2 Layout (2232–2251) · §13.4 Trader Detail (2342–2453) · §13.8 Component & style (2541–2573)  
+**Tham chiếu:** §13.2 Layout (2235–2254) · §13.4 Trader Detail (2345–2456) · §13.8 Component & style (2544–2576)  
 **→ đọc khi:** dựng layout, trang detail, component.
 
 - [x] Vite + React + TS + Tailwind. → Bằng chứng: `frontend/`; `npm run build` pass.
@@ -215,7 +215,7 @@
 
 ### Bước 1.7 — QA & gate Phase 1
 
-**Tham chiếu:** §14.1 Test pyramid (2616–2628) · §14.6 Integration test (2786–2818) · §14.10 Acceptance MVP (2895–2915) · §22.4 Quy ước trạng thái (3559–3576)  
+**Tham chiếu:** §14.1 Test pyramid (2619–2631) · §14.6 Integration test (2789–2821) · §14.10 Acceptance MVP (2898–2918) · §22.4 Quy ước trạng thái (3564–3581)  
 **→ đọc khi:** viết test, kiểm tra gate.
 
 - [x] 3 unit test + 1 integration test. → Bằng chứng: `pytest` container: **12 passed** (11 unit + 1 integration API).
@@ -237,7 +237,7 @@
 
 ### Bước 2.1 — Adapter đầy đủ 6 endpoint
 
-**Tham chiếu:** §6.3 Danh sách endpoint (564–574) · §6.5 List (588–664) · §6.6 Detail (665–718) · §6.7 Performance (719–756) · §6.8 Position (757–809) · §6.9 Trade (810–859) · §6.10 Transfer (860–895) · §12.1 Adapter (2104–2120) · §12.3 Rate limit & retry (2133–2151)  
+**Tham chiếu:** §6.3 Danh sách endpoint (565–575) · §6.5 List (589–665) · §6.6 Detail (666–719) · §6.7 Performance (720–757) · §6.8 Position (758–810) · §6.9 Trade (811–860) · §6.10 Transfer (861–896) · §12.1 Adapter (2107–2123) · §12.3 Rate limit & retry (2136–2154)  
 **→ đọc khi:** viết adapter/parser, xử lý page size, base URL, retry.
 
 - [ ] `BinanceBapiAdapter` list (page size 30).
@@ -251,7 +251,7 @@
 
 ### Bước 2.2 — Tầng 0: Universe scan
 
-**Tham chiếu:** §7.1 Universe (975–985) · §7.2 Preset AUM (986–993) · §12.2 Chu kỳ thu thập (2121–2132) · §6.5 List trader (588–664)  
+**Tham chiếu:** §7.1 Universe (976–986) · §7.2 Preset AUM (987–994) · §12.2 Chu kỳ thu thập (2124–2135) · §6.5 List trader (589–665)  
 **→ đọc khi:** viết scan list, dedupe, snapshot.
 
 - [ ] Scan list PUBLIC + SIGNAL, **chỉ 90D**.
@@ -262,7 +262,7 @@
 
 ### Bước 2.3 — Tầng 1: Pre-filter, tier, pre-score
 
-**Tham chiếu:** §7.3 Các stage (994–1005) · §7.4 Tiêu chí tier (1006–1020) · §7.5 Mapping tier (1021–1031) · §7.6 Reason codes (1032–1046) · §7.7 Pre-score (1047–1067) · §7.12 Edge cases (1171–1185) · §12.7 Deep fetch selection (2179–2202)  
+**Tham chiếu:** §7.3 Các stage (995–1006) · §7.4 Tiêu chí tier (1007–1021) · §7.5 Mapping tier (1022–1032) · §7.6 Reason codes (1033–1047) · §7.7 Pre-score (1048–1068) · §7.12 Edge cases (1172–1186) · §12.7 Deep fetch selection (2182–2205)  
 **→ đọc khi:** viết/sửa logic tier, reason, thứ tự deep fetch.
 
 - [ ] Hàm `traded_last_7d`.
@@ -276,7 +276,7 @@
 
 ### Bước 2.4 — Tầng 2: Performance 4 window
 
-**Tham chiếu:** §6.7 Performance (719–756) · §8.4 T1 Published metrics (1236–1261) · §15.4 Lịch chạy (3008–3023)  
+**Tham chiếu:** §6.7 Performance (720–757) · §8.4 T1 Published metrics (1237–1262) · §15.4 Lịch chạy (3013–3028)  
 **→ đọc khi:** gọi performance, lưu metric, xử lý null.
 
 - [ ] Gọi performance 4 window cho toàn bộ Watch (~515).
@@ -286,7 +286,7 @@
 
 ### Bước 2.5 — Tầng 3: Detail + positions + transfers
 
-**Tham chiếu:** §6.6 Detail (665–718) · §6.8 Position history (757–809) · §6.10 Transfer history (860–895) · §7.11 Deep fetch policy (1156–1170) · §8.5 T2 Derived metrics (1262–1299)  
+**Tham chiếu:** §6.6 Detail (666–719) · §6.8 Position history (758–810) · §6.10 Transfer history (861–896) · §7.11 Deep fetch policy (1157–1171) · §8.5 T2 Derived metrics (1263–1300)  
 **→ đọc khi:** chọn trader deep fetch, parse position/transfer.
 
 - [ ] Gọi detail cho Qualified (~109) + top Watch (tối đa ~200) = ~109–309.
@@ -298,7 +298,7 @@
 
 ### Bước 2.6 — Tầng 4: Full trade history
 
-**Tham chiếu:** §6.9 Trade history (810–859) · §8.5 T2 Derived metrics (1262–1299) · §7.11 Deep fetch policy (1156–1170)  
+**Tham chiếu:** §6.9 Trade history (811–860) · §8.5 T2 Derived metrics (1263–1300) · §7.11 Deep fetch policy (1157–1171)  
 **→ đọc khi:** fetch đủ trang, tính chỉ số trade-level.
 
 - [ ] Gọi full trade-history cho High (~13).
@@ -308,7 +308,7 @@
 
 ### Bước 2.7 — Storage, scheduler, API vận hành
 
-**Tham chiếu:** §10.4 Chống trùng (1940–1951) · §10.5 JSONL archive (1952–1959) · §10.6 Retention (1960–1978) · §12.4 Scheduler (2152–2158) · §12.5 Resume (2159–2169) · §12.6 Logs (2170–2178) · §12.8 Kill switch (2203–2216) · §15.4 Lịch chạy (3008–3023) · §11.4 Data health API (2057–2069)  
+**Tham chiếu:** §10.4 Chống trùng (1941–1952) · §10.5 JSONL archive (1953–1960) · §10.6 Retention (1961–1979) · §12.4 Scheduler (2155–2161) · §12.5 Resume (2162–2172) · §12.6 Logs (2173–2181) · §12.8 Kill switch (2206–2219) · §15.4 Lịch chạy (3013–3028) · §11.4 Data health API (2058–2070)  
 **→ đọc khi:** làm scheduler, raw archive, data health.
 
 - [ ] JSONL archive append-only; nén sau 7 ngày.
@@ -327,7 +327,7 @@
 
 ### Bước 2.8 — QA & gate Phase 2
 
-**Tham chiếu:** §14.7 Data quality test (2819–2859) · §14.8 Performance test (2860–2874) · §14.10 Acceptance MVP (2895–2915)  
+**Tham chiếu:** §14.7 Data quality test (2822–2862) · §14.8 Performance test (2863–2877) · §14.10 Acceptance MVP (2898–2918)  
 **→ đọc khi:** kiểm tra coverage, duplicate, resume, excluded.
 
 - [ ] Scan đủ ≥ 99% của 11.124 trader trong 1 run.
@@ -350,7 +350,7 @@
 
 ### Bước 3.1 — Quant: published + derived metrics
 
-**Tham chiếu:** §8.3 T0 Metadata (1220–1235) · §8.4 T1 Published (1236–1261) · §8.5 T2 Derived (1262–1299) · §8.6 T3 Unavailable (1300–1312) · §8.7 Công thức (1313–1409) · §8.8 Data Confidence (1410–1436) · §8.9 Missing/null (1437–1448)  
+**Tham chiếu:** §8.3 T0 Metadata (1221–1236) · §8.4 T1 Published (1237–1262) · §8.5 T2 Derived (1263–1300) · §8.6 T3 Unavailable (1301–1313) · §8.7 Công thức (1314–1410) · §8.8 Data Confidence (1411–1437) · §8.9 Missing/null (1438–1449)  
 **→ đọc khi:** viết công thức, xử lý null/zero, confidence.
 
 - [ ] ROI wrapper (4 window, giữ nguyên published).
@@ -375,7 +375,7 @@
 
 ### Bước 3.2 — Funnel & tier
 
-**Tham chiếu:** §7.4 Tiêu chí tier (1006–1020) · §7.5 Mapping tier (1021–1031) · §7.6 Reason codes (1032–1046) · §7.7 Pre-score (1047–1067) · §7.10 Audit false negative (1122–1155) · §7.12 Edge cases (1171–1185) · §12.7 Deep fetch selection (2179–2202)  
+**Tham chiếu:** §7.4 Tiêu chí tier (1007–1021) · §7.5 Mapping tier (1022–1032) · §7.6 Reason codes (1033–1047) · §7.7 Pre-score (1048–1068) · §7.10 Audit false negative (1123–1156) · §7.12 Edge cases (1172–1186) · §12.7 Deep fetch selection (2182–2205)  
 **→ đọc khi:** chốt tier/reason, thứ tự ưu tiên, audit.
 
 - [ ] `potential_tier` (excluded/watch/qualified/high).
@@ -387,7 +387,7 @@
 
 ### Bước 3.3 — Risk rules
 
-**Tham chiếu:** §9.7 Risk rules (1544–1571) · §8.5 T2 Derived metrics (1262–1299)  
+**Tham chiếu:** §9.7 Risk rules (1545–1572) · §8.5 T2 Derived metrics (1263–1300)  
 **→ đọc khi:** viết R01–R11, severity, evidence.
 
 - [ ] R01–R11.
@@ -397,7 +397,7 @@
 
 ### Bước 3.4 — Scoring & versioning
 
-**Tham chiếu:** §9.1 Trọng số (1451–1463) · §9.2 Chuẩn hóa (1464–1487) · §9.3 Hard filters (1488–1501) · §9.4 Score bands (1502–1511) · §9.5 Score breakdown (1512–1535) · §9.6 Versioning (1536–1543)  
+**Tham chiếu:** §9.1 Trọng số (1452–1464) · §9.2 Chuẩn hóa (1465–1488) · §9.3 Hard filters (1489–1502) · §9.4 Score bands (1503–1512) · §9.5 Score breakdown (1513–1536) · §9.6 Versioning (1537–1544)  
 **→ đọc khi:** viết scoring, renormalize missing, version config.
 
 - [ ] `scoring_config_versions`.
@@ -412,7 +412,7 @@
 
 ### Bước 3.5 — Ranking 3 bảng
 
-**Tham chiếu:** §9.8 Ranking boards (1572–1583) · §9.9 Ví dụ trader mẫu (1584–1611)  
+**Tham chiếu:** §9.8 Ranking boards (1573–1584) · §9.9 Ví dụ trader mẫu (1585–1612)  
 **→ đọc khi:** định nghĩa Overall / Low Risk / Consistency.
 
 - [ ] Overall.
@@ -423,7 +423,7 @@
 
 ### Bước 3.6 — Screener API + UI
 
-**Tham chiếu:** §11.2 Trader & screener API (2008–2048) · §13.3 Màn hình Screener (2252–2341) · §11.6 Thứ tự implement API (2082–2089)  
+**Tham chiếu:** §11.2 Trader & screener API (2009–2049) · §13.3 Màn hình Screener (2255–2344) · §11.6 Thứ tự implement API (2085–2092)  
 **→ đọc khi:** làm filter/sort/pagination, bảng, saved views.
 
 - [ ] API `/traders` filter/sort/pagination + `potential_tier`.
@@ -440,7 +440,7 @@
 
 ### Bước 3.7 — QA & gate Phase 3
 
-**Tham chiếu:** §14.2 Golden dataset (2629–2645) · §14.3 Regression fixture (2646–2667) · §14.4 Unit test (2668–2745) · §14.10 Acceptance MVP (2895–2915)  
+**Tham chiếu:** §14.2 Golden dataset (2632–2648) · §14.3 Regression fixture (2649–2670) · §14.4 Unit test (2671–2748) · §14.10 Acceptance MVP (2898–2918)  
 **→ đọc khi:** viết test công thức/scoring, kiểm tra gate.
 
 - [ ] Golden dataset 12 archetype (gồm 2 excluded).
@@ -463,7 +463,7 @@
 
 ### Bước 4.1 — API detail mở rộng
 
-**Tham chiếu:** §11.2 Trader & screener (2008–2048) · §11.3 Ranking & compare (2049–2056) · §11.6 Thứ tự implement API (2082–2089)  
+**Tham chiếu:** §11.2 Trader & screener (2009–2049) · §11.3 Ranking & compare (2050–2057) · §11.6 Thứ tự implement API (2085–2092)  
 **→ đọc khi:** thêm endpoint performance/positions/trades/transfers/risk/score.
 
 - [ ] API `/traders/{id}/performance`.
@@ -476,7 +476,7 @@
 
 ### Bước 4.2 — Trader Detail UI
 
-**Tham chiếu:** §13.4 Trader Detail (2342–2453) · §8.2 10 chỉ số cốt lõi (1205–1219) · §13.11 Checklist UI (2596–2613)  
+**Tham chiếu:** §13.4 Trader Detail (2345–2456) · §8.2 10 chỉ số cốt lõi (1206–1220) · §13.11 Checklist UI (2599–2616)  
 **→ đọc khi:** dựng header, metric cards, chart, tooltip, empty state.
 
 - [ ] Trader Detail header.
@@ -495,7 +495,7 @@
 
 ### Bước 4.3 — Compare 2–4 trader
 
-**Tham chiếu:** §13.5 Màn hình Compare (2454–2486) · §11.3 Ranking & compare (2049–2056)  
+**Tham chiếu:** §13.5 Màn hình Compare (2457–2489) · §11.3 Ranking & compare (2050–2057)  
 **→ đọc khi:** làm bảng so sánh, correlation, deep link.
 
 - [ ] Compare page.
@@ -508,7 +508,7 @@
 
 ### Bước 4.4 — Risk Monitor
 
-**Tham chiếu:** §9.7 Risk rules (1544–1571) · §13.4 Trader Detail (2342–2453)  
+**Tham chiếu:** §9.7 Risk rules (1545–1572) · §13.4 Trader Detail (2345–2456)  
 **→ đọc khi:** làm danh sách risk event, filter, evidence.
 
 - [ ] Risk Monitor page.
@@ -519,7 +519,7 @@
 
 ### Bước 4.5 — QA & gate Phase 4
 
-**Tham chiếu:** §14.5 Contract test (2746–2785) · §14.10 Acceptance MVP (2895–2915) · §13.11 Checklist UI (2596–2613)  
+**Tham chiếu:** §14.5 Contract test (2749–2788) · §14.10 Acceptance MVP (2898–2918) · §13.11 Checklist UI (2599–2616)  
 **→ đọc khi:** kiểm tra contract, UI, evidence.
 
 - [ ] Mỗi chỉ số có tooltip + nguồn + cửa sổ.
@@ -541,38 +541,42 @@
 
 ### Bước 5.1 — AI report có kiểm soát
 
-**Tham chiếu:** §11.5 AI & settings API (2070–2081) · §13.7 Màn hình AI Report (2527–2540) · §3 D11 AI không sửa điểm (277–315) · §16.3 Rủi ro sản phẩm (3164–3178)  
+**Tham chiếu:** §11.5 AI & settings API (2071–2084) · §13.7 Màn hình AI Report (2530–2543) · §3 D11 + D31 (277–316) · §15.2 Biến môi trường (2948–2996) · §16.3 Rủi ro sản phẩm (3169–3183)  
 **→ đọc khi:** viết adapter/prompt/schema, evidence, cost control.
 
-- [ ] AI adapter.
+- [ ] Cấu hình OpenRouter trong `.env`: `OPENROUTER_API_KEY`, `AI_MODEL_PRIMARY`, `AI_MODEL_FALLBACK`.
+- [ ] AI adapter gọi OpenRouter (OpenAI-compatible), dùng model chính.
+- [ ] Fallback: lỗi/timeout/JSON invalid → thử model dự phòng 1 lần → template.
+- [ ] Lưu model đã dùng (primary/fallback), cost, latency vào report metadata.
+- [ ] Không log/không trả `OPENROUTER_API_KEY` về browser.
 - [ ] Prompt template + JSON schema.
 - [ ] Evidence IDs bắt buộc cho mọi nhận định.
 - [ ] Chỉ nhận dữ liệu đã chuẩn hóa, không nhận raw trade.
 - [ ] Cost tracking.
 - [ ] Budget ngày/tháng.
 - [ ] Cooldown 24h + dedupe input hash.
-- [ ] Fallback template khi AI lỗi/JSON invalid.
+- [ ] Fallback template cuối cùng khi cả 2 model đều lỗi.
 - [ ] AI Reports UI.
 - [ ] Nút Analyze trên Detail.
 - [ ] AI không sửa score/ranking.
 
 ### Bước 5.2 — Settings & versioning
 
-**Tham chiếu:** §9.6 Versioning (1536–1543) · §11.5 AI & settings API (2070–2081) · §13.6 Settings & Data Health (2487–2526)  
+**Tham chiếu:** §9.6 Versioning (1537–1544) · §11.5 AI & settings API (2071–2084) · §13.6 Settings & Data Health (2490–2529)  
 **→ đọc khi:** làm form cấu hình, preview impact, rollback.
 
 - [ ] Data Collection tab.
 - [ ] Data Health tab.
 - [ ] Scoring tab + preview impact.
 - [ ] Risk Rules tab.
-- [ ] AI tab.
+- [ ] AI tab: OpenRouter key (masked), `AI_MODEL_PRIMARY`, `AI_MODEL_FALLBACK`, budget.
 - [ ] Ranking tab.
 - [ ] Version + audit + rollback.
 - [ ] Validation + confirm khi thay đổi ảnh hưởng ranking.
 
 ### Bước 5.3 — Hardening
 
-**Tham chiếu:** §15.3 Quy trình deploy (2992–3007) · §15.5 Backup & restore (3024–3038) · §15.6 Monitoring (3039–3054) · §15.8 Security checklist (3070–3090)  
+**Tham chiếu:** §15.3 Quy trình deploy (2997–3012) · §15.5 Backup & restore (3029–3043) · §15.6 Monitoring (3044–3059) · §15.8 Security checklist (3075–3095)  
 **→ đọc khi:** mã hóa secret, rate limit, backup, alert.
 
 - [ ] Mã hóa API key at rest.
@@ -587,7 +591,7 @@
 
 ### Bước 5.4 — QA & gate Phase 5
 
-**Tham chiếu:** §14.9 Security checklist (2875–2894) · §14.10 Acceptance MVP (2895–2915) · §15.8 Security checklist (3070–3090)  
+**Tham chiếu:** §14.9 Security checklist (2878–2897) · §14.10 Acceptance MVP (2898–2918) · §15.8 Security checklist (3075–3095)  
 **→ đọc khi:** kiểm tra AI/evidence, settings rollback, bảo mật.
 
 - [ ] AI không sửa score.
@@ -610,7 +614,7 @@
 
 ### Bước 6.1 — Test toàn bộ
 
-**Tham chiếu:** §14.1 Test pyramid (2616–2628) · §14.2 Golden dataset (2629–2645) · §14.5 Contract test (2746–2785) · §14.6 Integration test (2786–2818) · §14.8 Performance test (2860–2874) · §14.10 Acceptance MVP (2895–2915)  
+**Tham chiếu:** §14.1 Test pyramid (2619–2631) · §14.2 Golden dataset (2632–2648) · §14.5 Contract test (2749–2788) · §14.6 Integration test (2789–2821) · §14.8 Performance test (2863–2877) · §14.10 Acceptance MVP (2898–2918)  
 **→ đọc khi:** chạy full suite, load test, regression.
 
 - [ ] Chạy full test suite (unit + integration + contract + E2E).
@@ -623,7 +627,7 @@
 
 ### Bước 6.2 — Deploy VPS
 
-**Tham chiếu:** §15.1 Topology (2918–2944) · §15.2 Biến môi trường (2945–2991) · §15.3 Quy trình deploy (2992–3007) · §15.4 Lịch chạy (3008–3023)  
+**Tham chiếu:** §15.1 Topology (2921–2947) · §15.2 Biến môi trường (2948–2996) · §15.3 Quy trình deploy (2997–3012) · §15.4 Lịch chạy (3013–3028)  
 **→ đọc khi:** dựng VPS, Nginx, TLS, migration, rollback.
 
 - [ ] Deploy VPS.
@@ -635,7 +639,7 @@
 
 ### Bước 6.3 — Monitoring & vận hành
 
-**Tham chiếu:** §15.5 Backup & restore (3024–3038) · §15.6 Monitoring & alert (3039–3054) · §15.7 Runbook sự cố (3055–3069) · §15.10 Tài liệu vận hành (3102–3110)  
+**Tham chiếu:** §15.5 Backup & restore (3029–3043) · §15.6 Monitoring & alert (3044–3059) · §15.7 Runbook sự cố (3060–3074) · §15.10 Tài liệu vận hành (3107–3115)  
 **→ đọc khi:** đặt alert, viết runbook, kiểm tra backup.
 
 - [ ] Alert collector fail/stale/disk/AI budget/5xx.
@@ -647,7 +651,7 @@
 
 ### Bước 6.4 — Beta & feedback
 
-**Tham chiếu:** §4.4 Tiêu chí thành công MVP (355–383) · §21 Việc cần làm ngay (3380–3478) · §18 Backlog v1.1 (3286–3314)  
+**Tham chiếu:** §4.4 Tiêu chí thành công MVP (356–384) · §21 Việc cần làm ngay (3385–3483) · §18 Backlog v1.1 (3291–3319)  
 **→ đọc khi:** chuẩn bị beta, thu feedback, chốt backlog.
 
 - [ ] Beta 3–5 user.
@@ -658,7 +662,7 @@
 
 ### Bước 6.5 — Gate Phase 6
 
-**Tham chiếu:** §14.10 Acceptance MVP (2895–2915) · §15.8 Security checklist (3070–3090)  
+**Tham chiếu:** §14.10 Acceptance MVP (2898–2918) · §15.8 Security checklist (3075–3095)  
 **→ đọc khi:** nghiệm thu cuối.
 
 - [ ] Uptime 7 ngày không crash nghiêm trọng.
@@ -674,7 +678,7 @@
 
 ## Definition of Done (mỗi phase)
 
-**Tham chiếu:** §22.4 Quy ước trạng thái & quản trị (3559–3576) · §14.10 Acceptance MVP (2895–2915)
+**Tham chiếu:** §22.4 Quy ước trạng thái & quản trị (3564–3581) · §14.10 Acceptance MVP (2898–2918)
 
 Một phase chỉ được coi là xong khi:
 
@@ -692,7 +696,7 @@ Một phase chỉ được coi là xong khi:
 
 ## Phụ thuộc & đường găng
 
-**Tham chiếu:** §5.4 Luồng xử lý (453–471) · §12.2 Chu kỳ thu thập (2121–2132)
+**Tham chiếu:** §5.4 Luồng xử lý (454–472) · §12.2 Chu kỳ thu thập (2124–2135)
 
 ```text
 Phase 0 (đã xong)

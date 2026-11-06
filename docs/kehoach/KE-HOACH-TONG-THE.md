@@ -1,9 +1,9 @@
 # KẾ HOẠCH TỔNG THỂ A→Z
 ## Binance Copy Trader Screener & Risk Analytics
 
-> **Phiên bản:** v3.1 — Consolidated Master Plan (tách checklist sang `TASKS.md`)  
+> **Phiên bản:** v3.2 — Consolidated Master Plan (OpenRouter AI 2 model)  
 > **Ngày lập:** 06/11/2026  
-> **Trạng thái:** Phase 0 gần hoàn tất (đã có bằng chứng chạy thật); Phase 1–6 chưa bắt đầu.  
+> **Trạng thái:** Phase 0 hoàn tất phần chính; Phase 1 đã hoàn thành; Phase 2–6 chưa bắt đầu.  
 > **Nguồn sự thật:**
 > - Hành vi code: `phase0/*.py`
 > - Số liệu vận hành: `phase0/data/*`
@@ -88,7 +88,7 @@ Không deep-fetch toàn bộ ~13.000 trader. Chỉ deep-fetch trader vượt qua
 | Hạng mục | Trạng thái | Bằng chứng |
 |---|---|---|
 | Phase 0 — Data spike | `[~]` gần xong | `phase0/data/scan_summary.json`, `deep_fetch_summary.json`, `audit_summary.json` |
-| Phase 1 — Backend/Frontend foundation | `[ ]` chưa bắt đầu | Chưa có `backend/`, `frontend/`, `docker-compose.yml` |
+| Phase 1 — Backend/Frontend foundation | `[x]` hoàn thành | `backend/`, `frontend/`, `docker-compose.yml`, API detail, E2E |
 | Phase 2 — Collector | `[ ]` chưa bắt đầu | Mới có script Phase 0, chưa có adapter production |
 | Phase 3 — Quant/Scoring/Screener | `[ ]` chưa bắt đầu | Chưa có backend API/UI |
 | Phase 4 — Detail/Compare/Risk | `[ ]` chưa bắt đầu | — |
@@ -200,7 +200,7 @@ CopytradeBinance/
 | Phase | Trạng thái | Ghi chú |
 |---|---|---|
 | 0 — Data spike & pre-filter | `[~]` ~95% | Đã có report + kiểm chứng; còn bug reason, chốt `mdd=None`/cohort, `.gitignore`/git |
-| 1 — Foundation + vertical slice | `[ ]` 0% | Chưa có backend/frontend |
+| 1 — Foundation + vertical slice | `[x]` 100% | Backend/frontend + 2 fixture + E2E; xem `SESSION.md` |
 | 2 — Collector 2 tầng + raw storage | `[ ]` 0% | Phase 0 scripts chưa phải production collector |
 | 3 — Quant + Scoring + Screener | `[ ]` 0% | — |
 | 4 — Detail + Compare + Risk | `[ ]` 0% | — |
@@ -310,6 +310,7 @@ Các quyết định dưới đây là **bất biến trong MVP**, trừ khi có
 | D28 | **Không hiển thị open positions** | Không có endpoint | Ghi “N/A — Binance không cung cấp” |
 | D29 | **Fee có thể âm (rebate)** | Dữ liệu thật cho thấy fee âm | Không coi là lỗi; hiển thị đúng dấu |
 | D30 | **Mọi chỉ số phải có nguồn + cửa sổ + độ tin cậy** | Tránh hiểu sai | Tooltip + badge bắt buộc |
+| D31 | **AI dùng OpenRouter, 2 model: primary + fallback** | Một API key, dễ đổi model, có dự phòng khi model chính lỗi | Env `OPENROUTER_API_KEY`, `AI_MODEL_PRIMARY`, `AI_MODEL_FALLBACK`; fallback chỉ khi lỗi/timeout/JSON invalid |
 
 ---
 
@@ -434,7 +435,7 @@ Các quyết định dưới đây là **bất biến trong MVP**, trừ khi có
 | Metrics | prometheus-fastapi-instrumentator | `/metrics` |
 | Test | pytest + respx | Unit + contract |
 | Deploy | Docker Compose + Nginx | 1 VPS |
-| AI | LLM API (OpenAI/Anthropic/khác) | Adapter pattern |
+| AI | OpenRouter (OpenAI-compatible) | 2 model: primary + fallback; adapter pattern |
 
 ### 5.3. Module backend
 
@@ -2079,6 +2080,8 @@ page, page_size (max 100)
 | GET | `/settings/versions` | Lịch sử version |
 | POST | `/settings/rollback/{version}` | Rollback (admin) |
 
+**Cấu hình AI:** dùng OpenRouter qua `OPENROUTER_API_KEY`; model chính `AI_MODEL_PRIMARY`, dự phòng `AI_MODEL_FALLBACK` đọc từ `.env`. Chỉ thử fallback 1 lần khi primary lỗi/timeout/JSON invalid; nếu cả hai lỗi → template. Không trả API key về browser.
+
 ### 11.6. Thứ tự implement API
 
 1. `/health` + auth + `/traders/{id}` (Phase 1).
@@ -2497,7 +2500,7 @@ Dữ liệu chưa đủ để kết luận:
 | **Data Health** | Lần chạy cuối, số trader theo tier, lỗi, stale, null rates |
 | **Scoring** | Trọng số, hard filters, version, rollback |
 | **Risk Rules** | Ngưỡng, bật/tắt, severity |
-| **AI** | Provider, model, temperature, budget, prompt version |
+| **AI** | OpenRouter (key masked), model primary/fallback, temperature, budget, prompt version |
 | **Ranking** | Bảng, filter, thời gian |
 | **System** | Log, backup, version, health |
 
@@ -2534,7 +2537,7 @@ Nút: `Run now`, `View logs`, `Download report`.
   - Risk flags.
   - “Chưa đủ dữ liệu để kết luận”.
   - Không đưa ra lời khuyên đầu tư.
-- Hiển thị model, prompt version, cost, thời gian.
+- Hiển thị model đã dùng (primary/fallback), prompt version, cost, latency. Fallback 1 lần khi primary lỗi/timeout/JSON invalid; nếu vẫn lỗi → template.
 - Không auto chạy mọi trader.
 - Cooldown 24h/trader.
 
@@ -2976,11 +2979,13 @@ BAPI_TIMEOUT_SECONDS=20
 BAPI_MAX_RETRIES=4
 COLLECTOR_KILL_SWITCH=false
 
-# AI (optional)
-AI_PROVIDER=openai
-AI_API_KEY=<encrypted-at-rest>
-AI_MODEL=<model-id>
+# AI (OpenRouter)
+OPENROUTER_API_KEY=<encrypted-at-rest>
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+AI_MODEL_PRIMARY=<primary-model-id>
+AI_MODEL_FALLBACK=<fallback-model-id>
 AI_MONTHLY_BUDGET_USD=20
+AI_TIMEOUT_SECONDS=60
 
 # Ops
 SENTRY_DSN=
@@ -3072,7 +3077,7 @@ pg_restore --clean --if-exists -d "$DATABASE_URL" /backups/copytrade_YYYY-MM-DD.
 - [ ] Password hash Argon2id hoặc bcrypt cost ≥ 12.
 - [ ] JWT access 15 phút, refresh 7 ngày, rotate refresh token.
 - [ ] RBAC `admin` / `viewer`; kiểm tra quyền ở server, không chỉ ẩn UI.
-- [ ] API key AI mã hóa at rest (KMS/secret store hoặc mã hóa ứng dụng).
+- [ ] API key AI (OpenRouter) mã hóa at rest (KMS/secret store hoặc mã hóa ứng dụng).
 - [ ] Không trả API key về browser; chỉ hiển thị trạng thái “đã cấu hình”.
 - [ ] CORS chỉ domain frontend; không `*` ở production.
 - [ ] Rate limit login 5/phút/IP; API 100/phút/user.
@@ -3167,12 +3172,12 @@ BAPI copy-trading **không phải API chính thức** trong Binance Developer Do
 |---|---|---|
 | Người dùng chase ROI | Chọn trader rủi ro cao | Score tổng hợp + risk flags; không có bảng “High Return” |
 | Dashboard quá nhiều số | Không ra quyết định | 10 chỉ số cốt lõi; phần còn lại trong “xem thêm” |
-| AI bịa | Mất niềm tin | Evidence IDs + JSON schema + fallback template |
+| AI bịa | Mất niềm tin | Evidence IDs + JSON schema + fallback model + template |
 | Scoring bị game | Trader tối ưu chỉ số | Percentile + hard filter + review định kỳ |
 | AUM hiểu sai | Đánh giá sai độ phổ biến | CopyAum + số copier riêng |
 | Paper Copy giả chính xác | Người dùng tin sai | Cắt khỏi MVP (D03) |
 | Cấu hình web phá hệ thống | Ranking sai | Version + validation + audit + rollback |
-| Quá nhiều tính năng | Trễ | Quyết định khóa D01–D30 |
+| Quá nhiều tính năng | Trễ | Quyết định khóa D01–D31 |
 | Người dùng hiểu “Excluded” là xấu | Bỏ qua trader tiềm năng | Giải thích lý do + “what’s missing” |
 | So sánh correlation gây hiểu nhầm | Ra quyết định phân bổ sai | Ghi rõ “estimated”, không dùng cho sizing |
 
@@ -3357,7 +3362,7 @@ Các mục dưới đây **chưa được khóa**; cần quyết định trướ
 | Q03 | Preset AUM mặc định | 1k / 5k / 10k / 20k | **5k (D22)** | Đã chốt | `[x]` |
 | Q04 | Mô hình kinh doanh | Free beta / subscription / API trả phí | Free beta → subscription sau | Trước Phase 6 | `[ ]` |
 | Q05 | Auth tự host hay OAuth | Email/password JWT / Google OAuth | **Email/password JWT** cho MVP | Phase 1 | `[ ]` |
-| Q06 | AI provider/model | OpenAI/Anthropic/local | Provider rẻ + JSON mode; dễ đổi adapter | Phase 5 | `[ ]` |
+| Q06 | AI provider/model | OpenRouter + 2 model | **Đã chốt:** primary + fallback qua `.env` (D31) | Phase 5 | `[x]` |
 | Q07 | Retention raw JSONL | 30/90/180 ngày | **90 ngày**, nén sau 7 ngày | Phase 2 | `[ ]` |
 | Q08 | Có hiển thị MDD tự tính không? | Ẩn / hiện “estimated” cạnh published | **Hiện trong audit panel**, không dùng ranking | Phase 3 | `[ ]` |
 | Q09 | SIGNAL có bị giảm trọng số? | Có / không | **Không** trong MVP; theo dõi riêng | Phase 3 | `[ ]` |
@@ -3386,7 +3391,7 @@ Các mục dưới đây **chưa được khóa**; cần quyết định trướ
 | 1 | Sửa `summarize_tiers()` đọc fallback `reasons` → `tier_reasons` | `tier_summary.csv` có reason > 0; test so với `scan_summary.json` | 30–60 phút |
 | 2 | Chốt `mdd=None`: đề xuất fail Qualified/High, Watch + flag | Quyết định ghi vào mục 20 (Q01) + code + test | 30 phút |
 | 3 | Chốt cohort `pre_score`: đề xuất gộp cho MVP | Quyết định Q02 + tooltip copy | 15 phút |
-| 4 | Cập nhật `SESSION.md` | Nhật ký D01–D30 + trạng thái + việc còn lại | 30 phút |
+| 4 | Cập nhật `SESSION.md` | Nhật ký D01–D31 + trạng thái + việc còn lại | 30 phút |
 | 5 | Sửa `.gitignore` từ `phase0/` → `phase0/data/` | `git status` thấy script, không thấy raw lớn | 10 phút |
 | 6 | Khởi tạo git repo + commit baseline | Commit đầu tiên, `git log` sạch | 15 phút |
 | 7 | Cập nhật `02-data-contract-binance.md` | Số 11.124/515/109; bỏ claim `positionShow` | 30 phút |
@@ -3607,6 +3612,7 @@ Nếu chỉ có 5 phút:
 | v2.0 | — | Bổ sung phễu 3 tầng, bỏ paper copy, 3 bảng ranking |
 | **v3.0** | **06/11/2026** | Hợp nhất 01–08 + TASKS + artifact Phase 0; thêm số liệu thực 11.124/515/109/13; D01–D30; Q01–Q20; checklist Phase 0–6; sửa các sai lệch tài liệu ↔ code |
 | **v3.1** | **07/11/2026** | Tách mục 17 (lộ trình/checklist) sang `TASKS.md`; TASKS.md có tham chiếu **mục + khoảng dòng** cho từng bước; Phase 0 giữ nguyên; cập nhật trạng thái `SESSION.md` |
+| **v3.2** | **07/11/2026** | Chốt AI dùng **OpenRouter**, 2 model primary + fallback qua `.env`; thêm D31, Q06; cập nhật stack, env, API settings, UI AI report và TASKS Phase 5 |
 
 ---
 
