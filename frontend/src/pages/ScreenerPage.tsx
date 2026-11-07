@@ -20,19 +20,19 @@ const TIER_LABELS: Record<string, string> = {
 };
 
 const TIER_STYLES: Record<string, string> = {
-  high_upper: "border-emerald-500/40 bg-emerald-500/10 text-emerald-300",
-  qualified_upper: "border-teal-500/40 bg-teal-500/10 text-teal-300",
-  watch: "border-sky-500/40 bg-sky-500/10 text-sky-300",
-  excluded: "border-amber-500/40 bg-amber-500/10 text-amber-300",
+  high_upper: "border-emerald-500/40 bg-emerald-500/10 text-accent",
+  qualified_upper: "border-teal-500/40 bg-teal-500/10 text-accent",
+  watch: "border-sky-500/40 bg-sky-500/10 text-info",
+  excluded: "border-amber-500/40 bg-amber-500/10 text-warn",
 };
 
 const RISK_STYLES: Record<string, string> = {
-  critical: "text-red-300",
-  high: "text-orange-300",
-  medium: "text-amber-300",
-  low: "text-sky-300",
-  none: "text-slate-400",
-  unknown: "text-slate-500",
+  critical: "text-danger",
+  high: "text-warn",
+  medium: "text-warn",
+  low: "text-info",
+  none: "text-muted",
+  unknown: "text-faint",
 };
 
 const SORT_OPTIONS = [
@@ -155,31 +155,31 @@ export default function ScreenerPage() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">Screener</h1>
-          <p className="mt-2 text-slate-400">
+          <p className="mt-2 text-muted">
             Lọc universe xuống shortlist theo score, rủi ro và chất lượng dữ liệu.
           </p>
         </div>
         {funnel.data ? (
           <div className="flex flex-wrap gap-2 text-sm">
-            <span className="rounded-full border border-slate-700 px-3 py-1 text-slate-300">
+            <span className="rounded-full border border-line px-3 py-1 text-body">
               Universe {compact(funnel.data.universe)}
             </span>
-            <span className="rounded-full border border-sky-500/40 bg-sky-500/10 px-3 py-1 text-sky-300">
+            <span className="rounded-full border border-sky-500/40 bg-sky-500/10 px-3 py-1 text-info">
               Watch {compact(funnel.data.watch + funnel.data.qualified + funnel.data.high)}
             </span>
-            <span className="rounded-full border border-teal-500/40 bg-teal-500/10 px-3 py-1 text-teal-300">
+            <span className="rounded-full border border-teal-500/40 bg-teal-500/10 px-3 py-1 text-accent">
               Qualified {compact(funnel.data.qualified + funnel.data.high)}
             </span>
-            <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-emerald-300">
+            <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-accent">
               High {compact(funnel.data.high)}
             </span>
           </div>
         ) : null}
       </div>
 
-      <section className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+      <section className="space-y-3 rounded-2xl border border-line bg-panel p-4">
         <div className="grid gap-3 md:grid-cols-4">
-          <label className="text-sm text-slate-300">
+          <label className="text-sm text-body">
             Tìm kiếm
             <input
               value={search}
@@ -188,10 +188,10 @@ export default function ScreenerPage() {
                 setPage(1);
               }}
               placeholder="nickname"
-              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100"
+              className="mt-1 w-full rounded-lg border border-line bg-app px-3 py-2 text-strong"
             />
           </label>
-          <label className="text-sm text-slate-300">
+          <label className="text-sm text-body">
             Tier
             <select
               value={tier}
@@ -199,7 +199,7 @@ export default function ScreenerPage() {
                 setTier(event.target.value);
                 setPage(1);
               }}
-              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100"
+              className="mt-1 w-full rounded-lg border border-line bg-app px-3 py-2 text-strong"
             >
               <option value="">Tất cả (trừ excluded)</option>
               <option value="high_upper">High</option>
@@ -208,7 +208,7 @@ export default function ScreenerPage() {
               <option value="excluded">Excluded</option>
             </select>
           </label>
-          <label className="text-sm text-slate-300">
+          <label className="text-sm text-body">
             Risk
             <select
               value={risk}
@@ -216,7 +216,7 @@ export default function ScreenerPage() {
                 setRisk(event.target.value);
                 setPage(1);
               }}
-              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100"
+              className="mt-1 w-full rounded-lg border border-line bg-app px-3 py-2 text-strong"
             >
               <option value="">Tất cả</option>
               <option value="critical">Critical</option>
@@ -225,13 +225,13 @@ export default function ScreenerPage() {
               <option value="low">Low</option>
             </select>
           </label>
-          <label className="text-sm text-slate-300">
+          <label className="text-sm text-body">
             Sắp xếp
             <div className="mt-1 flex gap-2">
               <select
                 value={sortBy}
                 onChange={(event) => setSortBy(event.target.value)}
-                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100"
+                className="w-full rounded-lg border border-line bg-app px-3 py-2 text-strong"
               >
                 {SORT_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -242,7 +242,7 @@ export default function ScreenerPage() {
               <button
                 type="button"
                 onClick={() => setSortDir(sortDir === "desc" ? "asc" : "desc")}
-                className="rounded-lg border border-slate-700 px-3 text-slate-300"
+                className="rounded-lg border border-line px-3 text-body"
               >
                 {sortDir === "desc" ? "↓" : "↑"}
               </button>
@@ -251,64 +251,64 @@ export default function ScreenerPage() {
         </div>
 
         <div className="grid gap-3 md:grid-cols-6">
-          <label className="text-xs uppercase tracking-wide text-slate-500">
+          <label className="text-xs uppercase tracking-wide text-faint">
             ROI ≥
             <input
               type="number"
               value={roiMin}
               onChange={(event) => { setRoiMin(event.target.value); setPage(1); }}
-              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-slate-100"
+              className="mt-1 w-full rounded-lg border border-line bg-app px-2 py-1.5 text-sm text-strong"
             />
           </label>
-          <label className="text-xs uppercase tracking-wide text-slate-500">
+          <label className="text-xs uppercase tracking-wide text-faint">
             MDD ≤
             <input
               type="number"
               value={mddMax}
               onChange={(event) => { setMddMax(event.target.value); setPage(1); }}
-              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-slate-100"
+              className="mt-1 w-full rounded-lg border border-line bg-app px-2 py-1.5 text-sm text-strong"
             />
           </label>
-          <label className="text-xs uppercase tracking-wide text-slate-500">
+          <label className="text-xs uppercase tracking-wide text-faint">
             Sharpe ≥
             <input
               type="number"
               value={sharpeMin}
               onChange={(event) => { setSharpeMin(event.target.value); setPage(1); }}
-              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-slate-100"
+              className="mt-1 w-full rounded-lg border border-line bg-app px-2 py-1.5 text-sm text-strong"
             />
           </label>
-          <label className="text-xs uppercase tracking-wide text-slate-500">
+          <label className="text-xs uppercase tracking-wide text-faint">
             WinRate ≥
             <input
               type="number"
               value={winRateMin}
               onChange={(event) => { setWinRateMin(event.target.value); setPage(1); }}
-              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-slate-100"
+              className="mt-1 w-full rounded-lg border border-line bg-app px-2 py-1.5 text-sm text-strong"
             />
           </label>
-          <label className="text-xs uppercase tracking-wide text-slate-500">
+          <label className="text-xs uppercase tracking-wide text-faint">
             Runtime ≥
             <input
               type="number"
               value={runtimeMin}
               onChange={(event) => { setRuntimeMin(event.target.value); setPage(1); }}
-              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-slate-100"
+              className="mt-1 w-full rounded-lg border border-line bg-app px-2 py-1.5 text-sm text-strong"
             />
           </label>
-          <label className="text-xs uppercase tracking-wide text-slate-500">
+          <label className="text-xs uppercase tracking-wide text-faint">
             Orders ≥
             <input
               type="number"
               value={ordersMin}
               onChange={(event) => { setOrdersMin(event.target.value); setPage(1); }}
-              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-slate-100"
+              className="mt-1 w-full rounded-lg border border-line bg-app px-2 py-1.5 text-sm text-strong"
             />
           </label>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 text-sm">
-          <label className="flex items-center gap-2 text-slate-300">
+          <label className="flex items-center gap-2 text-body">
             <input
               type="checkbox"
               checked={includeExcluded}
@@ -319,25 +319,25 @@ export default function ScreenerPage() {
             />
             Include excluded
           </label>
-          <label className="text-slate-300">
+          <label className="text-body">
             Leverage ≤
             <input
               type="number"
               value={leverageMax}
               onChange={(event) => setLeverageMax(event.target.value)}
-              className="ml-2 w-20 rounded border border-slate-700 bg-slate-950 px-2 py-1 text-slate-100"
+              className="ml-2 w-20 rounded border border-line bg-app px-2 py-1 text-strong"
             />
           </label>
           <button
             type="button"
             onClick={reset}
-            className="rounded-lg border border-slate-700 px-3 py-1.5 text-slate-300 hover:bg-slate-800"
+            className="rounded-lg border border-line px-3 py-1.5 text-body hover:bg-elevated"
           >
             Reset
           </button>
           <a
             href={`/api/v1/traders/export.csv?${toQuery(filters)}`}
-            className="rounded-lg border border-slate-700 px-3 py-1.5 text-slate-300 hover:bg-slate-800"
+            className="rounded-lg border border-line px-3 py-1.5 text-body hover:bg-elevated"
           >
             Export CSV
           </a>
@@ -346,7 +346,7 @@ export default function ScreenerPage() {
               value={viewName}
               onChange={(event) => setViewName(event.target.value)}
               placeholder="Tên view"
-              className="w-32 rounded border border-slate-700 bg-slate-950 px-2 py-1 text-slate-100"
+              className="w-32 rounded border border-line bg-app px-2 py-1 text-strong"
             />
             <button
               type="button"
@@ -364,13 +364,13 @@ export default function ScreenerPage() {
         </div>
 
         {views.data && views.data.length > 0 ? (
-          <div className="flex flex-wrap gap-2 border-t border-slate-800 pt-3 text-sm">
+          <div className="flex flex-wrap gap-2 border-t border-line pt-3 text-sm">
             {views.data.map((view) => (
-              <span key={view.id} className="flex items-center gap-1 rounded-full border border-slate-700 pl-3">
+              <span key={view.id} className="flex items-center gap-1 rounded-full border border-line pl-3">
                 <button
                   type="button"
                   onClick={() => applyView(view.filters)}
-                  className="py-1 text-slate-300 hover:text-white"
+                  className="py-1 text-body hover:text-white"
                 >
                   {view.name}
                 </button>
@@ -380,7 +380,7 @@ export default function ScreenerPage() {
                     await deleteView(view.id);
                     await views.refetch();
                   }}
-                  className="px-2 text-slate-500 hover:text-red-300"
+                  className="px-2 text-faint hover:text-danger"
                 >
                   ×
                 </button>
@@ -390,7 +390,7 @@ export default function ScreenerPage() {
         ) : null}
       </section>
 
-      <div className="flex items-center justify-between text-sm text-slate-400">
+      <div className="flex items-center justify-between text-sm text-muted">
         <span>{data ? `${compact(data.total)} trader khớp` : "Đang tải..."}</span>
         {data ? (
           <span>
@@ -400,30 +400,30 @@ export default function ScreenerPage() {
       </div>
 
       {screener.isLoading ? (
-        <div className="h-64 animate-pulse rounded-2xl bg-slate-900" />
+        <div className="h-64 animate-pulse rounded-2xl bg-panel" />
       ) : screener.isError ? (
-        <div className="rounded-2xl border border-red-500/30 bg-red-500/5 p-5 text-red-300">
+        <div className="rounded-2xl border border-red-500/30 bg-red-500/5 p-5 text-danger">
           Không tải được screener: {screener.error instanceof Error ? screener.error.message : "lỗi"}
         </div>
       ) : !data || data.items.length === 0 ? (
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-8 text-center">
-          <p className="text-slate-300">Không có trader khớp bộ lọc.</p>
+        <div className="rounded-2xl border border-line bg-panel p-8 text-center">
+          <p className="text-body">Không có trader khớp bộ lọc.</p>
           <div className="mt-4 flex flex-wrap justify-center gap-2 text-sm">
-            <button type="button" onClick={() => setMddMax("")} className="rounded-lg border border-slate-700 px-3 py-1.5 text-slate-300">
+            <button type="button" onClick={() => setMddMax("")} className="rounded-lg border border-line px-3 py-1.5 text-body">
               Bỏ filter MDD
             </button>
-            <button type="button" onClick={() => setRuntimeMin("30")} className="rounded-lg border border-slate-700 px-3 py-1.5 text-slate-300">
+            <button type="button" onClick={() => setRuntimeMin("30")} className="rounded-lg border border-line px-3 py-1.5 text-body">
               Runtime ≥ 30
             </button>
-            <button type="button" onClick={() => setIncludeExcluded(true)} className="rounded-lg border border-slate-700 px-3 py-1.5 text-slate-300">
+            <button type="button" onClick={() => setIncludeExcluded(true)} className="rounded-lg border border-line px-3 py-1.5 text-body">
               Xem cả excluded
             </button>
           </div>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/60">
+        <div className="overflow-x-auto rounded-2xl border border-line bg-panel">
           <table className="w-full min-w-[1100px] text-left text-sm">
-            <thead className="border-b border-slate-800 text-xs uppercase tracking-wide text-slate-500">
+            <thead className="border-b border-line text-xs uppercase tracking-wide text-faint">
               <tr>
                 <th className="px-3 py-3">Trader</th>
                 <th className="px-3 py-3">Tier</th>
@@ -440,17 +440,17 @@ export default function ScreenerPage() {
                 <th className="px-3 py-3">Risk</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800">
+            <tbody className="divide-y divide-line">
               {data.items.map((item) => (
-                <tr key={item.id} className="hover:bg-slate-800/40">
+                <tr key={item.id} className="hover:bg-elevated">
                   <td className="px-3 py-3">
-                    <Link to={`/traders/${item.id}`} className="text-slate-100 hover:text-emerald-300">
+                    <Link to={`/traders/${item.id}`} className="text-strong hover:text-accent">
                       {item.nickname ?? item.id}
                     </Link>
-                    <p className="text-xs text-slate-500">{item.portfolio_type ?? "N/A"}</p>
+                    <p className="text-xs text-faint">{item.portfolio_type ?? "N/A"}</p>
                   </td>
                   <td className="px-3 py-3">
-                    <span className={`rounded-full border px-2 py-0.5 text-xs ${TIER_STYLES[item.potential_tier] ?? "border-slate-700 text-slate-300"}`}>
+                    <span className={`rounded-full border px-2 py-0.5 text-xs ${TIER_STYLES[item.potential_tier] ?? "border-line text-body"}`}>
                       {TIER_LABELS[item.potential_tier] ?? item.potential_tier}
                     </span>
                   </td>
@@ -458,26 +458,26 @@ export default function ScreenerPage() {
                     <button
                       type="button"
                       onClick={() => setDrawer(item)}
-                      className="font-semibold text-slate-100 underline decoration-dotted hover:text-emerald-300"
+                      className="font-semibold text-strong hover:text-accent hover:underline"
                     >
                       {number(item.score, 1)}
                     </button>
-                    <p className="text-xs text-slate-500">{item.band ?? "—"}</p>
+                    <p className="text-xs text-faint">{item.band ?? "—"}</p>
                   </td>
-                  <td className="px-3 py-3 text-slate-300">{confidencePct(item.confidence)}</td>
-                  <td className="px-3 py-3 text-right text-slate-300">{number(item.roi_90d, 2, "%")}</td>
-                  <td className={`px-3 py-3 text-right ${(item.mdd_90d ?? 0) > 20 ? "text-red-300" : "text-slate-300"}`}>
+                  <td className="px-3 py-3 text-body">{confidencePct(item.confidence)}</td>
+                  <td className="px-3 py-3 text-right text-body">{number(item.roi_90d, 2, "%")}</td>
+                  <td className={`px-3 py-3 text-right ${(item.mdd_90d ?? 0) > 20 ? "text-danger" : "text-body"}`}>
                     {number(item.mdd_90d, 2, "%")}
                   </td>
-                  <td className="px-3 py-3 text-right text-slate-300">{number(item.sharpe)}</td>
-                  <td className="px-3 py-3 text-right text-slate-300">
+                  <td className="px-3 py-3 text-right text-body">{number(item.sharpe)}</td>
+                  <td className="px-3 py-3 text-right text-body">
                     {number(item.win_rate_order_90d, 1, "%")}
-                    {item.low_sample ? <span className="ml-1 text-amber-300">*</span> : null}
+                    {item.low_sample ? <span className="ml-1 text-warn">*</span> : null}
                   </td>
-                  <td className="px-3 py-3 text-right text-slate-300">{number(item.runtime_days, 0)}</td>
-                  <td className="px-3 py-3 text-right text-slate-300">{compact(item.current_copiers)}</td>
-                  <td className="px-3 py-3 text-right text-slate-300">{compact(item.copy_aum)}</td>
-                  <td className="px-3 py-3 text-right text-slate-300">{number(item.max_leverage, 1, "x")}</td>
+                  <td className="px-3 py-3 text-right text-body">{number(item.runtime_days, 0)}</td>
+                  <td className="px-3 py-3 text-right text-body">{compact(item.current_copiers)}</td>
+                  <td className="px-3 py-3 text-right text-body">{compact(item.copy_aum)}</td>
+                  <td className="px-3 py-3 text-right text-body">{number(item.max_leverage, 1, "x")}</td>
                   <td className={`px-3 py-3 capitalize ${RISK_STYLES[item.risk_level ?? "unknown"] ?? ""}`}>
                     {item.risk_level ?? "unknown"}
                   </td>
@@ -494,7 +494,7 @@ export default function ScreenerPage() {
             type="button"
             disabled={page <= 1}
             onClick={() => setPage(page - 1)}
-            className="rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-300 disabled:opacity-40"
+            className="rounded-lg border border-line px-3 py-1.5 text-sm text-body disabled:opacity-40"
           >
             Trang trước
           </button>
@@ -502,7 +502,7 @@ export default function ScreenerPage() {
             type="button"
             disabled={page >= totalPages}
             onClick={() => setPage(page + 1)}
-            className="rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-300 disabled:opacity-40"
+            className="rounded-lg border border-line px-3 py-1.5 text-sm text-body disabled:opacity-40"
           >
             Trang sau
           </button>
@@ -510,40 +510,40 @@ export default function ScreenerPage() {
       ) : null}
 
       {drawer ? (
-        <div className="fixed inset-0 z-40 flex justify-end bg-slate-950/70" onClick={() => setDrawer(null)}>
+        <div className="fixed inset-0 z-40 flex justify-end bg-app/70" onClick={() => setDrawer(null)}>
           <aside
-            className="h-full w-full max-w-md overflow-y-auto border-l border-slate-800 bg-slate-900 p-5"
+            className="h-full w-full max-w-md overflow-y-auto border-l border-line bg-panel p-5"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-start justify-between">
               <div>
                 <h2 className="text-xl font-semibold">{drawer.nickname ?? drawer.id}</h2>
-                <p className="text-sm text-slate-400">{drawer.band ?? "—"} · score {number(drawer.score, 1)}</p>
+                <p className="text-sm text-muted">{drawer.band ?? "—"} · score {number(drawer.score, 1)}</p>
               </div>
-              <button type="button" onClick={() => setDrawer(null)} className="text-slate-400">×</button>
+              <button type="button" onClick={() => setDrawer(null)} className="text-muted">×</button>
             </div>
             <div className="mt-4 space-y-2">
               {Object.entries(drawer.breakdown.components ?? {}).map(([group, value]) => (
                 <div key={group}>
                   <div className="flex justify-between text-sm">
-                    <span className="capitalize text-slate-300">{group.replaceAll("_", " ")}</span>
-                    <span className="text-slate-400">
+                    <span className="capitalize text-body">{group.replaceAll("_", " ")}</span>
+                    <span className="text-muted">
                       {number(value.score, 1)} · w{value.weight}
                     </span>
                   </div>
-                  <div className="mt-1 h-2 rounded bg-slate-800">
+                  <div className="mt-1 h-2 rounded bg-elevated">
                     <div className="h-2 rounded bg-emerald-500" style={{ width: `${Math.min(value.score, 100)}%` }} />
                   </div>
                 </div>
               ))}
             </div>
             {drawer.breakdown.missing?.length ? (
-              <p className="mt-4 text-xs text-amber-300">
+              <p className="mt-4 text-xs text-warn">
                 Thiếu thành phần: {drawer.breakdown.missing.join(", ")}
               </p>
             ) : null}
             {drawer.hard_flags.length ? (
-              <p className="mt-2 text-xs text-red-300">Hard flags: {drawer.hard_flags.join(", ")}</p>
+              <p className="mt-2 text-xs text-danger">Hard flags: {drawer.hard_flags.join(", ")}</p>
             ) : null}
             <Link
               to={`/traders/${drawer.id}`}

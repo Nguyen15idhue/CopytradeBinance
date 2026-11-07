@@ -13,7 +13,7 @@ import {
 
 import { getCompare, getScreener } from "../lib/api";
 
-const COLORS = ["#34d399", "#38bdf8", "#f59e0b", "#f472b6"];
+const COLORS = ["var(--accent)", "var(--info)", "var(--warn)", "var(--danger)"];
 
 const ROWS: Array<[string, (item: Record<string, unknown>) => string]> = [
   ["Tier", (item) => String(item.tier ?? "—")],
@@ -107,16 +107,16 @@ export default function ComparePage() {
     <div className="space-y-5">
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">Compare</h1>
-        <p className="mt-2 text-slate-400">So sánh 2–4 trader. Tối đa 4.</p>
+        <p className="mt-2 text-muted">So sánh 2–4 trader. Tối đa 4.</p>
       </div>
 
-      <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+      <section className="rounded-2xl border border-line bg-panel p-4">
         <div className="flex flex-wrap items-center gap-2">
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Tìm trader để thêm..."
-            className="w-64 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100"
+            className="w-64 rounded-lg border border-line bg-app px-3 py-2 text-strong"
           />
           {searchResults.data?.items.map((item) => (
             <button
@@ -126,25 +126,25 @@ export default function ComparePage() {
               disabled={ids.length >= 4 && !ids.includes(item.id)}
               className={`rounded-full border px-3 py-1 text-sm ${
                 ids.includes(item.id)
-                  ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-300"
-                  : "border-slate-700 text-slate-300"
+                  ? "border-emerald-500/50 bg-emerald-500/10 text-accent"
+                  : "border-line text-body"
               } disabled:opacity-40`}
             >
               {item.nickname ?? item.id}
             </button>
           ))}
-          <span className="ml-auto text-xs text-slate-500">{ids.length}/4 đã chọn</span>
+          <span className="ml-auto text-xs text-faint">{ids.length}/4 đã chọn</span>
         </div>
         {ids.length ? (
-          <div className="mt-3 flex flex-wrap gap-2 border-t border-slate-800 pt-3">
+          <div className="mt-3 flex flex-wrap gap-2 border-t border-line pt-3">
             {ids.map((id, index) => (
               <span
                 key={id}
-                className="flex items-center gap-2 rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-300"
+                className="flex items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-body"
               >
                 <span className="h-2 w-2 rounded-full" style={{ background: COLORS[index % COLORS.length] }} />
                 {id}
-                <button type="button" onClick={() => toggle(id)} className="text-slate-500 hover:text-red-300">
+                <button type="button" onClick={() => toggle(id)} className="text-faint hover:text-danger">
                   ×
                 </button>
               </span>
@@ -154,25 +154,25 @@ export default function ComparePage() {
       </section>
 
       {ids.length < 2 ? (
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-8 text-center text-slate-400">
+        <div className="rounded-2xl border border-line bg-panel p-8 text-center text-muted">
           Chọn ít nhất 2 trader để so sánh.
         </div>
       ) : compare.isLoading ? (
-        <div className="h-64 animate-pulse rounded-2xl bg-slate-900" />
+        <div className="h-64 animate-pulse rounded-2xl bg-panel" />
       ) : compare.isError || !compare.data ? (
-        <div className="rounded-2xl border border-red-500/30 bg-red-500/5 p-5 text-red-300">
+        <div className="rounded-2xl border border-red-500/30 bg-red-500/5 p-5 text-danger">
           Không tải được compare: {compare.error instanceof Error ? compare.error.message : "lỗi"}
         </div>
       ) : (
         <>
-          <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/60">
+          <div className="overflow-x-auto rounded-2xl border border-line bg-panel">
             <table className="w-full min-w-[720px] text-left text-sm">
-              <thead className="border-b border-slate-800 text-xs uppercase tracking-wide text-slate-500">
+              <thead className="border-b border-line text-xs uppercase tracking-wide text-faint">
                 <tr>
                   <th className="px-3 py-3">Chỉ số</th>
                   {compare.data.items.map((item, index) => (
                     <th key={item.id} className="px-3 py-3">
-                      <Link to={`/traders/${item.id}`} className="hover:text-emerald-300">
+                      <Link to={`/traders/${item.id}`} className="hover:text-accent">
                         <span className="mr-1 inline-block h-2 w-2 rounded-full" style={{ background: COLORS[index % COLORS.length] }} />
                         {item.nickname ?? item.id.slice(0, 8)}
                       </Link>
@@ -180,12 +180,12 @@ export default function ComparePage() {
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800">
+              <tbody className="divide-y divide-line">
                 {ROWS.map(([label, render]) => (
                   <tr key={label}>
-                    <td className="px-3 py-2 text-slate-500">{label}</td>
+                    <td className="px-3 py-2 text-faint">{label}</td>
                     {compare.data!.items.map((item) => (
-                      <td key={item.id} className="px-3 py-2 text-slate-200">
+                      <td key={item.id} className="px-3 py-2 text-strong">
                         {render(item as unknown as Record<string, unknown>)}
                       </td>
                     ))}
@@ -195,17 +195,17 @@ export default function ComparePage() {
             </table>
           </div>
 
-          <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-            <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">ROI lũy kế</h2>
-            <p className="mt-1 text-xs text-slate-500">chartItems từ Binance, bị pha loãng bởi nạp/rút.</p>
+          <section className="rounded-2xl border border-line bg-panel p-5">
+            <h2 className="text-sm font-medium uppercase tracking-wide text-faint">ROI lũy kế</h2>
+            <p className="mt-1 text-xs text-faint">chartItems từ Binance, bị pha loãng bởi nạp/rút.</p>
             <div className="mt-3 h-64">
               {chart.length ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chart}>
-                    <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" />
-                    <XAxis dataKey="date" tick={{ fill: "#64748b", fontSize: 11 }} minTickGap={40} />
-                    <YAxis tick={{ fill: "#64748b", fontSize: 11 }} width={50} />
-                    <Tooltip contentStyle={{ background: "#0f172a", border: "1px solid #334155" }} />
+                    <CartesianGrid stroke="var(--line)" strokeDasharray="3 3" />
+                    <XAxis dataKey="date" tick={{ fill: "var(--text-faint)", fontSize: 11 }} minTickGap={40} />
+                    <YAxis tick={{ fill: "var(--text-faint)", fontSize: 11 }} width={50} />
+                    <Tooltip contentStyle={{ background: "var(--panel)", border: "1px solid var(--line)", color: "var(--text-body)" }} />
                     {compare.data.items.map((item, index) => (
                       <Line
                         key={item.id}
@@ -219,22 +219,22 @@ export default function ComparePage() {
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
-                <p className="text-sm text-slate-400">Không có chuỗi chartItems để vẽ.</p>
+                <p className="text-sm text-muted">Không có chuỗi chartItems để vẽ.</p>
               )}
             </div>
           </section>
 
-          <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
+          <section className="rounded-2xl border border-line bg-panel p-5">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-sm font-medium uppercase tracking-wide text-slate-500">Correlation</h2>
-              <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-xs text-amber-300">
+              <h2 className="text-sm font-medium uppercase tracking-wide text-faint">Correlation</h2>
+              <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-xs text-warn">
                 estimated
               </span>
             </div>
-            <p className="mt-1 text-xs text-slate-500">{compare.data.correlation.disclaimer}</p>
+            <p className="mt-1 text-xs text-faint">{compare.data.correlation.disclaimer}</p>
             <div className="mt-3 overflow-x-auto">
               <table className="text-left text-sm">
-                <thead className="text-xs uppercase tracking-wide text-slate-500">
+                <thead className="text-xs uppercase tracking-wide text-faint">
                   <tr>
                     <th className="px-3 py-2"></th>
                     {compare.data.correlation.ids.map((id) => (
@@ -247,7 +247,7 @@ export default function ComparePage() {
                 <tbody>
                   {compare.data.correlation.matrix.map((row, rowIndex) => (
                     <tr key={compare.data!.correlation.ids[rowIndex]}>
-                      <td className="px-3 py-2 font-mono text-[10px] text-slate-500">
+                      <td className="px-3 py-2 font-mono text-[10px] text-faint">
                         {compare.data!.correlation.ids[rowIndex].slice(0, 8)}
                       </td>
                       {row.map((value, columnIndex) => (
@@ -255,12 +255,12 @@ export default function ComparePage() {
                           key={`${rowIndex}-${columnIndex}`}
                           className={`px-3 py-2 ${
                             value === null
-                              ? "text-slate-500"
+                              ? "text-faint"
                               : value > 0.7
-                                ? "text-red-300"
+                                ? "text-danger"
                                 : value > 0.3
-                                  ? "text-amber-300"
-                                  : "text-emerald-300"
+                                  ? "text-warn"
+                                  : "text-accent"
                           }`}
                         >
                           {value === null ? "N/A" : value.toFixed(2)}
@@ -271,7 +271,7 @@ export default function ComparePage() {
                 </tbody>
               </table>
             </div>
-            <p className="mt-2 text-xs text-slate-500">
+            <p className="mt-2 text-xs text-faint">
               Mẫu chung: {compare.data.correlation.sample_days} ngày (cần ≥ 30 để tính).
             </p>
           </section>

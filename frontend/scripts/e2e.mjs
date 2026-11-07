@@ -38,6 +38,19 @@ try {
   await page.getByRole("heading", { name: "Trader demo" }).waitFor();
   console.log("Đăng nhập: OK");
 
+  await page.getByRole("button", { name: /Sáng/ }).click();
+  await page.waitForFunction(() => document.documentElement.classList.contains("light"));
+  await page.waitForFunction(
+    () => getComputedStyle(document.body).backgroundColor === "rgb(248, 250, 252)",
+  );
+  await page.getByRole("button", { name: /Tối/ }).click();
+  await page.waitForFunction(() => document.documentElement.classList.contains("dark"));
+  await page.waitForFunction(
+    () => getComputedStyle(document.body).backgroundColor === "rgb(2, 6, 23)",
+  );
+  await page.getByRole("button", { name: /Hệ thống/ }).click();
+  console.log("Theme light/dark/system: OK");
+
   await page.getByRole("link", { name: "Data Health" }).click();
   await page.getByRole("heading", { name: "Data Health" }).waitFor();
   await page.getByRole("heading", { name: "Universe theo tier" }).waitFor();

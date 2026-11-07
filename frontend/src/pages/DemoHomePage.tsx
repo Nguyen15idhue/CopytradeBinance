@@ -22,7 +22,7 @@ export default function DemoHomePage() {
     <div>
       <div className="max-w-2xl">
         <h1 className="text-3xl font-semibold tracking-tight">Trader demo</h1>
-        <p className="mt-2 text-slate-400">
+        <p className="mt-2 text-muted">
           Hai fixture Phase 0 dùng để kiểm tra luồng collect → raw → API → UI. Không phải
           dữ liệu thị trường realtime.
         </p>
@@ -33,16 +33,16 @@ export default function DemoHomePage() {
           <Link
             key={trader.id}
             to={`/traders/${trader.id}`}
-            className={`rounded-2xl border p-5 transition hover:-translate-y-0.5 hover:border-slate-500 ${trader.className}`}
+            className={`rounded-2xl border p-5 transition hover:-translate-y-0.5 hover:border-muted ${trader.className}`}
           >
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">{trader.name}</h2>
-              <span className="rounded-full border border-slate-700 px-2 py-0.5 text-xs uppercase text-slate-300">
+              <span className="rounded-full border border-line px-2 py-0.5 text-xs uppercase text-body">
                 {trader.tier}
               </span>
             </div>
-            <p className="mt-3 text-sm text-slate-400">{trader.description}</p>
-            <p className="mt-4 font-mono text-xs text-slate-500">{trader.id}</p>
+            <p className="mt-3 text-sm text-muted">{trader.description}</p>
+            <p className="mt-4 font-mono text-xs text-faint">{trader.id}</p>
           </Link>
         ))}
       </div>

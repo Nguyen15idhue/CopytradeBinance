@@ -4,10 +4,48 @@
 
 :root {
   color-scheme: dark;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --bg: #020617;
+  --panel: #0f172a;
+  --elevated: #1e293b;
+  --line: #1e293b;
+  --text-strong: #f1f5f9;
+  --text-body: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-faint: #64748b;
+  --accent: #34d399;
+  --info: #7dd3fc;
+  --warn: #fcd34d;
+  --danger: #fca5a5;
 }
 
+html.light {
+  color-scheme: light;
+  --bg: #f8fafc;
+  --panel: #ffffff;
+  --elevated: #f1f5f9;
+  --line: #e2e8f0;
+  --text-strong: #0f172a;
+  --text-body: #334155;
+  --text-muted: #64748b;
+  --text-faint: #94a3b8;
+  --accent: #047857;
+  --info: #0369a1;
+  --warn: #b45309;
+  --danger: #b91c1c;
+}
+
+html,
 body {
   margin: 0;
-  background: #020617;
+  background: var(--bg);
+  color: var(--text-body);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+input,
+select,
+textarea,
+button {
+  color: inherit;
 }

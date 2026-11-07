@@ -432,3 +432,13 @@ cd frontend; npm run build
 | Báo cáo | `docs/kehoach/PHASE4-REPORT.md` |
 
 **Gate Phase 4: ĐẠT.**
+
+---
+
+## 12. Giao diện sáng/tối (07/11/2026)
+
+- Thêm 3 chế độ Sáng / Tối / Hệ thống; mặc định theo OS, lưu `ct_theme_mode`.
+- Token màu semantic (`bg-app/panel/elevated`, `text-strong/body/muted/faint`, `accent/info/warn/danger`)
+  khai báo trong `index.css` + `tailwind.config.js`; thay toàn bộ màu slate cứng trong 8 file UI.
+- Chart dùng CSS var; nút chuyển ở topbar và trang login.
+- Tài liệu: `docs/ui-theme.md`; E2E kiểm tra light/dark/system.

@@ -33,6 +33,12 @@ phase0/         Bằng chứng spike dữ liệu (không commit data/)
 data/raw/       JSONL archive (không commit)
 ```
 
+## Giao diện sáng / tối
+
+- Nút chuyển ở topbar (và trang đăng nhập): **Sáng / Tối / Hệ thống**.
+- Mặc định theo OS, lưu lựa chọn ở `localStorage`.
+- Chi tiết token và quy tắc màu: `docs/ui-theme.md`.
+
 ## Collector Phase 2
 
 - `worker` chạy scheduler: scan 60 phút; performance 6h; detail 12h; trades 24h.
