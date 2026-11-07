@@ -28,6 +28,42 @@ interface ChatMessage extends AgentMessageItem {
   pending?: boolean;
 }
 
+function SourceLabel({ source }: { source: string }) {
+  if (source === "web") return "Web";
+  if (source === "docs" || source === "code") return "Tài liệu";
+  return "Dữ liệu";
+}
+
+function CitationChips({ items }: { items: AgentCitation[] }) {
+  if (items.length === 0) return null;
+  const groups = new Map<string, AgentCitation[]>();
+  for (const item of items) {
+    const key = item.source_type || "database";
+    groups.set(key, [...(groups.get(key) ?? []), item]);
+  }
+  return (
+    <div className="mt-1 space-y-1">
+      {[...groups.entries()].map(([source, cites]) => (
+        <div key={source} className="flex flex-wrap items-center gap-1">
+          <span className="text-[11px] font-medium text-muted">
+            <SourceLabel source={source} />:
+          </span>
+          {cites.map((cite, index) => (
+            <span
+              key={index}
+              title={cite.as_of ? `Cập nhật: ${cite.as_of}` : ""}
+              className="rounded-full border border-line px-2 py-0.5 text-[11px] text-muted"
+            >
+              {cite.ref}
+              {cite.as_of ? ` · ${cite.as_of.slice(0, 10)}` : ""}
+            </span>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function TraceBox({ traces }: { traces: AgentTrace[] }) {
   const [open, setOpen] = useState(false);
   if (traces.length === 0) return null;
@@ -281,19 +317,7 @@ export default function AgentPanel({ onClose }: { onClose: () => void }) {
             {item.role === "assistant" ? (
               <>
                 <TraceBox traces={item.traces ?? []} />
-                {(item.citations ?? []).length > 0 ? (
-                  <div className="mt-1 flex flex-wrap gap-1">
-                    {item.citations!.map((cite, index) => (
-                      <span
-                        key={index}
-                        title={cite.as_of ?? ""}
-                        className="rounded-full border border-line px-2 py-0.5 text-[11px] text-muted"
-                      >
-                        {cite.source_type}: {cite.ref}
-                      </span>
-                    ))}
-                  </div>
-                ) : null}
+                <CitationChips items={item.citations ?? []} />
                 {(item.warnings ?? []).map((warning, index) => (
                   <p key={index} className="mt-1 text-xs text-warn">
                     ⚠ {warning}

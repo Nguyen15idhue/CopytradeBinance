@@ -75,3 +75,58 @@ def verify_answer(
         "unverified_numbers": unverified,
         "unknown_ids": unknown_ids,
     }
+
+
+def check_units(answer: str, facts: list[dict]) -> list[str]:
+    """Cảnh báo khi đơn vị trong câu trả lời khác đơn vị của fact cùng giá trị."""
+    warnings: list[str] = []
+    unit_by_value: dict[str, str] = {}
+    for fact in facts:
+        unit = str(fact.get("unit") or "").strip().lower()
+        if unit:
+            unit_by_value[_norm_number(str(fact.get("value", "")))] = unit
+    for match in NUMBER_RE.finditer(answer or ""):
+        raw = match.group(0)
+        lower = raw.lower()
+        if "%" in lower:
+            unit = "%"
+        elif "usdt" in lower:
+            unit = "usdt"
+        elif lower.endswith("x"):
+            unit = "x"
+        else:
+            unit = ""
+        if not unit:
+            continue
+        bare = re.sub(r"(%|usdt|x)$", "", _norm_number(raw))
+        expected = unit_by_value.get(bare)
+        if expected and expected != unit:
+            warnings.append(f"Đơn vị {raw} khác evidence ({expected})")
+    return warnings
+
+
+def build_answer_contract(
+    answer: str,
+    facts: list[dict],
+    citations: list[dict],
+    assumptions: list[str] | None = None,
+    missing_data: list[str] | None = None,
+    warnings: list[str] | None = None,
+) -> dict:
+    """Answer contract: facts/citations/assumptions/missing_data + confidence."""
+    warnings = warnings or []
+    if not facts:
+        confidence = "low"
+    elif warnings:
+        confidence = "medium"
+    else:
+        confidence = "high"
+    return {
+        "answer": answer,
+        "facts": facts,
+        "citations": citations,
+        "assumptions": assumptions or [],
+        "missing_data": missing_data or [],
+        "confidence": confidence,
+        "warnings": warnings,
+    }

@@ -314,10 +314,12 @@ try {
     }),
   );
   await page.getByRole("button", { name: "Mở trợ lý AI" }).click();
-  await page.getByRole("dialog", { name: "Trợ lý AI" }).waitFor();
-  await page.getByRole("button", { name: /Top 10 trader an toàn/ }).click();
-  await page.getByText("ROI 90D là 19,19%").waitFor();
-  await page.getByText("database: roi_90d").waitFor();
+  const dialog = page.getByRole("dialog", { name: "Trợ lý AI" });
+  await dialog.waitFor();
+  await dialog.getByRole("button", { name: /Top 10 trader an toàn/ }).click();
+  await dialog.getByText("ROI 90D là 19,19%").waitFor();
+  await dialog.getByText("roi_90d").waitFor();
+  await dialog.getByText("Dữ liệu:").waitFor();
   body = await page.locator("body").innerText();
   assert(!body.includes("undefined") && !body.includes("NaN"), "Agent UI có undefined/NaN");
   await page.keyboard.press("Escape");

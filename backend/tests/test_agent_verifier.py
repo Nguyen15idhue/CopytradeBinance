@@ -1,0 +1,53 @@
+from app.services.agent.verifier import (
+    build_answer_contract,
+    check_units,
+    verify_answer,
+)
+
+
+def test_hallucinated_number_flagged() -> None:
+    facts = [{"id": "roi_90d", "value": 19.19, "unit": "%"}]
+    result = verify_answer("ROI lên tới 250% thật ấn tượng.", facts, row_ids=[])
+    assert result["unverified_numbers"]
+    assert any("chưa có nguồn" in w for w in result["warnings"])
+
+
+def test_grounded_numbers_pass() -> None:
+    facts = [
+        {"id": "roi_90d", "value": 19.19, "unit": "%"},
+        {"id": "mdd_90d", "value": 8.54, "unit": "%"},
+    ]
+    result = verify_answer("ROI 19.19%, MDD 8.54%.", facts, row_ids=[])
+    assert result["unverified_numbers"] == []
+    assert result["unknown_ids"] == []
+
+
+def test_mixed_trader_ids_flagged() -> None:
+    result = verify_answer(
+        "So sánh 5143921081414022657 và 5296057151807357697.",
+        [],
+        row_ids=["5143921081414022657"],
+    )
+    assert result["unknown_ids"] == ["5296057151807357697"]
+
+
+def test_unit_mismatch_warning() -> None:
+    facts = [{"id": "roi_90d", "value": 19.19, "unit": "%"}]
+    warnings = check_units("ROI 19.19 USDT rất cao.", facts)
+    assert warnings
+    assert not check_units("ROI 19.19% rất cao.", facts)
+
+
+def test_advice_gets_disclaimer() -> None:
+    result = verify_answer("Bạn nên copy trader này ngay.", [], row_ids=[])
+    assert "không phải lời khuyên đầu tư" in result["answer"]
+
+
+def test_contract_confidence_levels() -> None:
+    high = build_answer_contract("ok", [{"id": "a"}], [{"ref": "a"}])
+    assert high["confidence"] == "high"
+    medium = build_answer_contract("ok", [{"id": "a"}], [], warnings=["w"])
+    assert medium["confidence"] == "medium"
+    low = build_answer_contract("không rõ", [], [])
+    assert low["confidence"] == "low"
+    assert low["missing_data"] == []

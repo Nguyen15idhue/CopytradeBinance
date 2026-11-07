@@ -16,7 +16,7 @@ from app.models.agent import AgentCitation, AgentMessage, AgentSession, AgentToo
 from app.services.agent.model_client import call_agent_model
 from app.services.agent.schema import AgentAnswer, SseEvent, utcnow_iso
 from app.services.agent.tools import check_agent_budget, record_agent_usage, run_tool, tool_specs
-from app.services.agent.verifier import verify_answer
+from app.services.agent.verifier import build_answer_contract, check_units, verify_answer
 
 SYSTEM_PROMPT = (
     "Bạn là trợ lý AI của hệ thống CopytradeBinance. Trả lời tiếng Việt, "
@@ -178,19 +178,31 @@ async def run_chat(
             yield SseEvent("warning", {"message": "Đạt tối đa 8 bước tool"})
 
         checked = verify_answer(assistant_text, facts, row_ids or None)
-        for warning in checked["warnings"]:
+        all_warnings = list(checked["warnings"]) + check_units(checked["answer"], facts)
+        for warning in all_warnings:
             yield SseEvent("warning", {"message": warning})
+        missing = [] if facts else ["chưa có dữ liệu từ tool"]
+        assumptions = (
+            ["Số liệu từ snapshot DB, có độ trễ so với dữ liệu live"] if facts else []
+        )
+        citations = [
+            {
+                "source_type": item.get("source", "database"),
+                "ref": item.get("id", ""),
+                "as_of": item.get("as_of"),
+            }
+            for item in evidence
+        ]
+        contract = build_answer_contract(
+            checked["answer"], facts, citations, assumptions, missing, all_warnings,
+        )
         answer = AgentAnswer(
-            answer=checked["answer"] or "Xin lỗi, tôi chưa có dữ liệu để trả lời.",
-            facts=facts,
-            citations=[
-                {
-                    "source_type": "database",
-                    "ref": item.get("id", ""),
-                    "as_of": item.get("as_of"),
-                }
-                for item in evidence
-            ],
+            answer=contract["answer"] or "Xin lỗi, tôi chưa có dữ liệu để trả lời.",
+            facts=contract["facts"],
+            citations=contract["citations"],
+            assumptions=contract["assumptions"],
+            missing_data=contract["missing_data"],
+            confidence=contract["confidence"],
         )
         latency = round((time.perf_counter() - started) * 1000)
         msg = await _save_message(
