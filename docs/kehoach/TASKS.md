@@ -289,12 +289,12 @@
 **Tham chiếu:** §6.6 Detail (666–719) · §6.8 Position history (758–810) · §6.10 Transfer history (861–896) · §7.11 Deep fetch policy (1157–1171) · §8.5 T2 Derived metrics (1263–1300)  
 **→ đọc khi:** chọn trader deep fetch, parse position/transfer.
 
-- [ ] Gọi detail cho Qualified (~109) + top Watch (tối đa ~200) = ~109–309.
-- [ ] Kiểm tra `status=ACTIVE`, `isPaused=false`.
-- [ ] Kiểm tra `currentCopyCount < maxCopyCount`.
-- [ ] Gọi position-history (không dựa vào `positionShow`).
-- [ ] Gọi transfer-history.
-- [ ] Không gọi trade-history full ở tầng này.
+- [x] Gọi detail cho Qualified (~109) + top Watch (tối đa ~200) = ~109–309. → Bằng chứng: live 280 target (80 qualified/high + 200 watch), detail_ok=280.
+- [x] Kiểm tra `status=ACTIVE`, `isPaused=false`. → Bằng chứng: `_is_eligible()`; live ineligible=0.
+- [x] Kiểm tra `currentCopyCount < maxCopyCount`. → Bằng chứng: cùng hàm; test case full slot bị loại khỏi history.
+- [x] Gọi position-history (không dựa vào `positionShow`). → Bằng chứng: live 71.026 vị thế; test `positionShow=false` vẫn gọi đủ trang.
+- [x] Gọi transfer-history. → Bằng chứng: live 8.267 transfer.
+- [x] Không gọi trade-history full ở tầng này. → Bằng chứng: L3 chỉ gọi detail/positions/transfers; trades=0 sau bước này.
 
 ### Bước 2.6 — Tầng 4: Full trade history
 

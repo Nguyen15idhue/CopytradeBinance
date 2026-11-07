@@ -257,3 +257,12 @@ cd frontend; npm run build
 - HF04 hạ tier theo `totalOrder` 90D: **38 trader** bị hạ → watch 429, qualified 73, high 7 (Qualified+High = 80).
 - Sharpe null giữ `NULL` (90D: 9 trader), mdd null giữ `NULL` (1 trader).
 - Upsert theo `(lead, time_range, collected_at)` với `collected_at` cắt về giờ → chạy lại không nhân bản.
+
+### 9.5. Detail + positions + transfers 2.5
+
+- Target: 80 Qualified/High + top 200 Watch = **280 trader**; 0 ineligible.
+- Live: **71.026 vị thế**, **8.267 transfer**, 0 lỗi.
+- Position page size 50, tối đa 20 trang/trader (1.000 vị thế) để chặn chi phí.
+- `positionShow=false` không chặn position-history (D25).
+- Lưu `positions` unique `(lead, position_id)`, `transfers` unique `(lead, transfer_hash)`.
+- Detail lưu snapshot `source='detail'` theo giờ.

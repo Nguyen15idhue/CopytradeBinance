@@ -12,13 +12,22 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.collection_log import CollectionLog
 from app.models.performance import PerformanceMetric
+from app.models.position import Position
+from app.models.snapshot import PortfolioSnapshot
 from app.models.tier_history import TierHistory
+from app.models.trader import Trader
+from app.models.transfer import Transfer
 from app.models.universe import TraderUniverse
+from app.services.collector.parsers import ms_to_dt, parse_position, parse_transfer
 
 logger = logging.getLogger(__name__)
 
 WINDOWS = ("7D", "30D", "90D", "180D")
 WATCH_TIERS = ("watch", "qualified_upper", "high_upper")
+DETAIL_TIERS = ("qualified_upper", "high_upper")
+MAX_POSITION_PAGES = 20
+MAX_TRANSFER_PAGES = 10
+TOP_WATCH_LIMIT = 200
 
 # HF04: không đủ mẫu thì hạ tier tương ứng.
 DEMOTE_RULES = {
@@ -209,6 +218,206 @@ def _apply_total_order_rules(
         if total_orders < threshold:
             changes[portfolio_id] = (tier, new_tier, total_orders)
     return changes
+
+
+async def _fetch_pages(fetch_page, portfolio_id: str, max_pages: int) -> tuple[list, str | None]:
+    collected: list[dict] = []
+    page = 1
+    while page <= max_pages:
+        try:
+            result = await fetch_page(portfolio_id, page)
+        except Exception as exc:  # noqa: BLE001
+            return collected, str(exc)
+        collected.extend(result.items)
+        if not result.items or len(collected) >= result.total:
+            break
+        page += 1
+    return collected, None
+
+
+def _is_eligible(detail: dict) -> bool:
+    if detail.get("status") != "ACTIVE":
+        return False
+    if detail.get("isPaused") is True:
+        return False
+    current = detail.get("currentCopyCount")
+    maximum = detail.get("maxCopyCount")
+    return not (maximum is not None and current is not None and current >= maximum)
+
+
+async def _detail_task(adapter, portfolio_id: str):
+    try:
+        return portfolio_id, await adapter.get_detail(portfolio_id), None
+    except Exception as exc:  # noqa: BLE001
+        return portfolio_id, None, str(exc)
+
+
+async def fetch_detail_and_history(
+    adapter,
+    db: AsyncSession,
+    collected_at: datetime | None = None,
+    top_watch_limit: int = TOP_WATCH_LIMIT,
+    portfolio_ids: list[str] | None = None,
+) -> dict[str, Any]:
+    moment = (collected_at or datetime.now(UTC)).replace(minute=0, second=0, microsecond=0)
+    if portfolio_ids:
+        target_ids = list(portfolio_ids)
+    else:
+        qualified = (
+            await db.execute(
+                select(TraderUniverse.lead_portfolio_id).where(
+                    TraderUniverse.potential_tier.in_(DETAIL_TIERS)
+                )
+            )
+        ).scalars().all()
+        top_watch = (
+            await db.execute(
+                select(TraderUniverse.lead_portfolio_id)
+                .where(TraderUniverse.potential_tier == "watch")
+                .order_by(TraderUniverse.pre_score.desc().nullslast())
+                .limit(top_watch_limit)
+            )
+        ).scalars().all()
+        target_ids = list(qualified) + list(top_watch)
+
+    log = CollectionLog(layer="L3", status="running")
+    db.add(log)
+    await db.commit()
+    log_id = log.id
+
+    details = await asyncio.gather(*(_detail_task(adapter, pid) for pid in target_ids))
+    detail_by_id = {pid: data for pid, data, error in details if data is not None}
+    errors = [f"{pid}: {error}" for pid, _data, error in details if error]
+
+    ineligible = [pid for pid, data in detail_by_id.items() if not _is_eligible(data)]
+    history_targets = [pid for pid in detail_by_id if pid not in ineligible]
+
+    position_results, transfer_results = await asyncio.gather(
+        asyncio.gather(
+            *(
+                _fetch_pages(adapter.get_positions, pid, MAX_POSITION_PAGES)
+                for pid in history_targets
+            )
+        ),
+        asyncio.gather(
+            *(
+                _fetch_pages(adapter.get_transfers, pid, MAX_TRANSFER_PAGES)
+                for pid in history_targets
+            )
+        ),
+    )
+    position_map: dict[str, list[dict]] = {}
+    transfer_map: dict[str, list[dict]] = {}
+    for pid, (items, error) in zip(history_targets, position_results, strict=True):
+        position_map[pid] = items
+        if error:
+            errors.append(f"{pid}/positions: {error}")
+    for pid, (items, error) in zip(history_targets, transfer_results, strict=True):
+        transfer_map[pid] = items
+        if error:
+            errors.append(f"{pid}/transfers: {error}")
+
+    snapshot_rows: list[dict[str, Any]] = []
+    position_rows: list[dict[str, Any]] = []
+    transfer_rows: list[dict[str, Any]] = []
+    for pid, detail in detail_by_id.items():
+        snapshot_rows.append(
+            {
+                "lead_portfolio_id": pid,
+                "collected_at": moment,
+                "collected_hour": moment,
+                "source": "detail",
+                "raw": detail,
+                "schema_version": 1,
+            }
+        )
+        for item in position_map.get(pid, []):
+            parsed = parse_position(item)
+            if not parsed["position_id"]:
+                continue
+            position_rows.append({"lead_portfolio_id": pid, **parsed})
+        for item in transfer_map.get(pid, []):
+            transfer_rows.append({"lead_portfolio_id": pid, **parse_transfer(item)})
+
+    if detail_by_id:
+        trader_rows = [
+            {
+                "lead_portfolio_id": pid,
+                "nickname": detail.get("nickname"),
+                "nickname_translate": detail.get("nicknameTranslate"),
+                "avatar_url": detail.get("avatarUrl"),
+                "portfolio_type": detail.get("portfolioType"),
+                "status": detail.get("status"),
+                "description": detail.get("description"),
+                "start_time": ms_to_dt(detail.get("startTime")),
+                "last_trade_time": ms_to_dt(detail.get("lastTradeTime")),
+                "futures_type": detail.get("futuresType"),
+                "init_invest_asset": detail.get("initInvestAsset"),
+            }
+            for pid, detail in detail_by_id.items()
+        ]
+        statement = pg_insert(Trader).values(trader_rows)
+        statement = statement.on_conflict_do_update(
+            index_elements=[Trader.lead_portfolio_id],
+            set_={
+                "nickname": statement.excluded.nickname,
+                "nickname_translate": statement.excluded.nickname_translate,
+                "avatar_url": statement.excluded.avatar_url,
+                "portfolio_type": statement.excluded.portfolio_type,
+                "status": statement.excluded.status,
+                "description": statement.excluded.description,
+                "start_time": statement.excluded.start_time,
+                "last_trade_time": statement.excluded.last_trade_time,
+                "futures_type": statement.excluded.futures_type,
+                "init_invest_asset": statement.excluded.init_invest_asset,
+                "updated_at": func.now(),
+            },
+        )
+        await db.execute(statement)
+        await _insert_ignore(db, PortfolioSnapshot, snapshot_rows)
+    if position_rows:
+        await _insert_ignore(db, Position, position_rows)
+    if transfer_rows:
+        await _insert_ignore(db, Transfer, transfer_rows)
+
+    record = await db.get(CollectionLog, log_id)
+    if record is not None:
+        record.status = "success"
+        record.finished_at = datetime.now(UTC)
+        record.pages = 0
+        record.requests = len(target_ids) + sum(
+            len(position_map.get(pid, [])) + len(transfer_map.get(pid, []))
+            for pid in history_targets
+        )
+        record.items_ok = len(detail_by_id)
+        record.error_count = len(errors)
+        record.detail = {
+            "targets": len(target_ids),
+            "detail_ok": len(detail_by_id),
+            "ineligible": len(ineligible),
+            "history_targets": len(history_targets),
+            "positions": len(position_rows),
+            "transfers": len(transfer_rows),
+            "errors": errors[:10],
+        }
+    await db.commit()
+    return {
+        "targets": len(target_ids),
+        "detail_ok": len(detail_by_id),
+        "ineligible": len(ineligible),
+        "history_targets": len(history_targets),
+        "positions": len(position_rows),
+        "transfers": len(transfer_rows),
+        "errors": len(errors),
+        "collected_at": moment.isoformat(),
+    }
+
+
+async def _insert_ignore(db: AsyncSession, model, rows: list[dict[str, Any]]) -> None:
+    for start in range(0, len(rows), 1000):
+        statement = pg_insert(model).values(rows[start : start + 1000])
+        statement = statement.on_conflict_do_nothing()
+        await db.execute(statement)
 
 
 async def count_by_tier(db: AsyncSession) -> dict[str, int]:
