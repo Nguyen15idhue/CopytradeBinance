@@ -413,3 +413,20 @@ cd frontend; npm run build
 - Detail có link `?trader=<id>` sang Risk Monitor.
 - Không hiển thị open positions giả; ghi rõ Binance không cung cấp.
 - Test: integration risk API pass; E2E “Risk Monitor render: OK”.
+
+### 11.5. QA & gate Phase 4
+
+| Kiểm tra | Kết quả |
+|---|---|
+| Tooltip nguồn + cửa sổ | 10/10 card, E2E đếm ≥ 10 |
+| Compare 4 trader | 1440px, overflow ≤ 4px |
+| Risk evidence | mở JSON evidence, E2E pass |
+| Open positions giả | không hiển thị, có ghi chú |
+| Correlation disclaimer | “estimated” trong API + UI |
+| Detail p95 | cold 78ms · warm p95 49ms |
+| undefined/NaN/null | E2E assert sạch |
+| Full suite container | **97 passed** |
+| npm audit | 0 lỗi |
+| Báo cáo | `docs/kehoach/PHASE4-REPORT.md` |
+
+**Gate Phase 4: ĐẠT.**

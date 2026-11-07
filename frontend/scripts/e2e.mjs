@@ -15,7 +15,7 @@ if (!executablePath) {
 
 const base = process.env.BASE_URL ?? "http://localhost:8080";
 const browser = await chromium.launch({ executablePath, headless: true });
-const page = await browser.newPage();
+const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 const consoleErrors = [];
 
 page.on("console", (message) => {
@@ -59,7 +59,7 @@ try {
 
   const compareIds = await page.evaluate(async () => {
     const token = localStorage.getItem("ct_access_token");
-    const response = await fetch("/api/v1/traders?page_size=2", {
+    const response = await fetch("/api/v1/traders?page_size=4", {
       headers: { Authorization: `Bearer ${token}` },
     });
     const json = await response.json();
@@ -69,8 +69,12 @@ try {
   await page.getByRole("heading", { name: "Compare" }).waitFor();
   await page.getByRole("heading", { name: "Correlation" }).waitFor();
   const compareBody = await page.locator("body").innerText();
-  assert(compareBody.includes("Correlation"), "Compare thiếu correlation");
   assert(compareBody.includes("estimated"), "Correlation thiếu disclaimer");
+  assert(!compareBody.includes("undefined") && !compareBody.includes("NaN"), "Compare có undefined/NaN");
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - window.innerWidth,
+  );
+  assert(overflow <= 4, `Compare vỡ layout ngang (${overflow}px)`);
   console.log("Compare render: OK");
 
   await page.getByRole("link", { name: "Risk" }).click();
@@ -78,6 +82,9 @@ try {
   await page.getByText(/event/).first().waitFor();
   const riskBody = await page.locator("body").innerText();
   assert(riskBody.includes("open positions"), "Risk thiếu ghi chú open positions");
+  assert(!riskBody.includes("undefined") && !riskBody.includes("NaN"), "Risk có undefined/NaN");
+  await page.locator("article button").first().click();
+  await page.getByText("Evidence", { exact: true }).waitFor();
   console.log("Risk Monitor render: OK");
 
   async function pickTrader(tier) {
@@ -96,6 +103,8 @@ try {
   await page.goto(`${base}/traders/${qualifiedId}`, { waitUntil: "domcontentloaded" });
   await page.getByRole("heading", { name: "10 chỉ số cốt lõi" }).waitFor();
   let body = await page.locator("body").innerText();
+  const tooltips = await page.locator('[title*="nguồn:"]').count();
+  assert(tooltips >= 10, `Thiếu tooltip nguồn (${tooltips})`);
   assert(body.includes("ROI 90D"), "Thiếu ROI 90D");
   assert(body.toLowerCase().includes("qualified"), "Thiếu badge tier");
   assert(!body.includes("undefined") && !body.includes("NaN"), "UI có undefined/NaN");

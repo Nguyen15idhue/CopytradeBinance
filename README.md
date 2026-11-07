@@ -39,6 +39,21 @@ data/raw/       JSONL archive (không commit)
 - API vận hành: `/api/v1/collector/status`, `run-scan`, `run-deep`, `kill-switch`.
 - UI: http://localhost:8080/data-health
 
+## Quant, Scoring & Screener
+
+```bash
+# Tính metrics/score/risk/ranking từ dữ liệu đã thu thập
+docker compose exec backend python -m app.collector_cli metrics
+docker compose exec backend python -m app.collector_cli risk
+docker compose exec backend python -m app.collector_cli score
+docker compose exec backend python -m app.collector_cli rank
+
+# Audit false negative 50 trader excluded
+docker compose exec backend python -m app.collector_cli audit
+```
+
+UI: `/screener`, `/traders/:id`, `/compare?ids=a,b`, `/risk`, `/data-health`.
+
 ```bash
 # Chạy tay từng tầng
 docker compose exec backend python -m app.collector_cli scan

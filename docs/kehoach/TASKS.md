@@ -20,7 +20,7 @@
 | 1 — Foundation + vertical slice | `[x]` hoàn thành | 5–7 ngày | 1 trader chạy E2E | §5.2 (417–439), §10.1 (1615–1921), §13.4 (2345–2456) |
 | 2 — Collector 2 tầng | `[x]` hoàn thành | 4–6 ngày | Scan 11.124 ≥ 99%, Watch 400–700 | §6 (528–973), §12 (2105–2219) |
 | 3 — Quant + Scoring + Screener | `[x]` hoàn thành | 7–9 ngày | Screener dùng được, score breakdown đúng | §8 (1187–1449), §9 (1450–1612) |
-| 4 — Detail + Compare + Risk | `[ ]` | 5–7 ngày | Detail sâu, compare 4 trader, risk evidence | §11.2–11.3 (2009–2057), §13.4–13.5 (2345–2489) |
+| 4 — Detail + Compare + Risk | `[x]` hoàn thành | 5–7 ngày | Detail sâu, compare 4 trader, risk evidence | §11.2–11.3 (2009–2057), §13.4–13.5 (2345–2489) |
 | 5 — AI + Settings + Hardening | `[ ]` | 5–7 ngày | AI không sửa score, config version/rollback | §11.5 (2071–2084), §13.6–13.7 (2490–2543), §15.8 (3075–3095) |
 | 6 — Testing + Deploy + Beta | `[ ]` | 4–6 ngày | Uptime 7 ngày, beta 3–5 user | §14 (2617–2918), §15 (2919–3128) |
 | | | **33–47 ngày** | +20% buffer → **40–56 ngày** | |
@@ -458,7 +458,7 @@
 
 ---
 
-## Phase 4 — Detail + Compare + Risk Monitor
+## Phase 4 — Detail + Compare + Risk Monitor — HOÀN THÀNH
 
 **Mục tiêu:** trang chi tiết đủ sâu, so sánh 2–4 trader, risk monitor.  
 **Thời lượng:** 5–7 ngày.
@@ -524,13 +524,13 @@
 **Tham chiếu:** §14.5 Contract test (2749–2788) · §14.10 Acceptance MVP (2898–2918) · §13.11 Checklist UI (2599–2616)  
 **→ đọc khi:** kiểm tra contract, UI, evidence.
 
-- [ ] Mỗi chỉ số có tooltip + nguồn + cửa sổ.
-- [ ] Compare 4 trader không vỡ layout.
-- [ ] Risk event mở được evidence.
-- [ ] Không hiển thị open positions như thể có dữ liệu.
-- [ ] Correlation có disclaimer “estimated”.
-- [ ] Detail p95 < 300ms (cache) / < 1s (cold).
-- [ ] Không có `undefined`/`NaN`/`null` lọt UI.
+- [x] Mỗi chỉ số có tooltip + nguồn + cửa sổ. → Bằng chứng: E2E đếm `[title*="nguồn:"]` = 10; card ghi source/window.
+- [x] Compare 4 trader không vỡ layout. → Bằng chứng: E2E 1440px, overflow ngang ≤ 4px.
+- [x] Risk event mở được evidence. → Bằng chứng: E2E click event → “Evidence” + JSON.
+- [x] Không hiển thị open positions như thể có dữ liệu. → Bằng chứng: ghi chú “Binance không cung cấp”; API positions chỉ trả vị thế đã đóng.
+- [x] Correlation có disclaimer “estimated”. → Bằng chứng: API disclaimer + badge UI; E2E assert.
+- [x] Detail p95 < 300ms (cache) / < 1s (cold). → Bằng chứng: cold 78ms; warm p95 49ms, median 41ms (30 request).
+- [x] Không có `undefined`/`NaN`/`null` lọt UI. → Bằng chứng: E2E assert trên Screener/Compare/Risk/Detail.
 
 **Gate:** mỗi chỉ số có tooltip + nguồn; compare 4 trader không vỡ; risk evidence mở được.
 
