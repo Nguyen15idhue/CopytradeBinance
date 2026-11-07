@@ -402,15 +402,15 @@
 **Tham chiếu:** §9.1 Trọng số (1452–1464) · §9.2 Chuẩn hóa (1465–1488) · §9.3 Hard filters (1489–1502) · §9.4 Score bands (1503–1512) · §9.5 Score breakdown (1513–1536) · §9.6 Versioning (1537–1544)  
 **→ đọc khi:** viết scoring, renormalize missing, version config.
 
-- [ ] `scoring_config_versions`.
-- [ ] Normalize percentile.
-- [ ] Winsorize.
-- [ ] Missing renormalize.
-- [ ] Weight config.
-- [ ] Hard filters.
-- [ ] Score breakdown.
-- [ ] `trader_scores`.
-- [ ] `ranking_snapshots`.
+- [x] `scoring_config_versions`. → Bằng chứng: migration 0010; seed v1 `is_active=true`, trọng số/normalization/hard filters.
+- [x] Normalize percentile. → Bằng chứng: `scoring.normalize_cohort`, cohort chung, đảo chiều MDD/leverage/roi_stability.
+- [x] Winsorize. → Bằng chứng: cắt 2,5–97,5 percentile trước khi rank.
+- [x] Missing renormalize. → Bằng chứng: nhóm thiếu bị loại khỏi mẫu số; không gán 0; 511/511 có score.
+- [x] Weight config. → Bằng chứng: 7 nhóm đúng §9.1 (25/20/15/15/10/5/10) + trọng số con.
+- [x] Hard filters. → Bằng chứng: HF01–HF06; `rankable=236/511`; HF04 theo tier (20/50/100).
+- [x] Score breakdown. → Bằng chứng: `breakdown.components`; max sai số tổng contribution vs score = **0,0051** (≤ 0,01).
+- [x] `trader_scores`. → Bằng chứng: 511 dòng version 1; score null = 0; band good 14 / average 145 / weak 240 / high_risk 112.
+- [x] `ranking_snapshots`. → Bằng chứng: bảng + index đã tạo (migration 0010), dùng ở 3.5.
 
 ### Bước 3.5 — Ranking 3 bảng
 

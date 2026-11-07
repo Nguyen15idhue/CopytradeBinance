@@ -121,6 +121,14 @@ async def cmd_risk() -> int:
     return 0
 
 
+async def cmd_score() -> int:
+    from app.services.scoring_service import build_scores
+
+    async with SessionLocal() as db:
+        print(json.dumps(await build_scores(db), ensure_ascii=False))
+    return 0
+
+
 async def cmd_deep() -> int:
     from app.services.deep_fetch import run_deep_fetch
 
@@ -144,7 +152,7 @@ def main() -> int:
         "command",
         choices=[
             "scan", "recompute", "perf", "detail", "trades", "metrics", "audit",
-            "risk", "deep",
+            "risk", "score", "deep",
         ],
     )
     args = parser.parse_args()
@@ -164,6 +172,8 @@ def main() -> int:
         return asyncio.run(cmd_audit())
     if args.command == "risk":
         return asyncio.run(cmd_risk())
+    if args.command == "score":
+        return asyncio.run(cmd_score())
     return asyncio.run(cmd_deep())
 
 

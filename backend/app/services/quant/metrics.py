@@ -57,6 +57,38 @@ def published_metrics(performance: dict[str, dict[str, Any]]) -> dict[str, Any]:
     return result
 
 
+def positive_days_pct(chart_items: list[dict] | None) -> float | None:
+    values = [
+        _f(item.get("value"))
+        for item in (chart_items or [])
+        if isinstance(item, dict)
+    ]
+    values = [value for value in values if value is not None]
+    if len(values) < 3:
+        return None
+    diffs = [values[index] - values[index - 1] for index in range(1, len(values))]
+    if not diffs:
+        return None
+    return round(sum(1 for diff in diffs if diff > 0) / len(diffs) * 100, 4)
+
+
+def roi_stability(published: dict[str, dict[str, Any]]) -> float | None:
+    values = [
+        published[window]["roi"]
+        for window in WINDOWS
+        if published.get(window, {}).get("roi") is not None
+    ]
+    if len(values) < 2:
+        return None
+    return round(statistics_stdev(values), 4)
+
+
+def statistics_stdev(values: list[float]) -> float:
+    average = sum(values) / len(values)
+    variance = sum((value - average) ** 2 for value in values) / (len(values) - 1)
+    return variance ** 0.5
+
+
 def position_metrics(positions: list[dict[str, Any]]) -> dict[str, Any]:
     if not positions:
         return {

@@ -332,3 +332,14 @@ cd frontend; npm run build
 - Live: 511 trader → 1.100 event; critical 280, high 501, medium 219, low_sample 91, penalty 9.
 - Risk level: critical 214, high 164, medium 55, low 13, none 38, unknown 27.
 - Lệnh: `docker compose exec backend python -m app.collector_cli risk`.
+
+### 10.4. Scoring & versioning 3.4
+
+- `services/scoring.py` (thuần) + `scoring_service.py`; bảng `scoring_config_versions`, `trader_scores`, `ranking_snapshots` (migration 0010).
+- Trọng số 7 nhóm §9.1; percentile trong cohort, winsorize 2,5–97,5, đảo chiều MDD/leverage/ROI stability.
+- Missing → loại nhóm, renormalize; không gán 0; breakdown có `score/weight/contribution/missing`.
+- Hard filter HF01–HF06 (HF04 theo tier 20/50/100); `rankable` = score + không hard flag.
+- Seed config v1 active; score lưu theo `(lead, config_version)`, không ghi đè version cũ.
+- Live: 511 scored, **236 rankable**; band good 14 / average 145 / weak 240 / high_risk 112;
+  sai số breakdown ≤ **0,0051**.
+- Lệnh: `python -m app.collector_cli score`.

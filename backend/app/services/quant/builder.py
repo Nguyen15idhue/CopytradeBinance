@@ -223,6 +223,8 @@ async def rebuild_metrics(
             current_copiers,
             published["90D"]["copier_pnl"],
         )
+        derived["positive_days_pct"] = qm.positive_days_pct(list_raw.get("chartItems"))
+        derived["roi_stability"] = qm.roi_stability(published)
 
         perf_time = latest_perf_at.get(pid)
         freshness_minutes = (
