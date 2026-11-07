@@ -625,3 +625,10 @@ Nguồn: `docs/0/04-ke-hoach-screener-da-khung.md`. Khảo sát xác nhận V1�
   và đưa 15 cột vào upsert; null giữ null. Backfill: 531 trader, 501 có đa khung
   (19 thiếu performance nguồn → null đúng), 13 trader `roi_7d=0` khớp published 0;
   `test_metric_windows` 2 pass.
+- B4.0.4: `services/screener.py` thêm `WINDOW_ATTRS/WINDOW_COLUMNS`, `sort_columns(window)`,
+  17 filter mới (copier min/max, copier_pnl min/max, aum, avg_leverage, profit_factor,
+  fee_drag, position_win_rate, confidence, risk_score, copy_aum_ratio); `apply_filters` dùng cột
+  theo `window`; `serialize_row` trả `windows` 4 khung + `avg_leverage/position_win_rate/risk_score`;
+  meta `window` + `window_missing`. `api/v1/screener.py` thêm param tương ứng;
+  `agent/db_tools.search_traders` map filter mới + sort theo window.
+  → `test_screener_api` 6 pass (sort 7D desc, copier≥10, copier_pnl≥1000, aum≥50000, null khớp DB).

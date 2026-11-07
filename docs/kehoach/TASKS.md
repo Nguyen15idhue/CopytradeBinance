@@ -907,7 +907,7 @@ Tóm tắt: không auto-trading, không realtime WebSocket, không Paper Copy tr
 - [x] B4.0.1 URL state Screener + giữ vị trí. → Bằng chứng: `lib/screenerQuery.ts`; E2E "Screener giữ trạng thái" PASS.
 - [x] B4.0.2 Migration `0018_metric_windows`. → Bằng chứng: 15 cột + 6 index; up/down OK; `test_models` 4 pass.
 - [x] B4.0.3 Builder ghi đa khung. → Bằng chứng: `WINDOW_COLUMN_MAP`; backfill 531 trader/501 có đa khung; `test_metric_windows` 2 pass.
-- [ ] B4.0.4 Screener API đa khung + filter mở rộng.
+- [x] B4.0.4 Screener API đa khung + filter mở rộng. → Bằng chứng: `window` + 17 filter; `test_screener_api` 6 pass.
 - [ ] B4.0.5 UI Screener đa khung.
 - [ ] B4.0.6 Detail hiển thị 4 khung.
 - [ ] B4.0.7 Agent trả đủ dữ liệu trader.

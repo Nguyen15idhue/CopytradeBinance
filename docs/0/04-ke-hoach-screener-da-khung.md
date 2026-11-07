@@ -375,3 +375,7 @@ Commit: test(phase6): 4.0.9 eval agent da use case
   (19 trader thiếu performance ở nguồn → null đúng); 13 trader `roi_7d = 0` khớp đúng
   published 0 (không phải 0 giả).
   → Bằng chứng: `collector_cli metrics` 520 saved/8.26s; psql đối chiếu; `test_metric_windows` 2 pass.
+- [x] B4.0.4 Screener API đa khung + filter — `window` điều khiển `roi/mdd/sharpe/win_rate/copier_pnl`;
+  17 filter mới (copier, PnL, AUM, avg leverage, profit factor, fee drag, confidence, risk score,
+  copy_aum_ratio); `sort_columns(window)`; response có `windows` + meta `window/window_missing`.
+  → Bằng chứng: `test_screener_api` 6 pass (sort 7D, copier/PnL/AUM, null khớp DB); regression agent 9 pass.

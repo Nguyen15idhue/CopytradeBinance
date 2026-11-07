@@ -131,7 +131,21 @@ Không có dữ liệu open positions từ Binance; UI ghi rõ, không mô phỏ
 
 ## Screener
 
-Tham số mới: `min_score` (lọc điểm tối thiểu), `max_min_copy_usd` (vốn tối thiểu ≤ X, qua view `agent_trader_copy_constraints`).
+Tham số mới (4.0.4):
+- `window` = `7D|30D|90D|180D` (mặc định 90D) — quyết định cột dùng cho `min_roi`, `max_roi`,
+  `max_mdd`, `min_sharpe`, `max_sharpe`, `min_win_rate`, `max_win_rate`, `min_copier_pnl`,
+  `max_copier_pnl`, `has_sharpe`, và sort `roi|mdd|sharpe|win_rate|copier_pnl`.
+- Filter mới: `min_copiers`, `max_copiers`, `min_copier_pnl`, `max_copier_pnl`,
+  `min_aum`, `max_aum`, `max_copy_aum`, `min_avg_leverage`, `max_avg_leverage`,
+  `min_profit_factor`, `max_profit_factor`, `max_fee_drag_pct`, `min_position_win_rate`,
+  `min_confidence`, `max_risk_score`, `min_copy_aum_ratio`.
+- Legacy: `min_roi_90d`, `max_roi_90d`, `max_mdd_90d`, `min_sharpe`… vẫn giữ nghĩa 90D cố định
+  (`min_sharpe`/`min_win_rate` nay theo `window`).
+
+Response thêm: mỗi item có `windows` (`7D/30D/90D/180D` × `roi/mdd/sharpe/copier_pnl/win_rate`),
+`avg_leverage`, `position_win_rate`, `risk_score`; meta có `window` và `window_missing`.
+
+Tham số cũ vẫn dùng được: `max_min_copy_usd` (vốn tối thiểu ≤ X, qua view `agent_trader_copy_constraints`).
 
 ### GET `/traders`
 

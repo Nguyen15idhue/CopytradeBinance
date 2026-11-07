@@ -19,10 +19,14 @@ from app.models.universe import TraderUniverse
 from app.services.agent.schema import EvidenceItem, ToolResult, utcnow_iso
 from app.services.agent.tools import register_tool
 from app.services.compare import build_compare
-from app.services.screener import SORT_COLUMNS, ScreenerFilters, apply_filters, base_statement
+from app.services.screener import (
+    ScreenerFilters,
+    apply_filters,
+    base_statement,
+    sort_columns,
+)
 
-SAFE_SORT = dict(SORT_COLUMNS)
-SAFE_SORT["risk_score"] = TraderMetric.risk_score
+SAFE_SORT = sort_columns("90D")
 
 
 def _float(value: Any) -> float | None:
@@ -53,11 +57,25 @@ def _ev(
             "low_risk_eligible": {"type": "boolean"},
             "no_veto": {"type": "boolean"},
             "min_runtime_days": {"type": "number"},
+            "window": {"type": "string"},
+            "min_roi": {"type": "number"},
+            "max_roi": {"type": "number"},
+            "max_mdd": {"type": "number"},
             "max_mdd_90d": {"type": "number"},
             "max_leverage": {"type": "number"},
             "min_sharpe": {"type": "number"},
             "min_confidence": {"type": "number"},
             "min_score": {"type": "number"},
+            "min_copiers": {"type": "integer"},
+            "max_copiers": {"type": "integer"},
+            "min_copier_pnl": {"type": "number"},
+            "max_copier_pnl": {"type": "number"},
+            "min_aum": {"type": "number"},
+            "max_aum": {"type": "number"},
+            "min_profit_factor": {"type": "number"},
+            "max_fee_drag_pct": {"type": "number"},
+            "min_position_win_rate": {"type": "number"},
+            "max_risk_score": {"type": "number"},
             "min_copy_usd_max": {"type": "number"},
             "has_slot": {"type": "boolean"},
             "sort": {"type": "array"},
@@ -70,11 +88,25 @@ async def search_traders(db: AsyncSession, args: dict[str, Any]) -> ToolResult:
     filters = ScreenerFilters(
         potential_tier=list(args.get("tier") or []),
         risk_level=list(args.get("risk_level") or []),
+        window=str(args.get("window") or "90D"),
         min_runtime_days=args.get("min_runtime_days"),
+        min_roi=args.get("min_roi"),
+        max_roi=args.get("max_roi"),
+        max_mdd=args.get("max_mdd"),
         max_mdd_90d=args.get("max_mdd_90d"),
         max_leverage=args.get("max_leverage"),
         min_sharpe=args.get("min_sharpe"),
         min_score=args.get("min_score"),
+        min_copiers=args.get("min_copiers"),
+        max_copiers=args.get("max_copiers"),
+        min_copier_pnl=args.get("min_copier_pnl"),
+        max_copier_pnl=args.get("max_copier_pnl"),
+        min_aum=args.get("min_aum"),
+        max_aum=args.get("max_aum"),
+        min_profit_factor=args.get("min_profit_factor"),
+        max_fee_drag_pct=args.get("max_fee_drag_pct"),
+        min_position_win_rate=args.get("min_position_win_rate"),
+        min_confidence=args.get("min_confidence"),
         max_min_copy_usd=args.get("min_copy_usd_max"),
     )
     version_row = (
@@ -91,9 +123,10 @@ async def search_traders(db: AsyncSession, args: dict[str, Any]) -> ToolResult:
     if args.get("min_confidence") is not None:
         statement = statement.where(TraderScore.confidence >= float(args["min_confidence"]))
     sorts = args.get("sort") or [{"field": "score", "dir": "desc"}]
+    allowed_sort = sort_columns(filters.window)
     order_clauses = []
     for item in sorts[:2]:
-        column = SAFE_SORT.get(item.get("field", "score"), TraderScore.score)
+        column = allowed_sort.get(item.get("field", "score"), TraderScore.score)
         direction = asc if item.get("dir") == "asc" else desc
         order_clauses.append(direction(column).nulls_last())
     order_clauses.append(TraderMetric.lead_portfolio_id)

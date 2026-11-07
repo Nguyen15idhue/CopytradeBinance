@@ -104,3 +104,95 @@ async def test_saved_views_crud_and_csv() -> None:
 
         deleted = await client.delete(f"/api/v1/saved-views/{view_id}", headers=headers)
         assert deleted.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_screener_multi_window_sort_and_filters() -> None:
+    await seed_admin()
+    async with await _client() as client:
+        headers = await _login(client)
+
+        windowed = await client.get(
+            "/api/v1/traders",
+            params={"window": "7D", "sort_by": "roi", "sort_dir": "desc", "page_size": 20},
+            headers=headers,
+        )
+        assert windowed.status_code == 200, windowed.text
+        data = windowed.json()["data"]
+        assert data["window"] == "7D"
+        assert data["window_missing"] is False
+        rois = [
+            item["windows"]["7D"]["roi"]
+            for item in data["items"]
+            if item["windows"].get("7D", {}).get("roi") is not None
+        ]
+        assert rois and rois == sorted(rois, reverse=True)
+
+        copiers = await client.get(
+            "/api/v1/traders",
+            params={"min_copiers": 10, "page_size": 50},
+            headers=headers,
+        )
+        assert copiers.status_code == 200
+        assert all(
+            (item["current_copiers"] or 0) >= 10 for item in copiers.json()["data"]["items"]
+        )
+
+        pnl = await client.get(
+            "/api/v1/traders",
+            params={"window": "90D", "min_copier_pnl": 1000, "page_size": 50},
+            headers=headers,
+        )
+        assert pnl.status_code == 200
+        assert all(
+            item["windows"]["90D"]["copier_pnl"] >= 1000
+            for item in pnl.json()["data"]["items"]
+        )
+
+        aum = await client.get(
+            "/api/v1/traders", params={"min_aum": 50000, "page_size": 50}, headers=headers
+        )
+        assert aum.status_code == 200
+        assert all((item["aum"] or 0) >= 50000 for item in aum.json()["data"]["items"])
+
+        missing_window = await client.get(
+            "/api/v1/traders", params={"window": "180D", "page_size": 5}, headers=headers
+        )
+        assert missing_window.status_code == 200
+        assert missing_window.json()["data"]["window_missing"] is False
+
+
+@pytest.mark.asyncio
+async def test_screener_null_window_not_zero() -> None:
+    await seed_admin()
+    async with await _client() as client:
+        headers = await _login(client)
+        response = await client.get(
+            "/api/v1/traders",
+            params={"window": "180D", "sort_by": "roi_180d", "page_size": 100},
+            headers=headers,
+        )
+        assert response.status_code == 200
+        items = response.json()["data"]["items"]
+        assert items
+        from sqlalchemy import select
+
+        from app.core.database import SessionLocal
+        from app.models.trader_metric import TraderMetric
+
+        async with SessionLocal() as db:
+            rows = (
+                await db.execute(
+                    select(TraderMetric.lead_portfolio_id, TraderMetric.roi_180d).where(
+                        TraderMetric.lead_portfolio_id.in_(
+                            [item["id"] for item in items]
+                        )
+                    )
+                )
+            ).all()
+        db_values = {
+            lead: (float(roi) if roi is not None else None) for lead, roi in rows
+        }
+        # API phải khớp DB tuyệt đối: null giữ null, không bị đổi thành 0.
+        for item in items:
+            assert item["windows"]["180D"]["roi"] == db_values[item["id"]]

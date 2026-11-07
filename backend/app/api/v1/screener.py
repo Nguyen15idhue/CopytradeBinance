@@ -1,6 +1,6 @@
 import csv
 import io
-from typing import Literal
+from typing import Any, Literal
 
 from fastapi import APIRouter, Depends, Query, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -37,54 +37,11 @@ EXPORT_COLUMNS = [
 ]
 
 
-def _filters(
-    q: str | None,
-    portfolio_type: str | None,
-    status: str | None,
-    potential_tier: list[str] | None,
-    include_excluded: bool,
-    min_pre_score: float | None,
-    min_roi_90d: float | None,
-    max_roi_90d: float | None,
-    max_mdd_90d: float | None,
-    min_sharpe: float | None,
-    max_sharpe: float | None,
-    min_win_rate: float | None,
-    max_win_rate: float | None,
-    min_runtime_days: float | None,
-    min_total_orders: int | None,
-    min_copiers: int | None,
-    min_copy_aum: float | None,
-    max_leverage: float | None,
-    risk_level: list[str] | None,
-    has_sharpe: bool | None,
-    min_score: float | None = None,
-    max_min_copy_usd: float | None = None,
-) -> ScreenerFilters:
-    return ScreenerFilters(
-        q=q,
-        portfolio_type=portfolio_type,
-        status=status,
-        potential_tier=potential_tier or [],
-        include_excluded=include_excluded,
-        min_pre_score=min_pre_score,
-        min_roi_90d=min_roi_90d,
-        max_roi_90d=max_roi_90d,
-        max_mdd_90d=max_mdd_90d,
-        min_sharpe=min_sharpe,
-        max_sharpe=max_sharpe,
-        min_win_rate=min_win_rate,
-        max_win_rate=max_win_rate,
-        min_runtime_days=min_runtime_days,
-        min_total_orders=min_total_orders,
-        min_copiers=min_copiers,
-        min_copy_aum=min_copy_aum,
-        max_leverage=max_leverage,
-        risk_level=risk_level or [],
-        has_sharpe=has_sharpe,
-        min_score=min_score,
-        max_min_copy_usd=max_min_copy_usd,
-    )
+def _filters(**values: Any) -> ScreenerFilters:
+    values["potential_tier"] = values.get("potential_tier") or []
+    values["risk_level"] = values.get("risk_level") or []
+    values.setdefault("include_excluded", False)
+    return ScreenerFilters(**values)
 
 
 @router.get("")
@@ -106,12 +63,31 @@ async def screener(
     min_runtime_days: float | None = Query(default=None),
     min_total_orders: int | None = Query(default=None),
     min_copiers: int | None = Query(default=None),
+    max_copiers: int | None = Query(default=None),
+    min_copier_pnl: float | None = Query(default=None),
+    max_copier_pnl: float | None = Query(default=None),
     min_copy_aum: float | None = Query(default=None),
+    max_copy_aum: float | None = Query(default=None),
+    min_aum: float | None = Query(default=None),
+    max_aum: float | None = Query(default=None),
     max_leverage: float | None = Query(default=None),
+    min_avg_leverage: float | None = Query(default=None),
+    max_avg_leverage: float | None = Query(default=None),
+    min_profit_factor: float | None = Query(default=None),
+    max_profit_factor: float | None = Query(default=None),
+    max_fee_drag_pct: float | None = Query(default=None),
+    min_position_win_rate: float | None = Query(default=None),
+    min_confidence: float | None = Query(default=None),
+    max_risk_score: float | None = Query(default=None),
+    min_copy_aum_ratio: float | None = Query(default=None),
     risk_level: list[str] | None = Query(default=None),
     has_sharpe: bool | None = Query(default=None),
     min_score: float | None = Query(default=None),
     max_min_copy_usd: float | None = Query(default=None),
+    window: str = Query(default="90D"),
+    min_roi: float | None = Query(default=None),
+    max_roi: float | None = Query(default=None),
+    max_mdd: float | None = Query(default=None),
     sort_by: str = Query(default="score"),
     sort_dir: Literal["asc", "desc"] = Query(default="desc"),
     page: int = Query(default=1, ge=1),
@@ -120,10 +96,47 @@ async def screener(
     user: User = Depends(get_current_user),
 ) -> dict:
     filters = _filters(
-        q, portfolio_type, status, potential_tier, include_excluded, min_pre_score,
-        min_roi_90d, max_roi_90d, max_mdd_90d, min_sharpe, max_sharpe, min_win_rate,
-        max_win_rate, min_runtime_days, min_total_orders, min_copiers, min_copy_aum,
-        max_leverage, risk_level, has_sharpe, min_score, max_min_copy_usd,
+        q=q,
+        portfolio_type=portfolio_type,
+        status=status,
+        potential_tier=potential_tier,
+        include_excluded=include_excluded,
+        min_pre_score=min_pre_score,
+        min_roi=min_roi,
+        max_roi=max_roi,
+        max_mdd=max_mdd,
+        min_roi_90d=min_roi_90d,
+        max_roi_90d=max_roi_90d,
+        max_mdd_90d=max_mdd_90d,
+        min_sharpe=min_sharpe,
+        max_sharpe=max_sharpe,
+        min_win_rate=min_win_rate,
+        max_win_rate=max_win_rate,
+        min_runtime_days=min_runtime_days,
+        min_total_orders=min_total_orders,
+        min_copiers=min_copiers,
+        max_copiers=max_copiers,
+        min_copier_pnl=min_copier_pnl,
+        max_copier_pnl=max_copier_pnl,
+        min_copy_aum=min_copy_aum,
+        max_copy_aum=max_copy_aum,
+        min_aum=min_aum,
+        max_aum=max_aum,
+        max_leverage=max_leverage,
+        min_avg_leverage=min_avg_leverage,
+        max_avg_leverage=max_avg_leverage,
+        min_profit_factor=min_profit_factor,
+        max_profit_factor=max_profit_factor,
+        max_fee_drag_pct=max_fee_drag_pct,
+        min_position_win_rate=min_position_win_rate,
+        min_confidence=min_confidence,
+        max_risk_score=max_risk_score,
+        min_copy_aum_ratio=min_copy_aum_ratio,
+        risk_level=risk_level,
+        has_sharpe=has_sharpe,
+        min_score=min_score,
+        max_min_copy_usd=max_min_copy_usd,
+        window=window,
     )
     result = await list_traders(
         db, filters, page=page, page_size=page_size, sort_by=sort_by, sort_dir=sort_dir
