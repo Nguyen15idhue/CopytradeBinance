@@ -29,8 +29,12 @@ Dữ liệu list thay đổi, hoặc bị hạ theo totalOrder.
 **Vì sao High (A) vẫn score trung bình?**
 Tier chỉ dùng dữ liệu list; score dùng nhiều chỉ số sâu hơn.
 
-**Vì sao Excluded không hẳn là xấu?**
+**Vì sao Bị loại không hẳn là xấu?**
 Có thể mới chạy, hết slot, không giao dịch 7 ngày hoặc thiếu dữ liệu.
+
+**Vì sao score 90 vẫn risk high?**
+Risk V2 dùng `risk_score` và event riêng. Sharpe âm tạo R18 (high), `low_risk_eligible = false`;
+score cao không đảm bảo vào board Low Risk.
 
 **Vì sao AI có lúc dùng template?**
 Primary/fallback lỗi hoặc JSON không hợp lệ.

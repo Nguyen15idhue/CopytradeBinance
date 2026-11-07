@@ -9,6 +9,7 @@ export default function ChangelogSection() {
       <ul className="list-disc space-y-1 pl-5 text-sm text-body">
         <li>07/11/2026 — Tạo bộ tài liệu kỹ thuật, 20 mục.</li>
         <li>07/11/2026 — Đồng bộ thuật ngữ tiếng Việt và prompt AI v2.</li>
+        <li>07/11/2026 — Cập nhật Risk V2: R01–R19, risk_score, veto, Low Risk eligibility.</li>
       </ul>
 
       <h3 id="changelog-pham-vi" className="scroll-mt-24 text-base font-semibold text-strong">

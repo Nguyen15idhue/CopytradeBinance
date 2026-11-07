@@ -98,6 +98,10 @@ export default function ScoringSection() {
       <p className="text-sm text-body">
         ≥ 85 Xuất sắc · ≥ 70 Tốt · ≥ 55 Trung bình · ≥ 40 Yếu · &lt; 40 Rủi ro cao.
       </p>
+      <p className="text-sm text-body">
+        Band không quyết định board Low Risk. Risk V2 có veto riêng; score cao vẫn có thể bị risk
+        high nếu Sharpe âm và bị cấm khỏi Low Risk.
+      </p>
 
       <h3 id="scoring-version" className="scroll-mt-24 text-base font-semibold text-strong">
         Config version

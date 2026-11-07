@@ -69,6 +69,9 @@ Hard filter không sửa score; nó quyết định trader có được xếp h�
 | ≥ 40 | Yếu |
 | < 40 | Rủi ro cao |
 
+Lưu ý: band không quyết định board Low Risk. Risk V2 có veto riêng; score cao vẫn có thể bị
+`risk high` nếu Sharpe âm và bị cấm khỏi Low Risk.
+
 ## 7. Config version
 
 - Mỗi lần đổi trọng số tạo version mới.

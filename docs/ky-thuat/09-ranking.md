@@ -18,12 +18,24 @@ keywords: "ranking, overall, low risk, consistency, snapshot, config version"
 
 ## 2. Low Risk
 
-Điều kiện tham khảo:
+Điều kiện board:
 
 - Runtime ≥ 90 ngày.
 - MDD ≤ 20%.
-- Max leverage ≤ 5x.
+- Max leverage ≤ 5x (hoặc null).
 - Confidence ≥ 0.8.
+- Sharpe không null và ≥ 0.
+
+Sharpe veto:
+
+- Sharpe null → không vào Low Risk.
+- Sharpe âm → không vào Low Risk.
+- Sharpe 0–0.5 chỉ qua khi:
+  - MDD ≤ 15%
+  - max leverage ≤ 3x
+  - runtime ≥ 180 ngày
+
+`risk_rules.eligible_for_low_risk` là cùng logic veto; `ranking.py` kiểm tra thêm các ngưỡng board.
 
 ## 3. Consistency
 

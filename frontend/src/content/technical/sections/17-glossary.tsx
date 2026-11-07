@@ -20,6 +20,9 @@ const TERMS: Array<[string, string]> = [
   ["Evidence", "Bằng chứng của risk event hoặc AI"],
   ["Snapshot", "Bản chụp ranking tại một thời điểm"],
   ["Config version", "Phiên bản cấu hình scoring"],
+  ["risk_score", "Điểm rủi ro 0–100 từ 6 nhóm; thiếu dữ liệu thì renormalize"],
+  ["risk_veto", "Danh sách mã rule chặn Low Risk"],
+  ["low_risk_eligible", "Có đủ điều kiện vào board Low Risk hay không"],
 ];
 
 export default function GlossarySection() {

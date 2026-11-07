@@ -14,6 +14,7 @@ keywords: "changelog, version, phase 5, prompt v2, việt hóa, nguồn"
 |---|---|
 | 07/11/2026 | Tạo bộ tài liệu kỹ thuật, 20 mục |
 | 07/11/2026 | Đồng bộ thuật ngữ tiếng Việt và prompt AI v2 |
+| 07/11/2026 | Cập nhật Risk V2: R01–R19, risk_score, veto, Low Risk eligibility |
 
 ## 2. Phạm vi
 

@@ -25,7 +25,19 @@ export default function RankingSection() {
         Low Risk
       </h3>
       <p className="text-sm text-body">
-        Điều kiện tham khảo: runtime ≥ 90 ngày, MDD ≤ 20%, max leverage ≤ 5x, confidence ≥ 0,8.
+        Điều kiện board: runtime ≥ 90 ngày, MDD ≤ 20%, max leverage ≤ 5x (hoặc null), confidence ≥
+        0.8, Sharpe không null và ≥ 0.
+      </p>
+      <ul className="list-disc space-y-1 pl-5 text-sm text-body">
+        <li>Sharpe null → không vào Low Risk.</li>
+        <li>Sharpe âm → không vào Low Risk.</li>
+        <li>
+          Sharpe 0–0.5 chỉ qua khi MDD ≤ 15%, max leverage ≤ 3x, runtime ≥ 180 ngày.
+        </li>
+      </ul>
+      <p className="text-sm text-body">
+        <code>risk_rules.eligible_for_low_risk</code> là cùng logic veto; <code>ranking.py</code>{" "}
+        kiểm tra thêm các ngưỡng board.
       </p>
 
       <h3 id="ranking-snapshot" className="scroll-mt-24 text-base font-semibold text-strong">
