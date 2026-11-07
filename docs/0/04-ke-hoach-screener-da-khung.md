@@ -333,3 +333,8 @@ ngắn/dài hạn, và hiển thị `unknown` khi khung thiếu dữ liệu.
   `ScreenerPage` dùng `useSearchParams` (replace), `TraderDetailPage` back bằng `navigate(-1)` + fallback
   query đã lưu; E2E checkpoint "Screener giữ trạng thái" PASS.
   → Bằng chứng: `npm run build` pass; `npm run test:e2e` PASS; commit `4.0.1`.
+- [x] B4.0.2 Migration `0018_metric_windows` — 15 cột (`roi/mdd/sharpe/copier_pnl/win_rate_order` × 7d/30d/180d)
+  + index `ix_tm_roi_{7d,30d,180d}`, `ix_tm_profit_factor`, `ix_tm_current_copiers_desc`,
+  `ix_tm_copier_pnl_90d_desc`; model `TraderMetric` khai báo đủ cột.
+  → Bằng chứng: `alembic upgrade head` → `downgrade -1` → `upgrade head` OK; psql xác nhận 5 cột `*_7d`;
+  `test_models.py` 4 pass; ruff pass; commit `4.0.2`.

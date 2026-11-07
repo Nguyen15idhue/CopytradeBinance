@@ -617,3 +617,7 @@ Nguồn: `docs/0/04-ke-hoach-screener-da-khung.md`. Khảo sát xác nhận V1�
   `ScreenerPage` đồng bộ mọi filter + sort + page lên URL bằng `setSearchParams(..., {replace:true})`;
   `TraderDetailPage` quay lại bằng `navigate(-1)`, fallback `/screener?<query đã lưu>`.
   E2E checkpoint "Screener giữ trạng thái" (lọc MDD → mở trader → back → F5) PASS; build pass.
+- B4.0.2: migration `0018_metric_windows` thêm 15 cột (`roi/mdd/sharpe/copier_pnl/win_rate_order`
+  × 7d/30d/180d) + index `ix_tm_roi_{7d,30d,180d}`, `ix_tm_profit_factor`,
+  `ix_tm_current_copiers_desc`, `ix_tm_copier_pnl_90d_desc`; model khai báo đủ; up/down OK;
+  `test_models` 4 pass (có test đủ 20 cột đa khung).

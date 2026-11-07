@@ -905,7 +905,7 @@ Tóm tắt: không auto-trading, không realtime WebSocket, không Paper Copy tr
 ## Phase 6c — Screener đa khung + giữ trạng thái (docs/0/04-ke-hoach-screener-da-khung.md)
 
 - [x] B4.0.1 URL state Screener + giữ vị trí. → Bằng chứng: `lib/screenerQuery.ts`; E2E "Screener giữ trạng thái" PASS.
-- [ ] B4.0.2 Migration `0018_metric_windows`.
+- [x] B4.0.2 Migration `0018_metric_windows`. → Bằng chứng: 15 cột + 6 index; up/down OK; `test_models` 4 pass.
 - [ ] B4.0.3 Builder ghi đa khung.
 - [ ] B4.0.4 Screener API đa khung + filter mở rộng.
 - [ ] B4.0.5 UI Screener đa khung.
