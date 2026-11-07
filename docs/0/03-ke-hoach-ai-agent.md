@@ -605,16 +605,17 @@ Timeout: 120s/request, tool 10s, SQL 5s.
 
 ## 20. Tiến độ triển khai (Phase 6b)
 
-- [x] B1 (0015): schema agent 5 bảng + `ai_usage.feature`; migration up/down OK; `test_agent_schema` 4 pass.
-- [x] B2 (orchestrator + SSE): `services/agent/` (schema/verifier/model_client/tools/orchestrator), API `/agent/*` admin-only, budget/rate-limit/timeout, test RBAC + SSE pass.
-- [x] B3 (DB tools): `search_traders/get_trader_profile/compare_traders/get_ranking/get_risk_events` + `get_data_health`; filter an toàn, limit ≤50, evidence + as_of; test 4 pass.
-- [x] B4 (SQL read-only): migration `0016_agent_views` + `sql_tools.py`; test 4 pass.
-- [x] B5 (floating chat UI): `AgentLauncher/Panel`, SSE client, session CRUD; chỉ admin; E2E PASS.
-- [x] B6 (QA Phase 1): full backend 145 pass, ruff/build/E2E/check_refs pass.
-- [x] B7 (Tavily web search): tool + cache 24h + test pass.
-- [x] B8 (knowledge index): bảng `knowledge_chunks` + CLI + tool `search_knowledge`; dry-run OK; test pass.
-- [x] B9 (citation + verifier): check đơn vị/trader_id/advice + contract + citation UI nhóm nguồn; test 6 pass; E2E PASS.
-- [x] B10 (portfolio fit): `evaluate_fit` + tool `analyze_portfolio_fit`; test 5 pass.
-- [x] B11 (NL screener search): parser + endpoint + UI; test + E2E pass.
-- [x] B12 (QA Phase 3): full 166 pass + E2E PASS; fix regression search_traders.
-- [x] B13 (eval/hardening): eval 50 + retention + template fallback + feedback; E2E PASS.
+- [x] B1 (0015, `b307b35`): schema agent 5 bảng + `ai_usage.feature`; migration up/down OK; `test_agent_schema` 4 pass.
+- [x] B2 (`00e7c23`, orchestrator + SSE): `services/agent/` (schema/verifier/model_client/tools/orchestrator), API `/agent/*` admin-only, budget/rate-limit/timeout, test RBAC + SSE pass.
+- [x] B3 (`7b77ae8`, DB tools): `search_traders/get_trader_profile/compare_traders/get_ranking/get_risk_events` + `get_data_health`; filter an toàn, limit ≤50, evidence + as_of; test 4 pass.
+- [x] B4 (`56d3273`, SQL read-only): migration `0016_agent_views` + `sql_tools.py`; test 4 pass.
+- [x] B5 (`ed5af8b`, floating chat UI): `AgentLauncher/Panel`, SSE client, session CRUD; chỉ admin; E2E PASS.
+- [x] B6 (`33b6cb2`, QA Phase 1): full backend 145 pass, ruff/build/E2E/check_refs pass.
+- [x] B7 (`917b678`, Tavily web search): tool + cache 24h + test pass.
+- [x] B8 (`110a73b`, knowledge index): bảng `knowledge_chunks` + CLI + tool `search_knowledge`; dry-run OK; test pass.
+- [x] B9 (`6fb685a`, citation + verifier): check đơn vị/trader_id/advice + contract + citation UI nhóm nguồn; test 6 pass; E2E PASS.
+- [x] B10 (`23eb15b`, portfolio fit): `evaluate_fit` + tool `analyze_portfolio_fit`; test 5 pass.
+- [x] B11 (`70d0cc8`, NL screener search): parser + endpoint + UI; test + E2E pass.
+- [x] B12 (`b7c15ee`, QA Phase 3): full 166 pass + E2E PASS; fix regression search_traders.
+- [x] B13 (`11f2791`, eval/hardening): eval 50 + retention + template fallback + feedback; E2E PASS.
+- [x] B14 (QA cuối): full backend 218 pass, ruff/build/E2E/check_refs (174/0)/check_tech_docs (20/20) pass; alembic head `0017_knowledge_chunks`; test reasoning rule.

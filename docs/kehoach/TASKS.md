@@ -898,4 +898,4 @@ Tóm tắt: không auto-trading, không realtime WebSocket, không Paper Copy tr
 - [x] B11. Search tự nhiên trong Screener. → Bằng chứng: `nl_search.py` (10 case), `/agent/search`, Screener `min_score`/`max_min_copy_usd`, UI ô mô tả + chips + Áp dụng/Xóa, E2E PASS.
 - [x] B12. QA Phase 3. → Bằng chứng: full backend 166 pass, ruff/build/E2E/check_refs pass; fix regression `min_confidence` trong search_traders.
 - [x] B13. Eval + security + cost + retention. → Bằng chứng: eval 50 câu pass, retention + template fallback + feedback UI test pass, E2E feedback PASS.
-- [ ] B14. Final QA + báo cáo.
+- [x] B14. Final QA + báo cáo. → Bằng chứng: full 218 pass, E2E PASS, head `0017_knowledge_chunks`, check_refs 174/0, check_tech_docs 20/20, commit hash đủ B1–B13.
