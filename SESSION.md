@@ -639,3 +639,7 @@ Nguồn: `docs/0/04-ke-hoach-screener-da-khung.md`. Khảo sát xác nhận V1�
 - B4.0.6: `TraderDetailPage` thêm bảng "Hiệu suất theo khung" 4 dòng × ROI/PnL/MDD/Sharpe/
   WinRate/Copier PnL/Số lệnh từ `performance.data.windows` (API đã có sẵn); null → `N/A`.
   E2E assert 4 dòng PASS.
+- B4.0.7: `get_trader_profile` thêm `detail=full|summary`; trả `windows` 4 khung × 8 field
+  (roi/pnl/mdd/sharpe/copier_pnl/win_rate_order/win_orders/total_orders), `derived` 38 field,
+  `profile` 10 field, `flags`, `breakdown`; evidence từng khung + derived chính;
+  `search_traders` thêm `include` và trả `windows` + evidence 7D/30D/180D. Test 6 pass.

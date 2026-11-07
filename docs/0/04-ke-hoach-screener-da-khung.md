@@ -388,3 +388,8 @@ Commit: test(phase6): 4.0.9 eval agent da use case
 - [x] B4.0.6 Detail 4 khung — bảng "Hiệu suất theo khung" 4 dòng (7D/30D/90D/180D) ×
   ROI/PnL/MDD/Sharpe/WinRate/Copier PnL/Số lệnh, dùng `performance.data.windows`; null → `N/A`.
   → Bằng chứng: build pass; E2E assert 4 dòng PASS.
+- [x] B4.0.7 Agent trả đủ dữ liệu trader — `get_trader_profile(detail=full|summary)` trả
+  `windows` 4 khung × 8 field, `derived` 38 field, `profile` 10 field, `breakdown`, `flags`,
+  `risk_events`; evidence cho từng khung (`roi_7d`…`win_rate_180d`) + derived chính;
+  `search_traders(include=metrics|full)` trả thêm `windows` + evidence 7D/30D/180D.
+  → Bằng chứng: `test_agent_db_tools` 6 pass; verifier/core 17 pass; ruff pass.

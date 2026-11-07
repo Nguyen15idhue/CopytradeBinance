@@ -60,6 +60,54 @@ async def test_search_risk_score_empty_is_structured() -> None:
 
 
 @pytest.mark.asyncio
+async def test_profile_full_payload_and_windows() -> None:
+    trader_id = await _any_trader_id()
+    async with SessionLocal() as db:
+        full = await get_trader_profile(db, {"trader_id": trader_id, "detail": "full"})
+        assert full.error is None
+        windows = full.data["windows"]
+        assert set(windows) == {"7D", "30D", "90D", "180D"}
+        for window in windows.values():
+            assert set(window) == {
+                "roi", "pnl", "mdd", "sharpe", "copier_pnl",
+                "win_rate_order", "win_orders", "total_orders",
+            }
+        assert full.data["derived"]
+        assert set(full.data["profile"]) == {
+            "aum", "copy_aum", "current_copiers", "max_copiers", "total_copiers",
+            "profit_sharing_rate", "margin_balance", "favorite_count",
+            "portfolio_type", "status",
+        }
+        assert "breakdown" in full.data
+        assert "flags" in full.data
+        labels = {item.id for item in full.evidence}
+        assert f"{trader_id}:roi_7d" in labels
+        assert f"{trader_id}:roi_180d" in labels
+
+        summary = await get_trader_profile(
+            db, {"trader_id": trader_id, "detail": "summary"}
+        )
+        assert summary.error is None
+        assert summary.data["derived"] == {}
+        assert summary.data["profile"] == {}
+        assert summary.data["windows"]["7D"]["roi"] == windows["7D"]["roi"]
+
+
+@pytest.mark.asyncio
+async def test_search_returns_windows_and_copier_fields() -> None:
+    async with SessionLocal() as db:
+        result = await search_traders(db, {"min_copiers": 1, "limit": 3})
+        assert result.error is None
+        assert result.data["items"]
+        item = result.data["items"][0]
+        assert set(item["windows"]) == {"7D", "30D", "90D", "180D"}
+        assert "current_copiers" in item
+        assert "copier_pnl_90d" in item
+        labels = {e.id for e in result.evidence}
+        assert any(label.endswith(":roi_7d") for label in labels)
+
+
+@pytest.mark.asyncio
 async def test_search_limit_capped_and_structured() -> None:
     async with SessionLocal() as db:
         result = await search_traders(db, {"limit": 500})

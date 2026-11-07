@@ -78,6 +78,7 @@ def _ev(
             "max_risk_score": {"type": "number"},
             "min_copy_usd_max": {"type": "number"},
             "has_slot": {"type": "boolean"},
+            "include": {"type": "string", "enum": ["metrics", "full"]},
             "sort": {"type": "array"},
             "limit": {"type": "integer"},
         },
@@ -141,6 +142,8 @@ async def search_traders(db: AsyncSession, args: dict[str, Any]) -> ToolResult:
         if args.get("has_slot") and not await _has_slot(db, tid):
             continue
         as_of = metric.computed_at.isoformat() if metric and metric.computed_at else None
+        metrics_blob = (metric.metrics if metric else None) or {}
+        published = metrics_blob.get("published") or {}
         items.append(
             {
                 "id": tid,
@@ -160,6 +163,13 @@ async def search_traders(db: AsyncSession, args: dict[str, Any]) -> ToolResult:
                 "current_copiers": metric.current_copiers if metric else None,
                 "copy_aum": _float(metric.copy_aum) if metric else None,
                 "copier_pnl_90d": _float(metric.copier_pnl_90d) if metric else None,
+                "windows": {
+                    window: {
+                        key: (published.get(window) or {}).get(key)
+                        for key in ("roi", "mdd", "sharpe", "copier_pnl", "win_rate_order")
+                    }
+                    for window in ("7D", "30D", "90D", "180D")
+                } if metric else {},
                 "as_of": as_of,
             }
         )
@@ -173,6 +183,15 @@ async def search_traders(db: AsyncSession, args: dict[str, Any]) -> ToolResult:
                             ("current_copiers", None), ("copier_pnl_90d", "USDT")):
             if item.get(label) is not None:
                 evidence.append(_ev(item["id"], label, item[label], unit, as_of))
+        for window in ("7D", "30D", "180D"):
+            window_data = (item.get("windows") or {}).get(window) or {}
+            for key, unit in (("roi", "%"), ("mdd", "%"), ("sharpe", None),
+                              ("copier_pnl", "USDT"), ("win_rate_order", "%")):
+                value = window_data.get(key)
+                if value is not None:
+                    evidence.append(
+                        _ev(item["id"], f"{key}_{window.lower()}", value, unit, as_of)
+                    )
     return ToolResult(
         data={"items": items, "total": len(items), "config_version": version},
         meta={"source": "database", "as_of": utcnow_iso(),
@@ -206,14 +225,22 @@ async def _has_slot(db: AsyncSession, trader_id: str) -> bool:
 
 @register_tool(
     "get_trader_profile",
-    "Hồ sơ đầy đủ một trader: tier, metrics, score, risk, performance 4 window.",
-    {"type": "object", "properties": {"trader_id": {"type": "string"}},
-     "required": ["trader_id"]},
+    "Hồ sơ đầy đủ một trader: 4 khung × 8 chỉ số, 38 derived, profile, score breakdown, risk.",
+    {
+        "type": "object",
+        "properties": {
+            "trader_id": {"type": "string"},
+            "detail": {"type": "string", "enum": ["summary", "full"]},
+        },
+        "required": ["trader_id"],
+    },
 )
 async def get_trader_profile(db: AsyncSession, args: dict[str, Any]) -> ToolResult:
     trader_id = str(args.get("trader_id") or "")
     if not trader_id:
         return ToolResult.fail("Thiếu trader_id")
+    detail = str(args.get("detail") or "full").lower()
+    include_full = detail != "summary"
     trader = await db.get(Trader, trader_id)
     universe = (
         await db.execute(
@@ -267,12 +294,38 @@ async def get_trader_profile(db: AsyncSession, args: dict[str, Any]) -> ToolResu
         "roi_90d": _float(metric.roi_90d) if metric else None,
         "mdd_90d": _float(metric.mdd_90d) if metric else None,
         "sharpe": _float(metric.sharpe_90d) if metric else None,
-        "performance": {
-            window: {"roi": (published.get(window) or {}).get("roi"),
-                     "mdd": (published.get(window) or {}).get("mdd"),
-                     "sharpe": (published.get(window) or {}).get("sharpe")}
+        "windows": {
+            window: {
+                key: (published.get(window) or {}).get(key)
+                for key in (
+                    "roi",
+                    "pnl",
+                    "mdd",
+                    "sharpe",
+                    "copier_pnl",
+                    "win_rate_order",
+                    "win_orders",
+                    "total_orders",
+                )
+            }
             for window in ("7D", "30D", "90D", "180D")
         },
+        "derived": (metrics_blob.get("derived") or {}) if include_full else {},
+        "profile": {
+            "aum": (metrics_blob.get("profile") or {}).get("aum"),
+            "copy_aum": (metrics_blob.get("profile") or {}).get("copy_aum"),
+            "current_copiers": (metrics_blob.get("profile") or {}).get("current_copiers"),
+            "max_copiers": (metrics_blob.get("profile") or {}).get("max_copiers"),
+            "total_copiers": (metrics_blob.get("profile") or {}).get("total_copiers"),
+            "profit_sharing_rate": (metrics_blob.get("profile") or {}).get(
+                "profit_sharing_rate"
+            ),
+            "margin_balance": (metrics_blob.get("profile") or {}).get("margin_balance"),
+            "favorite_count": (metrics_blob.get("profile") or {}).get("favorite_count"),
+            "portfolio_type": (metrics_blob.get("profile") or {}).get("portfolio_type"),
+            "status": (metrics_blob.get("profile") or {}).get("status"),
+        } if include_full else {},
+        "flags": metrics_blob.get("flags") or [],
         "risk_events": [
             {"code": e.code, "severity": e.severity, "label": e.label, "evidence": e.evidence}
             for e in events
@@ -290,6 +343,37 @@ async def get_trader_profile(db: AsyncSession, args: dict[str, Any]) -> ToolResu
         _ev(trader_id, "copy_aum", profile["copy_aum"], "USDT", as_of),
         _ev(trader_id, "copier_pnl_90d", profile["copier_pnl_90d"], "USDT", as_of),
     ]
+    window_units = {
+        "roi": "%",
+        "mdd": "%",
+        "sharpe": None,
+        "copier_pnl": "USDT",
+        "pnl": "USDT",
+        "win_rate_order": "%",
+    }
+    for window in ("7D", "30D", "90D", "180D"):
+        for key, unit in window_units.items():
+            value = profile["windows"][window].get(key)
+            if value is not None:
+                evidence.append(_ev(trader_id, f"{key}_{window.lower()}", value, unit, as_of))
+    if include_full:
+        derived = profile["derived"]
+        for key, unit in (
+            ("profit_factor", None),
+            ("fee_drag_pct", "%"),
+            ("hhi", None),
+            ("roi_stability", None),
+            ("positive_days_pct", "%"),
+            ("max_leverage", "x"),
+            ("avg_leverage", "x"),
+            ("position_win_rate", "%"),
+            ("copy_aum_ratio", "%"),
+            ("worst_position_roi", "%"),
+            ("near_liquidation_count", None),
+        ):
+            value = derived.get(key)
+            if value is not None:
+                evidence.append(_ev(trader_id, key, value, unit, as_of))
     evidence = [item for item in evidence if item.value is not None]
     return ToolResult(
         data=profile,
