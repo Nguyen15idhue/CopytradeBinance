@@ -23,6 +23,33 @@ from app.services.quant.confidence import compute_confidence
 logger = logging.getLogger(__name__)
 BATCH = 500
 
+WINDOW_COLUMN_MAP: dict[str, dict[str, str]] = {
+    "7D": {
+        "roi": "roi_7d",
+        "mdd": "mdd_7d",
+        "sharpe": "sharpe_7d",
+        "copier_pnl": "copier_pnl_7d",
+        "win_rate_order": "win_rate_order_7d",
+    },
+    "30D": {
+        "roi": "roi_30d",
+        "mdd": "mdd_30d",
+        "sharpe": "sharpe_30d",
+        "copier_pnl": "copier_pnl_30d",
+        "win_rate_order": "win_rate_order_30d",
+    },
+    "180D": {
+        "roi": "roi_180d",
+        "mdd": "mdd_180d",
+        "sharpe": "sharpe_180d",
+        "copier_pnl": "copier_pnl_180d",
+        "win_rate_order": "win_rate_order_180d",
+    },
+}
+WINDOW_UPSERT_COLUMNS = tuple(
+    column for mapping in WINDOW_COLUMN_MAP.values() for column in mapping.values()
+)
+
 
 def _value(value: Any) -> float | None:
     if value is None:
@@ -281,6 +308,12 @@ async def rebuild_metrics(
         }
         metrics["flags"] = qm.missing_flags(metrics)
 
+        window_columns: dict[str, Any] = {}
+        for window, mapping in WINDOW_COLUMN_MAP.items():
+            window_data = published.get(window) or {}
+            for source_key, column_name in mapping.items():
+                window_columns[column_name] = window_data.get(source_key)
+
         rows_to_save.append(
             {
                 "lead_portfolio_id": pid,
@@ -290,6 +323,7 @@ async def rebuild_metrics(
                 "win_rate_order_90d": published["90D"]["win_rate_order"],
                 "total_orders_90d": published["90D"]["total_orders"],
                 "copier_pnl_90d": published["90D"]["copier_pnl"],
+                **window_columns,
                 "aum": aum,
                 "copy_aum": copy_aum,
                 "current_copiers": current_copiers,
@@ -333,6 +367,7 @@ async def rebuild_metrics(
                     "low_sample",
                     "metrics",
                     "computed_at",
+                    *WINDOW_UPSERT_COLUMNS,
                 )
             },
         )

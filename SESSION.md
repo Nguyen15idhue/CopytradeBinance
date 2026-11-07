@@ -621,3 +621,7 @@ Nguồn: `docs/0/04-ke-hoach-screener-da-khung.md`. Khảo sát xác nhận V1�
   × 7d/30d/180d) + index `ix_tm_roi_{7d,30d,180d}`, `ix_tm_profit_factor`,
   `ix_tm_current_copiers_desc`, `ix_tm_copier_pnl_90d_desc`; model khai báo đủ; up/down OK;
   `test_models` 4 pass (có test đủ 20 cột đa khung).
+- B4.0.3: `quant/builder.py` thêm `WINDOW_COLUMN_MAP` (7D/30D/180D × roi/mdd/sharpe/copier_pnl/win_rate)
+  và đưa 15 cột vào upsert; null giữ null. Backfill: 531 trader, 501 có đa khung
+  (19 thiếu performance nguồn → null đúng), 13 trader `roi_7d=0` khớp published 0;
+  `test_metric_windows` 2 pass.
