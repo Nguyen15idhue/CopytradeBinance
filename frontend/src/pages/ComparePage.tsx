@@ -12,25 +12,31 @@ import {
 } from "recharts";
 
 import { getCompare, getScreener } from "../lib/api";
+import {
+  BAND_LABELS,
+  RISK_LEVEL_LABELS,
+  TIER_LABELS,
+  label,
+} from "../i18n/vi";
 
 const COLORS = ["var(--accent)", "var(--info)", "var(--warn)", "var(--danger)"];
 
 const ROWS: Array<[string, (item: Record<string, unknown>) => string]> = [
-  ["Tier", (item) => String(item.tier ?? "—")],
-  ["Score", (item) => number(item.score)],
-  ["Band", (item) => String(item.band ?? "—")],
-  ["Confidence", (item) => (item.confidence === null ? "N/A" : `${Math.round(Number(item.confidence) * 100)}%`)],
-  ["Risk", (item) => String(item.risk_level ?? "unknown")],
+  ["Nhóm", (item) => label(TIER_LABELS, item.tier as string | null)],
+  ["Điểm", (item) => number(item.score)],
+  ["Mức điểm", (item) => label(BAND_LABELS, item.band as string | null, "—")],
+  ["Độ tin cậy", (item) => (item.confidence === null ? "N/A" : `${Math.round(Number(item.confidence) * 100)}%`)],
+  ["Rủi ro", (item) => label(RISK_LEVEL_LABELS, item.risk_level as string | null)],
   ["ROI 90D", (item) => percent(item.roi_90d)],
   ["MDD 90D", (item) => percent(item.mdd_90d)],
   ["Sharpe", (item) => number(item.sharpe)],
   ["WinRate", (item) => percent(item.win_rate_order)],
-  ["Max leverage", (item) => (item.max_leverage === null ? "N/A" : `${number(item.max_leverage)}x`)],
-  ["Profit factor", (item) => number(item.profit_factor)],
-  ["Runtime", (item) => (item.runtime_days === null ? "N/A" : `${number(item.runtime_days, 0)} ngày`)],
+  ["Đòn bẩy tối đa", (item) => (item.max_leverage === null ? "N/A" : `${number(item.max_leverage)}x`)],
+  ["Profit Factor", (item) => number(item.profit_factor)],
+  ["Số ngày hoạt động", (item) => (item.runtime_days === null ? "N/A" : `${number(item.runtime_days, 0)} ngày`)],
   ["Copier PnL", (item) => number(item.copier_pnl_90d)],
   ["Copy AUM", (item) => money(item.copy_aum)],
-  ["Top symbol", (item) => String(item.top_symbol ?? "—")],
+  ["Cặp giao dịch chính", (item) => String(item.top_symbol ?? "—")],
 ];
 
 function number(value: unknown, digits = 2): string {
@@ -106,7 +112,7 @@ export default function ComparePage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight">Compare</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">So sánh</h1>
         <p className="mt-2 text-muted">So sánh 2–4 trader. Tối đa 4.</p>
       </div>
 
@@ -226,9 +232,9 @@ export default function ComparePage() {
 
           <section className="rounded-2xl border border-line bg-panel p-5">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-sm font-medium uppercase tracking-wide text-faint">Correlation</h2>
+              <h2 className="text-sm font-medium uppercase tracking-wide text-faint">Tương quan</h2>
               <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-xs text-warn">
-                estimated
+                ước tính
               </span>
             </div>
             <p className="mt-1 text-xs text-faint">{compare.data.correlation.disclaimer}</p>

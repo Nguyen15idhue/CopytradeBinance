@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useSearchParams } from "react-router-dom";
 
 import { getRiskEvents, getRiskSummary } from "../lib/api";
+import { RISK_EVENT_LABELS, SEVERITY_LABELS, label } from "../i18n/vi";
 
 const SEVERITY_STYLES: Record<string, string> = {
   critical: "border-red-500/40 bg-red-500/10 text-danger",
@@ -39,9 +40,9 @@ export default function RiskMonitorPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight">Risk Monitor</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">Cảnh báo rủi ro</h1>
         <p className="mt-2 text-muted">
-          Risk event R01–R11 kèm evidence. Không hiển thị open positions vì Binance không cung cấp.
+          Risk event R01–R11 kèm bằng chứng. Không hiển thị vị thế đang mở vì Binance không cung cấp.
         </p>
       </div>
 
@@ -52,7 +53,7 @@ export default function RiskMonitorPage() {
           </span>
           {Object.entries(summary.data.by_severity).map(([key, value]) => (
             <span key={key} className={`rounded-full border px-3 py-1 ${SEVERITY_STYLES[key] ?? "border-line text-body"}`}>
-              {key}: {value}
+              {label(SEVERITY_LABELS, key)}: {value}
             </span>
           ))}
         </div>
@@ -60,37 +61,37 @@ export default function RiskMonitorPage() {
 
       <section className="flex flex-wrap items-end gap-3 rounded-2xl border border-line bg-panel p-4">
         <label className="text-sm text-body">
-          Severity
+          Mức độ
           <select
             value={severity}
             onChange={(event) => { setSeverity(event.target.value); setPage(1); }}
             className="mt-1 block rounded-lg border border-line bg-app px-3 py-2 text-strong"
           >
             <option value="">Tất cả</option>
-            <option value="critical">Critical</option>
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low_sample">Low sample</option>
-            <option value="confidence_penalty">Confidence penalty</option>
+            <option value="critical">{SEVERITY_LABELS.critical}</option>
+            <option value="high">{SEVERITY_LABELS.high}</option>
+            <option value="medium">{SEVERITY_LABELS.medium}</option>
+            <option value="low_sample">{SEVERITY_LABELS.low_sample}</option>
+            <option value="confidence_penalty">{SEVERITY_LABELS.confidence_penalty}</option>
           </select>
         </label>
         <label className="text-sm text-body">
-          Status
+          Trạng thái
           <select
             value={status}
             onChange={(event) => { setStatus(event.target.value); setPage(1); }}
             className="mt-1 block rounded-lg border border-line bg-app px-3 py-2 text-strong"
           >
             <option value="">Tất cả</option>
-            <option value="open">Open</option>
+            <option value="open">Đang mở</option>
           </select>
         </label>
         <label className="text-sm text-body">
-          Trader ID
+          ID trader
           <input
             value={trader}
             onChange={(event) => { setTrader(event.target.value); setPage(1); }}
-            placeholder="portfolio id"
+            placeholder="ID portfolio"
             className="mt-1 block w-64 rounded-lg border border-line bg-app px-3 py-2 text-strong"
           />
         </label>
@@ -99,10 +100,10 @@ export default function RiskMonitorPage() {
           onClick={() => { setSeverity(""); setStatus("open"); setTrader(""); setPage(1); }}
           className="rounded-lg border border-line px-3 py-2 text-sm text-body"
         >
-          Reset
+          Đặt lại
         </button>
         <span className="ml-auto text-sm text-muted">
-          {events.data ? `${events.data.total} event` : "Đang tải..."}
+          {events.data ? `${events.data.total} cảnh báo` : "Đang tải..."}
         </span>
       </section>
 
@@ -110,11 +111,11 @@ export default function RiskMonitorPage() {
         <div className="h-64 animate-pulse rounded-2xl bg-panel" />
       ) : events.isError ? (
         <div className="rounded-2xl border border-red-500/30 bg-red-500/5 p-5 text-danger">
-          Không tải được risk events.
+          Không tải được cảnh báo rủi ro.
         </div>
       ) : !events.data?.items.length ? (
         <div className="rounded-2xl border border-line bg-panel p-8 text-center text-muted">
-          Không có risk event khớp bộ lọc.
+          Không có cảnh báo rủi ro khớp bộ lọc.
         </div>
       ) : (
         <div className="space-y-2">
@@ -129,9 +130,11 @@ export default function RiskMonitorPage() {
                   className="flex w-full flex-wrap items-center gap-3 px-4 py-3 text-left"
                 >
                   <span className={`rounded-full border px-2 py-0.5 text-xs ${SEVERITY_STYLES[event.severity] ?? "border-line text-body"}`}>
-                    {event.code} · {event.severity}
+                    {event.code} · {label(SEVERITY_LABELS, event.severity)}
                   </span>
-                  <span className="text-sm text-strong">{event.label}</span>
+                  <span className="text-sm text-strong">
+                    {label(RISK_EVENT_LABELS, event.code, event.label)}
+                  </span>
                   <Link
                     to={`/traders/${event.trader_id}`}
                     onClick={(clickEvent) => clickEvent.stopPropagation()}
@@ -143,7 +146,7 @@ export default function RiskMonitorPage() {
                 </button>
                 {isOpen ? (
                   <div className="border-t border-line px-4 py-3">
-                    <p className="mb-2 text-xs uppercase tracking-wide text-faint">Evidence</p>
+                    <p className="mb-2 text-xs uppercase tracking-wide text-faint">Bằng chứng</p>
                     <pre className="overflow-x-auto rounded-lg bg-app p-3 text-xs text-body">
 {JSON.stringify(event.evidence, null, 2)}
                     </pre>
