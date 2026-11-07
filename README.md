@@ -102,6 +102,8 @@ cd frontend && npm run build
 cd frontend && npm run test:e2e
 ```
 
+Phase 6 sẽ chuyển sang `@playwright/test`; ma trận use case tại `docs/kehoach/E2E-TEST-PLAN.md`.
+
 ## Biến môi trường
 
 Sao chép `.env.example` thành `.env` và đổi secret khi triển khai thật.

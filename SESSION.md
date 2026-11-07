@@ -461,3 +461,23 @@ task API/UI Ranking; Phase 3.5 mới chỉ có service + snapshot.
 - `PHASE4-REPORT.md`: ghi nhận Ranking UI chuyển sang 5.4.
 
 Không thay đổi quyết định D02 (4 màn hình lõi): Ranking dùng lại dữ liệu Phase 3.5, Help là trang phụ trợ.
+
+---
+
+## 14. Phase 6 — Playwright E2E toàn bộ use case (07/11/2026)
+
+Yêu cầu: chắc chắn hệ thống chạy đúng với use case thực tế, không chỉ happy path.
+
+Đã cập nhật tài liệu (không sửa mã nguồn):
+
+- `TASKS.md` Phase 6:
+  - **Bước 6.2 — Playwright E2E toàn bộ use case** (mới), deploy/monitoring/beta/gate dời thành 6.3–6.6.
+  - Checklist: chuyển sang `@playwright/test`, 3 project (1440/1280/390), storageState admin/viewer,
+    tag smoke/full, mock lỗi 401/500/timeout/429, theme, keyboard, flaky 3 lần, báo cáo `PHASE6-REPORT.md`.
+  - Thời lượng Phase 6: 4–6 → **6–8 ngày**; tổng 33–47 → **37–51 ngày** (+buffer 44–61).
+  - Gate bổ sung: P0 100%, P1 ≥ 95%, 0 flaky.
+- `docs/kehoach/E2E-TEST-PLAN.md` (mới): ma trận **78 case** (A/S/D/C/R/K/H/T/N/X),
+  cấu hình runner, dữ liệu test, mock, CI, quy tắc flaky và 6 gap cần xử lý (G1–G6).
+- `06-kiem-thu-van-hanh-bao-mat.md`: thêm mục 5.6 tổng hợp Playwright theo nhóm + gate E2E.
+
+Lưu ý: ranking/help cases (K/H) chỉ chạy được sau khi hoàn thành bước 5.4/5.5.

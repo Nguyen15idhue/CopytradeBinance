@@ -240,6 +240,25 @@ def test_pre_score_missing_sharpe_neutral():
 - Empty state.
 - Error state.
 
+### 5.6. Playwright E2E — use case thực tế
+
+**Kế hoạch đầy đủ:** `docs/kehoach/E2E-TEST-PLAN.md` (ma trận A/S/D/C/R/K/H/T/N/X).
+
+| Nhóm | Số case | Nội dung |
+|---|---:|---|
+| Auth & phiên | 8 | login đúng/sai, rate limit, logout, deep link, 401, viewer RBAC, refresh rotate |
+| Screener | 16 | search, tier, include excluded, filter số, sort, phân trang, saved view, CSV, drawer, reset |
+| Trader Detail | 11 | 10 metric, tooltip, 3 chart, breakdown, risk, excluded, 404, 500, AUM=0 |
+| Compare | 8 | 2–4 trader, chặn >4, deep link, ids sai, correlation |
+| Risk Monitor | 7 | summary, filter, evidence, phân trang, empty, không open positions giả |
+| Ranking + Help | 8 | 3 tab, snapshot metadata, help 8 mục, mục lục, banner |
+| Theme/responsive/a11y | 7 | sáng/tối/hệ thống, reload, chart, 390/1280/1440, keyboard, zoom |
+| Lỗi mạng/dữ liệu | 7 | 401, 500, timeout, 429, empty DB, null, stale |
+| Cross-cutting | 6 | console error, NaN/undefined, secret, tiếng Việt, states, request lạ |
+
+**Gate E2E:** P0 100% pass, P1 ≥ 95%, `--repeat-each=3` không flaky, 0 console error,
+artifact (trace/video) bật khi fail. Gap G1–G6 phải xử lý hoặc ghi nhận trước khi gate.
+
 ---
 
 ## 6. Data quality test

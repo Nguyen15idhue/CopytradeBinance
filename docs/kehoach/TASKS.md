@@ -22,8 +22,8 @@
 | 3 — Quant + Scoring + Screener | `[x]` hoàn thành | 7–9 ngày | Screener dùng được, score breakdown đúng | §8 (1187–1449), §9 (1450–1612) |
 | 4 — Detail + Compare + Risk | `[x]` hoàn thành | 5–7 ngày | Detail sâu, compare 4 trader, risk evidence | §11.2–11.3 (2009–2057), §13.4–13.5 (2345–2489) |
 | 5 — AI + Settings + Hardening | `[ ]` | 7–9 ngày | AI không sửa score, config version/rollback, Ranking + Help dùng được | §11.5 (2071–2084), §13.6–13.7 (2490–2543), §15.8 (3075–3095) |
-| 6 — Testing + Deploy + Beta | `[ ]` | 4–6 ngày | Uptime 7 ngày, beta 3–5 user | §14 (2617–2918), §15 (2919–3128) |
-| | | **33–47 ngày** | +20% buffer → **40–56 ngày** | |
+| 6 — Testing + Deploy + Beta | `[ ]` | 6–8 ngày | Uptime 7 ngày, beta 3–5 user, Playwright E2E full pass | §14 (2617–2918), §15 (2919–3128) |
+| | | **37–51 ngày** | +20% buffer → **44–61 ngày** | |
 
 **Đường găng:** Phase 1 → Phase 2 → Phase 3. Phase 4–5 có thể song song một phần nếu có thêm người.  
 **Thực tế 1 dev full-time:** 7–9 tuần. **Part-time:** nhân đôi.
@@ -655,8 +655,8 @@ hoàn thiện trang Ranking và trang hướng dẫn cho người mới.
 
 ## Phase 6 — Testing + Deploy + Beta
 
-**Mục tiêu:** MVP chạy VPS, có monitoring, có beta user.  
-**Thời lượng:** 4–6 ngày.
+**Mục tiêu:** MVP chạy VPS, có monitoring, có beta user; **Playwright E2E phủ toàn bộ use case thực tế**.  
+**Thời lượng:** 6–8 ngày.
 
 ### Bước 6.1 — Test toàn bộ
 
@@ -671,7 +671,31 @@ hoàn thiện trang Ranking và trang hướng dẫn cho người mới.
 - [ ] Test trader excluded không bị deep fetch.
 - [ ] Test null/zero hiển thị đúng.
 
-### Bước 6.2 — Deploy VPS
+### Bước 6.2 — Playwright E2E toàn bộ use case
+
+**Tham chiếu:** §14.1 Test pyramid (2619–2631) · §14.5 Contract test (2749–2788) · §14.6 Integration test (2789–2821) · §14.10 Acceptance MVP (2898–2918)  
+**→ đọc khi:** dựng bộ E2E thật, kiểm tra auth/screener/detail/compare/risk/ranking/help/theme/mobile/lỗi mạng.
+**Kế hoạch chi tiết:** `docs/kehoach/E2E-TEST-PLAN.md` (ma trận A/S/D/C/R/K/H/T/N/X).
+
+- [ ] Chuyển từ `frontend/scripts/e2e.mjs` sang `@playwright/test` (`frontend/e2e/*.spec.ts`).
+- [ ] Cấu hình 3 project: desktop 1440, desktop 1280, mobile 390.
+- [ ] Global setup: `storageState` cho admin + viewer, lấy trader id qua API, seed saved view test.
+- [ ] Tag `@smoke` (PR) và `@full` (nightly/gate); report HTML + JUnit; trace/video khi fail.
+- [ ] Auth: login đúng/sai, rate limit 429, logout, deep link khi chưa login, 401 hết phiên, RBAC viewer.
+- [ ] Screener: search, 4 tier, include excluded, toàn bộ filter số, sort, phân trang, saved view, CSV, drawer, reset, empty state.
+- [ ] Detail: 10 metric + tooltip nguồn, 3 chart, breakdown, risk, excluded banner, 404, API 500, copy AUM = 0.
+- [ ] Compare: 2/3/4 trader, chặn >4, deep link, `?ids` sai, correlation “estimated”, xóa chip.
+- [ ] Risk Monitor: summary, filter severity/trader, evidence, phân trang, empty, không open positions giả.
+- [ ] Ranking + Help (sau 5.4/5.5): 3 tab, snapshot metadata, 8 mục help, mục lục, banner dismiss.
+- [ ] Theme: sáng/tối/hệ thống, reload giữ lựa chọn, emulateMedia, chart đổi màu.
+- [ ] Responsive 390/1280/1440, keyboard tab, zoom 200%.
+- [ ] Mock lỗi: 401, 500, timeout, 429, empty; assert error state không trắng trang.
+- [ ] Cross-cutting: 0 console error, không `undefined`/`NaN`/`null`, không secret, tiếng Việt đúng.
+- [ ] Chạy `--repeat-each=3`: 0 flaky; gate P0 100%, P1 ≥ 95%.
+- [ ] Xử lý/ghi nhận gap G1–G6 trong `E2E-TEST-PLAN.md` (mobile drawer, URL state, silent refresh, stale banner, ranking/help, admin UI).
+- [ ] Lưu bằng chứng vào `docs/kehoach/PHASE6-REPORT.md`.
+
+### Bước 6.3 — Deploy VPS
 
 **Tham chiếu:** §15.1 Topology (2921–2947) · §15.2 Biến môi trường (2948–2996) · §15.3 Quy trình deploy (2997–3012) · §15.4 Lịch chạy (3013–3028)  
 **→ đọc khi:** dựng VPS, Nginx, TLS, migration, rollback.
@@ -683,7 +707,7 @@ hoàn thiện trang Ranking và trang hướng dẫn cho người mới.
 - [ ] Rollback image hoạt động.
 - [ ] Log dashboard.
 
-### Bước 6.3 — Monitoring & vận hành
+### Bước 6.4 — Monitoring & vận hành
 
 **Tham chiếu:** §15.5 Backup & restore (3029–3043) · §15.6 Monitoring & alert (3044–3059) · §15.7 Runbook sự cố (3060–3074) · §15.10 Tài liệu vận hành (3107–3115)  
 **→ đọc khi:** đặt alert, viết runbook, kiểm tra backup.
@@ -695,7 +719,7 @@ hoàn thiện trang Ranking và trang hướng dẫn cho người mới.
 - [ ] Viết deployment doc.
 - [ ] Viết data-quality doc.
 
-### Bước 6.4 — Beta & feedback
+### Bước 6.5 — Beta & feedback
 
 **Tham chiếu:** §4.4 Tiêu chí thành công MVP (356–384) · §21 Việc cần làm ngay (3385–3483) · §18 Backlog v1.1 (3291–3319)  
 **→ đọc khi:** chuẩn bị beta, thu feedback, chốt backlog.
@@ -706,7 +730,7 @@ hoàn thiện trang Ranking và trang hướng dẫn cho người mới.
 - [ ] Cập nhật `SESSION.md`.
 - [ ] Ghi lại bug/khác biệt phát hiện trong beta.
 
-### Bước 6.5 — Gate Phase 6
+### Bước 6.6 — Gate Phase 6
 
 **Tham chiếu:** §14.10 Acceptance MVP (2898–2918) · §15.8 Security checklist (3075–3095)  
 **→ đọc khi:** nghiệm thu cuối.
@@ -716,9 +740,10 @@ hoàn thiện trang Ranking và trang hướng dẫn cho người mới.
 - [ ] Backup restore thành công.
 - [ ] Không có lỗi bảo mật nghiêm trọng.
 - [ ] ≥ 3 người dùng thử và phản hồi.
+- [ ] Playwright `@full` pass: P0 100%, P1 ≥ 95%, 0 flaky sau 3 lần.
 - [ ] Không còn `[!]` blocking trong mục 20.
 
-**Gate:** uptime 7 ngày, collector đủ 7 ngày, beta feedback.
+**Gate:** uptime 7 ngày, collector đủ 7 ngày, beta feedback, E2E full matrix pass.
 
 ---
 
