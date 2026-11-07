@@ -6,7 +6,8 @@ DISCLAIMER = "Thông tin chỉ mang tính tham khảo, không phải lời khuy�
 
 ADVICE_PATTERNS = [
     r"nên (mua|bán|copy|đầu tư|tham gia|rút|nắm giữ|chốt)",
-    r"khuyên (bạn|anh|chị) (nên|mua|bán|copy|đầu tư)",
+    r"khuyên (bạn|anh|chị|tôi|mình) (nên|mua|bán|copy|đầu tư)",
+    r"khuyên .*?(mua|bán|copy|đầu tư)",
     r"mua ngay|bán ngay|copy ngay|đầu tư ngay",
     r"lời khuyên đầu tư",
     r"you should (buy|sell|copy|invest)",

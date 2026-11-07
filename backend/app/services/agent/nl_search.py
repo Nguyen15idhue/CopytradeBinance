@@ -58,6 +58,14 @@ def parse_nl_filters(text: str) -> dict[str, Any]:
         r"\s*(?:≤|<=|dưới|không quá|tối đa)?\s*" + NUMBER + r"\s*\$?",
         query,
     )
+    if capital is None:
+        loose = re.search(r"(?:vốn|có|với)\s*[^\d$]{0,12}" + NUMBER + r"\s*\$", query)
+        if loose:
+            capital = loose
+    if capital is None:
+        bare_money = re.search(NUMBER + r"\s*(?:\$|usd|usdt)", query)
+        if bare_money:
+            capital = bare_money
     if capital:
         filters["min_copy_usd_max"] = _num(capital.group(1))
         chips.append(f"Vốn tối thiểu ≤ {capital.group(1)}$")

@@ -6,6 +6,7 @@ import {
   deleteAgentSession,
   getAgentSession,
   listAgentSessions,
+  sendAgentFeedback,
   streamAgentChat,
 } from "../../lib/agent";
 import type {
@@ -26,6 +27,40 @@ interface ChatMessage extends AgentMessageItem {
   citations?: AgentCitation[];
   warnings?: string[];
   pending?: boolean;
+  serverId?: number;
+}
+
+function FeedbackButtons({ messageId }: { messageId: number }) {
+  const [sent, setSent] = useState<number | null>(null);
+  async function vote(rating: number) {
+    try {
+      await sendAgentFeedback(messageId, rating);
+      setSent(rating);
+    } catch {
+      setSent(null);
+    }
+  }
+  if (sent !== null) return <p className="mt-1 text-xs text-muted">Đã ghi nhận đánh giá.</p>;
+  return (
+    <div className="mt-1 flex gap-1">
+      <button
+        type="button"
+        onClick={() => vote(5)}
+        aria-label="Đánh giá hữu ích"
+        className="rounded border border-line px-2 py-0.5 text-xs text-muted"
+      >
+        👍 Hữu ích
+      </button>
+      <button
+        type="button"
+        onClick={() => vote(1)}
+        aria-label="Đánh giá chưa hữu ích"
+        className="rounded border border-line px-2 py-0.5 text-xs text-muted"
+      >
+        👎 Chưa hữu ích
+      </button>
+    </div>
+  );
 }
 
 function SourceLabel({ source }: { source: string }) {
@@ -124,7 +159,13 @@ export default function AgentPanel({ onClose }: { onClose: () => void }) {
     const detail = await getAgentSession(id);
     setSessionId(id);
     setMessages(
-      detail.messages.map((item) => ({ ...item, traces: [], citations: [], warnings: [] })),
+      detail.messages.map((item) => ({
+        ...item,
+        traces: [],
+        citations: [],
+        warnings: [],
+        serverId: item.role === "assistant" ? item.id : undefined,
+      })),
     );
   }
 
@@ -201,11 +242,11 @@ export default function AgentPanel({ onClose }: { onClose: () => void }) {
               ),
             );
           },
-          onDone: (answer) => {
+          onDone: (answer, _usage, messageId) => {
             setMessages((prev) =>
               prev.map((item) =>
                 item.id === assistantMessage.id
-                  ? { ...item, content: answer, pending: false }
+                  ? { ...item, content: answer, pending: false, serverId: messageId }
                   : item,
               ),
             );
@@ -318,6 +359,7 @@ export default function AgentPanel({ onClose }: { onClose: () => void }) {
               <>
                 <TraceBox traces={item.traces ?? []} />
                 <CitationChips items={item.citations ?? []} />
+                {item.serverId ? <FeedbackButtons messageId={item.serverId} /> : null}
                 {(item.warnings ?? []).map((warning, index) => (
                   <p key={index} className="mt-1 text-xs text-warn">
                     ⚠ {warning}

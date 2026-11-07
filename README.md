@@ -92,6 +92,7 @@ Trợ lý AI chat (chỉ admin): icon ✦ góc phải dưới mọi trang sau đ
 - Stream SSE: tool trace collapsible, citation chips, cảnh báo; session lưu DB.
 - API: `POST /agent/chat` (SSE), `GET/PATCH/DELETE /agent/sessions`, `POST /agent/feedback`.
 - Rebuild knowledge index: `docker compose exec backend python -m app.knowledge_cli index` (idempotent; `--dry-run` để đếm trước).
+- Xóa session agent quá hạn: `docker compose exec backend python -m app.agent_retention [--days 90]`.
 
 ```bash
 # Chạy tay từng tầng

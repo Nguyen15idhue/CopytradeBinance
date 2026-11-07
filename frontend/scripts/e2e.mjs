@@ -326,6 +326,13 @@ try {
       body: sseBody,
     }),
   );
+  await page.route("**/api/v1/agent/feedback", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ data: { message_id: 2, rating: 5 }, meta: {}, error: null }),
+    }),
+  );
   await page.getByRole("button", { name: "Mở trợ lý AI" }).click();
   const dialog = page.getByRole("dialog", { name: "Trợ lý AI" });
   await dialog.waitFor();
@@ -333,6 +340,8 @@ try {
   await dialog.getByText("ROI 90D là 19,19%").waitFor();
   await dialog.getByText("roi_90d").waitFor();
   await dialog.getByText("Dữ liệu:").waitFor();
+  await dialog.getByRole("button", { name: "Đánh giá hữu ích" }).click();
+  await dialog.getByText("Đã ghi nhận đánh giá.").waitFor();
   body = await page.locator("body").innerText();
   assert(!body.includes("undefined") && !body.includes("NaN"), "Agent UI có undefined/NaN");
   await page.keyboard.press("Escape");

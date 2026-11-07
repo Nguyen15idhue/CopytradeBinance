@@ -897,5 +897,5 @@ Tóm tắt: không auto-trading, không realtime WebSocket, không Paper Copy tr
 - [x] B10. Portfolio fit + vốn 100$. → Bằng chứng: `portfolio.py` (`evaluate_fit` thuần + tool); unit 3 case dưới/bằng/trên min + unknown; integration trader thật; E2E $100 mock ở B12.
 - [x] B11. Search tự nhiên trong Screener. → Bằng chứng: `nl_search.py` (10 case), `/agent/search`, Screener `min_score`/`max_min_copy_usd`, UI ô mô tả + chips + Áp dụng/Xóa, E2E PASS.
 - [x] B12. QA Phase 3. → Bằng chứng: full backend 166 pass, ruff/build/E2E/check_refs pass; fix regression `min_confidence` trong search_traders.
-- [ ] B13. Eval + security + cost + retention.
+- [x] B13. Eval + security + cost + retention. → Bằng chứng: eval 50 câu pass, retention + template fallback + feedback UI test pass, E2E feedback PASS.
 - [ ] B14. Final QA + báo cáo.

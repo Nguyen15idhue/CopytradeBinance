@@ -9,7 +9,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.collection_log import CollectionLog
-from app.services.agent.schema import ToolResult, utcnow_iso
+from app.services.agent.schema import EvidenceItem, ToolResult, utcnow_iso
 
 ToolHandler = Callable[[AsyncSession, dict[str, Any]], Awaitable[ToolResult]]
 
@@ -143,4 +143,10 @@ async def get_data_health(db: AsyncSession, _args: dict[str, Any]) -> ToolResult
             ],
         },
         meta={"source": "database", "as_of": as_of or utcnow_iso()},
+        evidence=[
+            EvidenceItem(
+                id="collector_latest", label="Lần chạy collector gần nhất",
+                value=as_of or "unknown", source="database", as_of=as_of,
+            )
+        ] if as_of else [],
     )

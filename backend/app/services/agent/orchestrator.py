@@ -36,6 +36,16 @@ def check_rate_limit(user_key: str, per_min: int) -> None:
     _RATE[user_key] = window
 
 
+def template_from_evidence(evidence: list[dict]) -> str:
+    """Fallback tất định khi model lỗi nhưng đã có dữ liệu tool."""
+    lines = []
+    for item in evidence[:8]:
+        unit = f" {item.get('unit')}" if item.get("unit") else ""
+        lines.append(f"- {item.get('label')}: {item.get('value')}{unit}")
+    body = "\n".join(lines) if lines else "Chưa có số liệu."
+    return f"Dựa trên {len(evidence)} kết quả truy vấn (model gặp lỗi nên tóm tắt tự động):\n{body}"
+
+
 async def get_or_create_session(
     db: AsyncSession, user_id: UUID, session_id: int | None, model: str
 ) -> AgentSession:
@@ -121,9 +131,19 @@ async def run_chat(
             if elapsed > settings.agent_timeout_seconds:
                 yield SseEvent("warning", {"message": "Hết thời gian 120s, dừng tool loop"})
                 break
-            result, errors = await call_agent_model(
-                history, specs, api_key, transport=transport,
-            )
+            try:
+                result, errors = await call_agent_model(
+                    history, specs, api_key, transport=transport,
+                )
+            except Exception as exc:  # noqa: BLE001 - primary+fallback đều lỗi
+                if evidence:
+                    assistant_text = template_from_evidence(evidence)
+                    yield SseEvent(
+                        "warning",
+                        {"message": f"Model lỗi ({str(exc)[:120]}) — trả lời từ dữ liệu tool"},
+                    )
+                    break
+                raise
             total_prompt += result.prompt_tokens or 0
             total_completion += result.completion_tokens or 0
             total_cost += result.cost_usd or 0

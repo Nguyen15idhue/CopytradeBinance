@@ -617,3 +617,4 @@ Timeout: 120s/request, tool 10s, SQL 5s.
 - [x] B10 (portfolio fit): `evaluate_fit` + tool `analyze_portfolio_fit`; test 5 pass.
 - [x] B11 (NL screener search): parser + endpoint + UI; test + E2E pass.
 - [x] B12 (QA Phase 3): full 166 pass + E2E PASS; fix regression search_traders.
+- [x] B13 (eval/hardening): eval 50 + retention + template fallback + feedback; E2E PASS.
