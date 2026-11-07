@@ -21,6 +21,9 @@ dist/
 phase0/data/
 phase0/__pycache__/
 
+# Raw archive Phase 2
+data/
+
 # Hệ điều hành / IDE
 .DS_Store
 Thumbs.db

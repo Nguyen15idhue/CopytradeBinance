@@ -14,7 +14,10 @@ async def main(portfolio_id: str) -> int:
         print(f"list PUBLIC: {len(page.items)} item, total={page.total}")
 
         detail = await adapter.get_detail(portfolio_id)
-        print(f"detail {portfolio_id}: status={detail.get('status')} paused={detail.get('isPaused')}")
+        print(
+            f"detail {portfolio_id}: status={detail.get('status')} "
+            f"paused={detail.get('isPaused')}"
+        )
 
         perf = await adapter.get_performance(portfolio_id, "90D")
         print(f"performance 90D: roi={perf.get('roi')} mdd={perf.get('mdd')}")

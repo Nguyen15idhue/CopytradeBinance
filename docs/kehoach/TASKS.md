@@ -254,11 +254,11 @@
 **Tham chiếu:** §7.1 Universe (976–986) · §7.2 Preset AUM (987–994) · §12.2 Chu kỳ thu thập (2124–2135) · §6.5 List trader (589–665)  
 **→ đọc khi:** viết scan list, dedupe, snapshot.
 
-- [ ] Scan list PUBLIC + SIGNAL, **chỉ 90D**.
-- [ ] Dedupe theo `leadPortfolioId`.
-- [ ] Lưu list snapshot + `collection_logs`.
-- [ ] Không gọi detail/position/trade ở tầng này.
-- [ ] Redis lock chống 2 collector chạy song song.
+- [x] Scan list PUBLIC + SIGNAL, **chỉ 90D**. → Bằng chứng: `services/universe.py`; live 372 trang, PUBLIC=8966, SIGNAL=2164, tổng 11.130.
+- [x] Dedupe theo `leadPortfolioId`. → Bằng chứng: `dedupe()` + `seen_ids` toàn cục; live duplicates=0.
+- [x] Lưu list snapshot + `collection_logs`. → Bằng chứng: 11.130 `portfolio_snapshots(source='list')`; 372 file JSONL `data/raw/.../list-public|signal`; `collection_logs.layer='L0'`.
+- [x] Không gọi detail/position/trade ở tầng này. → Bằng chứng: adapter chỉ gọi `list_traders`; test mock assert 4 call list.
+- [x] Redis lock chống 2 collector chạy song song. → Bằng chứng: `collector/lock.py`; integration test `test_lock_blocks_second_holder` pass; fallback advisory lock khi Redis lỗi.
 
 ### Bước 2.3 — Tầng 1: Pre-filter, tier, pre-score
 
