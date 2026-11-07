@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { getStoredUser } from "../../lib/auth";
+import Markdown from "./Markdown";
 import {
   deleteAgentSession,
   getAgentSession,
@@ -128,6 +129,7 @@ function TraceBox({ traces }: { traces: AgentTrace[] }) {
 export default function AgentPanel({ onClose }: { onClose: () => void }) {
   const queryClient = useQueryClient();
   const [sessionId, setSessionId] = useState<number | null>(null);
+  const [expanded, setExpanded] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [status, setStatus] = useState<AgentStatus>("idle");
@@ -283,12 +285,12 @@ export default function AgentPanel({ onClose }: { onClose: () => void }) {
 
   const items = sessionsQuery.data?.items ?? [];
 
+  const panelClass = expanded
+    ? "fixed inset-0 z-50 flex flex-col bg-panel"
+    : "fixed inset-0 z-50 flex flex-col bg-panel md:inset-auto md:bottom-20 md:right-6 md:h-[70vh] md:w-[440px] md:rounded-2xl md:border md:border-line md:shadow-2xl";
+
   return (
-    <div
-      role="dialog"
-      aria-label="Trợ lý AI"
-      className="fixed inset-0 z-50 flex flex-col bg-panel md:inset-auto md:bottom-20 md:right-6 md:h-[70vh] md:w-[440px] md:rounded-2xl md:border md:border-line md:shadow-2xl"
-    >
+    <div role="dialog" aria-label="Trợ lý AI" className={panelClass}>
       <div className="flex items-center justify-between border-b border-line px-4 py-3">
         <div>
           <p className="font-semibold text-strong">Trợ lý AI</p>
@@ -297,6 +299,15 @@ export default function AgentPanel({ onClose }: { onClose: () => void }) {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setExpanded((value) => !value)}
+            aria-label={expanded ? "Thu nhỏ" : "Phóng to toàn màn hình"}
+            title={expanded ? "Thu nhỏ" : "Phóng to"}
+            className="rounded-lg border border-line px-2 py-1 text-sm text-body"
+          >
+            {expanded ? "🗗" : "⛶"}
+          </button>
           <button
             type="button"
             onClick={newChat}
@@ -360,11 +371,17 @@ export default function AgentPanel({ onClose }: { onClose: () => void }) {
         {messages.map((item) => (
           <div key={item.id} className={item.role === "user" ? "text-right" : "text-left"}>
             <div
-              className={`inline-block max-w-full whitespace-pre-wrap rounded-xl px-3 py-2 text-sm ${
+              className={`inline-block max-w-full rounded-xl px-3 py-2 text-sm ${
                 item.role === "user" ? "bg-emerald-500/15 text-strong" : "bg-elevated text-body"
               }`}
             >
-              {item.pending && !item.content ? "Đang suy nghĩ…" : item.content}
+              {item.role === "assistant" && !item.pending ? (
+                <Markdown text={item.content} />
+              ) : (
+                <span className="whitespace-pre-wrap">
+                  {item.pending && !item.content ? "Đang suy nghĩ…" : item.content}
+                </span>
+              )}
             </div>
             {item.role === "assistant" ? (
               <>

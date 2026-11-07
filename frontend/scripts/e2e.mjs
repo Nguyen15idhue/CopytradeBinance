@@ -315,7 +315,7 @@ try {
     'data: {"items": [{"source_type": "database", "ref": "roi_90d"}]}',
     "",
     "event: done",
-    'data: {"session_id": 1, "message_id": 2, "answer": "ROI 90D là 19,19% theo dữ liệu.", "model": "mock", "usage": {}}',
+    'data: {"session_id": 1, "message_id": 2, "answer": "**Top 5** theo ROI:\\n\\n| Trader | ROI |\\n|---|---|\\n| A | 30% |", "model": "mock", "usage": {}}',
     "",
     "",
   ].join("\n");
@@ -337,11 +337,15 @@ try {
   const dialog = page.getByRole("dialog", { name: "Trợ lý AI" });
   await dialog.waitFor();
   await dialog.getByRole("button", { name: /Top 10 trader an toàn/ }).click();
-  await dialog.getByText("ROI 90D là 19,19%").waitFor();
-  await dialog.getByText("roi_90d").waitFor();
+  await dialog.getByText("Top 5", { exact: false }).waitFor();
+  const strongCount = await dialog.locator("strong").count();
+  assert(strongCount > 0, "Markdown **bold** không render");
+  assert((await dialog.locator("table").count()) > 0, "Markdown table không render");
   await dialog.getByText("Dữ liệu:").waitFor();
   await dialog.getByRole("button", { name: "Đánh giá hữu ích" }).click();
   await dialog.getByText("Đã ghi nhận đánh giá.").waitFor();
+  await dialog.getByRole("button", { name: "Phóng to toàn màn hình" }).click();
+  await dialog.getByRole("button", { name: "Thu nhỏ" }).click();
   body = await page.locator("body").innerText();
   assert(!body.includes("undefined") && !body.includes("NaN"), "Agent UI có undefined/NaN");
   await page.keyboard.press("Escape");

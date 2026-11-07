@@ -124,6 +124,9 @@ async def search_traders(db: AsyncSession, args: dict[str, Any]) -> ToolResult:
                 "sharpe": _float(metric.sharpe_90d) if metric else None,
                 "max_leverage": _float(metric.max_leverage) if metric else None,
                 "runtime_days": _float(metric.runtime_days) if metric else None,
+                "current_copiers": metric.current_copiers if metric else None,
+                "copy_aum": _float(metric.copy_aum) if metric else None,
+                "copier_pnl_90d": _float(metric.copier_pnl_90d) if metric else None,
                 "as_of": as_of,
             }
         )
@@ -133,7 +136,8 @@ async def search_traders(db: AsyncSession, args: dict[str, Any]) -> ToolResult:
     for item in items:
         as_of = item.get("as_of")
         for label, unit in (("score", None), ("roi_90d", "%"), ("mdd_90d", "%"),
-                            ("sharpe", None), ("risk_score", None)):
+                            ("sharpe", None), ("risk_score", None),
+                            ("current_copiers", None), ("copier_pnl_90d", "USDT")):
             if item.get(label) is not None:
                 evidence.append(_ev(item["id"], label, item[label], unit, as_of))
     return ToolResult(
@@ -223,6 +227,10 @@ async def get_trader_profile(db: AsyncSession, args: dict[str, Any]) -> ToolResu
         "risk_level": metric.risk_level if metric else None,
         "risk_score": _float(metric.risk_score) if metric else None,
         "veto": metric.risk_veto if metric else None,
+        "current_copiers": metric.current_copiers if metric else None,
+        "copy_aum": _float(metric.copy_aum) if metric else None,
+        "copier_pnl_90d": _float(metric.copier_pnl_90d) if metric else None,
+        "total_orders_90d": metric.total_orders_90d if metric else None,
         "roi_90d": _float(metric.roi_90d) if metric else None,
         "mdd_90d": _float(metric.mdd_90d) if metric else None,
         "sharpe": _float(metric.sharpe_90d) if metric else None,
@@ -245,6 +253,9 @@ async def get_trader_profile(db: AsyncSession, args: dict[str, Any]) -> ToolResu
         _ev(trader_id, "mdd_90d", profile["mdd_90d"], "%", as_of),
         _ev(trader_id, "sharpe", profile["sharpe"], None, as_of),
         _ev(trader_id, "risk_score", profile["risk_score"], None, as_of),
+        _ev(trader_id, "current_copiers", profile["current_copiers"], None, as_of),
+        _ev(trader_id, "copy_aum", profile["copy_aum"], "USDT", as_of),
+        _ev(trader_id, "copier_pnl_90d", profile["copier_pnl_90d"], "USDT", as_of),
     ]
     evidence = [item for item in evidence if item.value is not None]
     return ToolResult(

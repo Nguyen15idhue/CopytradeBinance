@@ -14,7 +14,6 @@ FORBIDDEN_RE = re.compile(
     r"\b(insert|update|delete|drop|alter|create|truncate|grant|revoke|copy|vacuum|"
     r"analyze|call|do|execute|comment|listen|notify|prepare|deallocate|checkpoint|"
     r"cluster|discard|handler|import|load|security|into|outfile|dumpfile)\b"
-    r"|pg_catalog|information_schema"
     r"|\b(users|sessions|app_settings|alembic_version)\b",
     re.IGNORECASE,
 )

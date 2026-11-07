@@ -75,6 +75,8 @@ async def test_profile_compare_ranking_risk() -> None:
         assert profile.error is None
         assert profile.data["id"] == trader_id
         assert profile.meta["row_ids"] == [trader_id]
+        assert "current_copiers" in profile.data
+        assert "copier_pnl_90d" in profile.data
 
         unknown = await get_trader_profile(db, {"trader_id": "no-such-trader"})
         assert unknown.error is not None

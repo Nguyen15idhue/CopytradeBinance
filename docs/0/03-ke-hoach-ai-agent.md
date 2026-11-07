@@ -206,8 +206,8 @@ Vì chỉ admin dùng và không publish ra ngoài, cho phép query rộng nhưn
 - Chỉ cho `SELECT` / `WITH`.
 - Không cho `INSERT/UPDATE/DELETE/DDL/COPY/GRANT`.
 - Không cho nhiều statement (`;`).
-- Không cho `pg_catalog`, `information_schema`, bảng auth/secret.
-- Không trả `users.password_hash`, `sessions`, `app_settings` chứa key.
+- Không cho bảng auth/secret (`users`, `sessions`, `app_settings`); được phép `pg_catalog`/`information_schema` để tự khám phá schema.
+- Không trả `users.password_hash`, `sessions`, `app_settings` secret.
 - Log query, thời gian, rows, user vào `agent_tool_calls`.
 - Nếu SQL lỗi → trả lỗi tool, agent phải sửa hoặc nói không truy vấn được.
 

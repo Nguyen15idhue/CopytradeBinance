@@ -87,7 +87,8 @@ Trợ lý AI chat (chỉ admin): icon ✦ góc phải dưới mọi trang sau đ
 ## AI Agent chat (Phase 6b, chỉ admin)
 
 - Icon ✦ góc phải dưới mọi trang; viewer không thấy, không gọi API.
-- Panel drawer desktop (~440px), full-screen mobile; Esc đóng; Ctrl/Cmd+Enter gửi.
+- Panel drawer desktop (~440px), full-screen mobile + nút phóng to toàn màn hình; Esc đóng; Ctrl/Cmd+Enter gửi.
+- Tin nhắn assistant render markdown an toàn (không `dangerouslySetInnerHTML`): in đậm/nghiêng, bảng, danh sách, code.
 - Screener có ô “Mô tả trader bạn muốn tìm” → chips + Áp dụng (admin diễn giải qua `/agent/search`).
 - Stream SSE: tool trace collapsible, citation chips, cảnh báo; session lưu DB.
 - API: `POST /agent/chat` (SSE), `GET/PATCH/DELETE /agent/sessions`, `POST /agent/feedback`.

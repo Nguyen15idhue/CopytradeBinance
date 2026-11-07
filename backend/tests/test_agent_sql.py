@@ -26,7 +26,6 @@ def test_validate_blocks_dml_ddl_multi() -> None:
         "INSERT INTO x VALUES (1)",
         "SELECT * FROM users",
         "SELECT * FROM app_settings",
-        "SELECT * FROM pg_catalog.pg_tables",
         "SELECT * FROM traders LIMIT 501",
         "GRANT SELECT ON traders TO x",
     ):
@@ -38,6 +37,15 @@ def test_validate_with_allowed() -> None:
     query, error = validate_sql("WITH a AS (SELECT 1 AS x) SELECT * FROM a")
     assert error is None
     assert query.lower().startswith("with")
+
+
+def test_validate_allows_schema_introspection() -> None:
+    query, error = validate_sql(
+        "SELECT column_name FROM information_schema.columns WHERE table_name = 'traders'"
+    )
+    assert error is None, error
+    query, error = validate_sql("SELECT tablename FROM pg_catalog.pg_tables")
+    assert error is None, error
 
 
 @pytest.mark.asyncio
