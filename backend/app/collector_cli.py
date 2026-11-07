@@ -36,6 +36,23 @@ async def cmd_recompute() -> int:
     return 0
 
 
+async def cmd_perf() -> int:
+    from app.services.deep_fetch import fetch_performance_for_watch
+
+    adapter = BinanceBapiAdapter()
+    try:
+        async with CollectorLock("lock:collector:deep"):
+            async with SessionLocal() as db:
+                result = await fetch_performance_for_watch(adapter, db)
+                print(json.dumps(result, ensure_ascii=False))
+    except LockUnavailable as exc:
+        print(json.dumps({"skipped": True, "reason": str(exc)}, ensure_ascii=False))
+        return 2
+    finally:
+        await adapter.aclose()
+    return 0
+
+
 async def cmd_deep() -> int:
     from app.services.deep_fetch import run_deep_fetch
 
@@ -55,12 +72,14 @@ async def cmd_deep() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="CLI collector Phase 2")
-    parser.add_argument("command", choices=["scan", "recompute", "deep"])
+    parser.add_argument("command", choices=["scan", "recompute", "perf", "deep"])
     args = parser.parse_args()
     if args.command == "scan":
         return asyncio.run(cmd_scan())
     if args.command == "recompute":
         return asyncio.run(cmd_recompute())
+    if args.command == "perf":
+        return asyncio.run(cmd_perf())
     return asyncio.run(cmd_deep())
 
 

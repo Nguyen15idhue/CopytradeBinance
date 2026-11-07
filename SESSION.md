@@ -226,3 +226,34 @@ cd frontend; npm run build
 | E2E frontend | Playwright PASS, 0 console error |
 
 **Gate Phase 1: ĐẠT.** Vertical slice chạy end-to-end với 2 fixture.
+
+---
+
+## 9. Phase 2 — Collector 2 tầng + raw storage
+
+### 9.1. Adapter 2.1
+
+- `collector/http.py`: timeout 20s, retry `11012005`/5xx/timeout (tối đa 4, backoff 2→16s + jitter), circuit breaker 5 lỗi liên tiếp/60s.
+- `collector/binance.py`: 6 endpoint; list 30/trang, positions 50, trades 200, transfers 50; performance dùng `BASE_P`.
+- Test mock 9 ca (retry, 404 không retry, breaker) + smoke live 6 endpoint PASS.
+
+### 9.2. Universe scan 2.2
+
+- Live: 372 trang, PUBLIC 8.966 + SIGNAL 2.164 = **11.130**, duplicates 0, 129–139s.
+- Lưu 11.130 `portfolio_snapshots(source='list')` + 372 file JSONL trong `data/raw/`.
+- Redis lock `lock:collector:scan`, fallback `pg_try_advisory_lock`.
+- Chạy lại trong cùng giờ: snapshot không tăng (idempotent theo giờ).
+
+### 9.3. Tier & pre-score 2.3
+
+- Q02: pre_score percentile trên **một cohort chung** `all` (PUBLIC+SIGNAL).
+- Trước khi có `totalOrder`: watch 398, qualified_upper 97, high_upper 14, excluded 10.621; Watch tổng 509.
+- `tier_history` ghi khi tier đổi; recompute lần 2 `changed=0`.
+- API `/universe/summary`, `/universe/traders`, `/universe/recompute` (admin).
+
+### 9.4. Performance 4 window 2.4
+
+- Live 509 trader × 4 window = 2.036 metric, 0 lỗi.
+- HF04 hạ tier theo `totalOrder` 90D: **38 trader** bị hạ → watch 429, qualified 73, high 7 (Qualified+High = 80).
+- Sharpe null giữ `NULL` (90D: 9 trader), mdd null giữ `NULL` (1 trader).
+- Upsert theo `(lead, time_range, collected_at)` với `collected_at` cắt về giờ → chạy lại không nhân bản.

@@ -279,10 +279,10 @@
 **Tham chiếu:** §6.7 Performance (720–757) · §8.4 T1 Published metrics (1237–1262) · §15.4 Lịch chạy (3013–3028)  
 **→ đọc khi:** gọi performance, lưu metric, xử lý null.
 
-- [ ] Gọi performance 4 window cho toàn bộ Watch (~515).
-- [ ] Lọc `totalOrder` theo tier.
-- [ ] Lưu `performance_metrics` + provenance.
-- [ ] Sharpe null → `N/A`, không 0.
+- [x] Gọi performance 4 window cho toàn bộ Watch (~515). → Bằng chứng: live 509 trader, 2.036 metric, 0 lỗi.
+- [x] Lọc `totalOrder` theo tier. → Bằng chứng: HF04; 38 trader bị hạ tier (high→qualified, qualified→watch).
+- [x] Lưu `performance_metrics` + provenance. → Bằng chứng: `raw.source=bapi`, `endpoint=performance`, `window`, `collectedAt`.
+- [x] Sharpe null → `N/A`, không 0. → Bằng chứng: 90D có 9/509 sharpe null lưu `NULL`; test mdd null giữ null.
 
 ### Bước 2.5 — Tầng 3: Detail + positions + transfers
 
