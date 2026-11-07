@@ -70,6 +70,23 @@ async def cmd_detail() -> int:
     return 0
 
 
+async def cmd_trades() -> int:
+    from app.services.deep_fetch import fetch_full_trades
+
+    adapter = BinanceBapiAdapter()
+    try:
+        async with CollectorLock("lock:collector:deep"):
+            async with SessionLocal() as db:
+                result = await fetch_full_trades(adapter, db)
+                print(json.dumps(result, ensure_ascii=False))
+    except LockUnavailable as exc:
+        print(json.dumps({"skipped": True, "reason": str(exc)}, ensure_ascii=False))
+        return 2
+    finally:
+        await adapter.aclose()
+    return 0
+
+
 async def cmd_deep() -> int:
     from app.services.deep_fetch import run_deep_fetch
 
@@ -89,7 +106,9 @@ async def cmd_deep() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="CLI collector Phase 2")
-    parser.add_argument("command", choices=["scan", "recompute", "perf", "detail", "deep"])
+    parser.add_argument(
+        "command", choices=["scan", "recompute", "perf", "detail", "trades", "deep"]
+    )
     args = parser.parse_args()
     if args.command == "scan":
         return asyncio.run(cmd_scan())
@@ -99,6 +118,8 @@ def main() -> int:
         return asyncio.run(cmd_perf())
     if args.command == "detail":
         return asyncio.run(cmd_detail())
+    if args.command == "trades":
+        return asyncio.run(cmd_trades())
     return asyncio.run(cmd_deep())
 
 

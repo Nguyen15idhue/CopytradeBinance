@@ -266,3 +266,12 @@ cd frontend; npm run build
 - `positionShow=false` không chặn position-history (D25).
 - Lưu `positions` unique `(lead, position_id)`, `transfers` unique `(lead, transfer_hash)`.
 - Detail lưu snapshot `source='detail'` theo giờ.
+
+### 9.6. Full trade history 2.6
+
+- Target: 7 high + top 50 qualified = **57 trader**; 0 lỗi.
+- Fetch: 130.962 fill, lưu **120.595** trade unique; 10.367 bản ghi trùng bị hash loại.
+- Pagination dừng theo `total`, không break sớm; cap an toàn 500 trang/trader.
+- Chỉ high/qualified có trades; **watch/excluded = 0** (query kiểm chứng).
+- Gặp `11012005` thật khi chạy full trades: backoff 2→16s xử lý hết, 0 request thất bại.
+- Giảm burst: giới hạn 3 trader đồng thời cho trade-history (semaphore riêng).

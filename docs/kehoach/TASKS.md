@@ -301,10 +301,10 @@
 **Tham chiếu:** §6.9 Trade history (811–860) · §8.5 T2 Derived metrics (1263–1300) · §7.11 Deep fetch policy (1157–1171)  
 **→ đọc khi:** fetch đủ trang, tính chỉ số trade-level.
 
-- [ ] Gọi full trade-history cho High (~13).
-- [ ] Gọi full trade-history cho top 30–50 Qualified.
-- [ ] Fetch đủ `total`, không break sớm.
-- [ ] Không gọi cho Watch/Excluded.
+- [x] Gọi full trade-history cho High (~13). → Bằng chứng: live 7 high_upper, full pages.
+- [x] Gọi full trade-history cho top 30–50 Qualified. → Bằng chứng: live top 50 qualified.
+- [x] Fetch đủ `total`, không break sớm. → Bằng chứng: `_fetch_pages` dừng khi `len >= total`; test 450 trade → 3 trang.
+- [x] Không gọi cho Watch/Excluded. → Bằng chứng: query `trades ⋈ trader_universe` chỉ có high_upper (7) + qualified_upper (50); watch/excluded = 0.
 
 ### Bước 2.7 — Storage, scheduler, API vận hành
 

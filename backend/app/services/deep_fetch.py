@@ -15,10 +15,11 @@ from app.models.performance import PerformanceMetric
 from app.models.position import Position
 from app.models.snapshot import PortfolioSnapshot
 from app.models.tier_history import TierHistory
+from app.models.trade import Trade
 from app.models.trader import Trader
 from app.models.transfer import Transfer
 from app.models.universe import TraderUniverse
-from app.services.collector.parsers import ms_to_dt, parse_position, parse_transfer
+from app.services.collector.parsers import ms_to_dt, parse_position, parse_trade, parse_transfer
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +28,9 @@ WATCH_TIERS = ("watch", "qualified_upper", "high_upper")
 DETAIL_TIERS = ("qualified_upper", "high_upper")
 MAX_POSITION_PAGES = 20
 MAX_TRANSFER_PAGES = 10
+MAX_TRADE_PAGES = 500
 TOP_WATCH_LIMIT = 200
+TOP_QUALIFIED_TRADES = 50
 
 # HF04: không đủ mẫu thì hạ tier tương ứng.
 DEMOTE_RULES = {
@@ -408,6 +411,82 @@ async def fetch_detail_and_history(
         "history_targets": len(history_targets),
         "positions": len(position_rows),
         "transfers": len(transfer_rows),
+        "errors": len(errors),
+        "collected_at": moment.isoformat(),
+    }
+
+
+async def fetch_full_trades(
+    adapter,
+    db: AsyncSession,
+    collected_at: datetime | None = None,
+    top_qualified: int = TOP_QUALIFIED_TRADES,
+    portfolio_ids: list[str] | None = None,
+) -> dict[str, Any]:
+    moment = (collected_at or datetime.now(UTC)).replace(minute=0, second=0, microsecond=0)
+    if portfolio_ids:
+        target_ids = list(portfolio_ids)
+    else:
+        high = (
+            await db.execute(
+                select(TraderUniverse.lead_portfolio_id).where(
+                    TraderUniverse.potential_tier == "high_upper"
+                )
+            )
+        ).scalars().all()
+        top_qualified_ids = (
+            await db.execute(
+                select(TraderUniverse.lead_portfolio_id)
+                .where(TraderUniverse.potential_tier == "qualified_upper")
+                .order_by(TraderUniverse.pre_score.desc().nullslast())
+                .limit(top_qualified)
+            )
+        ).scalars().all()
+        target_ids = list(high) + list(top_qualified_ids)
+
+    log = CollectionLog(layer="L4", status="running")
+    db.add(log)
+    await db.commit()
+    log_id = log.id
+
+    trade_semaphore = asyncio.Semaphore(3)
+
+    async def fetch_one(portfolio_id: str):
+        async with trade_semaphore:
+            return await _fetch_pages(adapter.get_trades, portfolio_id, MAX_TRADE_PAGES)
+
+    results = await asyncio.gather(*(fetch_one(pid) for pid in target_ids))
+
+    rows: list[dict[str, Any]] = []
+    errors: list[str] = []
+    per_trader: dict[str, int] = {}
+    for pid, (items, error) in zip(target_ids, results, strict=True):
+        if error:
+            errors.append(f"{pid}: {error}")
+        per_trader[pid] = len(items)
+        for item in items:
+            rows.append({"lead_portfolio_id": pid, **parse_trade(item)})
+
+    if rows:
+        await _insert_ignore(db, Trade, rows)
+
+    record = await db.get(CollectionLog, log_id)
+    if record is not None:
+        record.status = "success"
+        record.finished_at = datetime.now(UTC)
+        record.requests = sum(max(1, (count + 199) // 200) for count in per_trader.values())
+        record.items_ok = len(rows)
+        record.error_count = len(errors)
+        record.detail = {
+            "targets": len(target_ids),
+            "trades": len(rows),
+            "per_trader": per_trader,
+            "errors": errors[:10],
+        }
+    await db.commit()
+    return {
+        "targets": len(target_ids),
+        "trades": len(rows),
         "errors": len(errors),
         "collected_at": moment.isoformat(),
     }
