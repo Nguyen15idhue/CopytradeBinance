@@ -380,12 +380,12 @@
 **Tham chiếu:** §7.4 Tiêu chí tier (1007–1021) · §7.5 Mapping tier (1022–1032) · §7.6 Reason codes (1033–1047) · §7.7 Pre-score (1048–1068) · §7.10 Audit false negative (1123–1156) · §7.12 Edge cases (1172–1186) · §12.7 Deep fetch selection (2182–2205)  
 **→ đọc khi:** chốt tier/reason, thứ tự ưu tiên, audit.
 
-- [ ] `potential_tier` (excluded/watch/qualified/high).
-- [ ] `pre_score`.
-- [ ] `filter_reasons`.
-- [ ] Tier history.
-- [ ] Audit false negative (50 excluded).
-- [ ] Chốt `mdd=None` và cohort `pre_score` (Q01/Q02, mục 20 dòng 3349–3379).
+- [x] `potential_tier` (excluded/watch/qualified/high). → Bằng chứng: `funnel.evaluate_item` + `recompute_universe`; live 425/76/10/10.623.
+- [x] `pre_score`. → Bằng chứng: `annotate_pre_score`, cohort `all`; lưu `trader_universe.pre_score`.
+- [x] `filter_reasons`. → Bằng chứng: JSONB reasons; test khẳng định excluded không rỗng (bug Phase 0 không tái diễn).
+- [x] Tier history. → Bằng chứng: `tier_history`; test recompute lần 2 `changed=0`.
+- [x] Audit false negative (50 excluded). → Bằng chứng: `python -m app.collector_cli audit` → 50/50 đánh giá, **0 false negative (0%)**, 0 lỗi; lưu `collection_logs.layer='A1'`.
+- [x] Chốt `mdd=None` và cohort `pre_score` (Q01/Q02). → Bằng chứng: ghi tại SESSION mục 9.4/10.1; Q01 null + `missing_mdd`, Q02 cohort chung `all`.
 
 ### Bước 3.3 — Risk rules
 

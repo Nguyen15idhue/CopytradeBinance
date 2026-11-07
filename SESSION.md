@@ -316,3 +316,11 @@ cd frontend; npm run build
 - Confidence §8.8; benchmark chưa có nguồn → null + `missing_benchmark`.
 - Live: 511 trader, 3,61s; avg confidence 0,847; 9 sharpe null; 0 mdd null.
 - Lệnh: `docker compose exec backend python -m app.collector_cli metrics`.
+
+### 10.2. Funnel audit 3.2
+
+- Tier/pre_score/reasons/history đã có từ Phase 2; bổ sung test excluded luôn có reason và history chỉ ghi khi đổi.
+- Audit 50 excluded: `audit_excluded()` gọi detail + performance 90D, đánh giá đủ điều kiện Watch
+  (ACTIVE, không paused, runtime ≥ 30, ROI/PnL > 0, WR ≥ 40, MDD ≤ 40, AUM ≥ 5k, totalOrder ≥ 20, còn slot, trade 7D).
+- Kết quả live: 50/50 đánh giá, **0 false negative (0%)**, 0 lỗi; lưu `collection_logs.layer='A1'`.
+- Q01/Q02 giữ nguyên: mdd null + `missing_mdd`; pre_score cohort `all`.

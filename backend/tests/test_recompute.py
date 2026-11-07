@@ -2,7 +2,7 @@ import os
 from datetime import UTC, datetime
 
 import pytest
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 
 from app.core.database import SessionLocal
 from app.models.performance import PerformanceMetric
@@ -137,6 +137,16 @@ async def test_recompute_assigns_tiers_and_is_idempotent() -> None:
         second = await recompute_universe(db)
         assert second["changed"] == 0
         assert second["counts"] == first["counts"]
+
+        empty_reasons = await db.scalar(
+            select(func.count())
+            .select_from(TraderUniverse)
+            .where(
+                TraderUniverse.potential_tier == "excluded",
+                func.jsonb_array_length(TraderUniverse.filter_reasons) == 0,
+            )
+        )
+        assert empty_reasons == 0  # excluded luôn có reason
 
 
 @pytest.mark.asyncio

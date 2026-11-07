@@ -100,6 +100,19 @@ async def cmd_metrics() -> int:
     return 0
 
 
+async def cmd_audit() -> int:
+    from app.services.funnel_audit import audit_excluded
+
+    adapter = BinanceBapiAdapter()
+    try:
+        async with SessionLocal() as db:
+            result = await audit_excluded(adapter, db, limit=50)
+            print(json.dumps(result, ensure_ascii=False))
+    finally:
+        await adapter.aclose()
+    return 0
+
+
 async def cmd_deep() -> int:
     from app.services.deep_fetch import run_deep_fetch
 
@@ -121,7 +134,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="CLI collector Phase 2")
     parser.add_argument(
         "command",
-        choices=["scan", "recompute", "perf", "detail", "trades", "metrics", "deep"],
+        choices=["scan", "recompute", "perf", "detail", "trades", "metrics", "audit", "deep"],
     )
     args = parser.parse_args()
     if args.command == "scan":
@@ -136,6 +149,8 @@ def main() -> int:
         return asyncio.run(cmd_trades())
     if args.command == "metrics":
         return asyncio.run(cmd_metrics())
+    if args.command == "audit":
+        return asyncio.run(cmd_audit())
     return asyncio.run(cmd_deep())
 
 
