@@ -3,6 +3,15 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 
 import OnboardingBanner from "../components/OnboardingBanner";
+import {
+  BAND_LABELS,
+  GROUP_LABELS,
+  HARD_FLAG_LABELS,
+  METRIC_LABELS,
+  RISK_LEVEL_LABELS,
+  TIER_LABELS,
+  label,
+} from "../i18n/vi";
 
 import {
   deleteView,
@@ -13,13 +22,6 @@ import {
   toQuery,
 } from "../lib/api";
 import type { ScreenerItem } from "../types/trader";
-
-const TIER_LABELS: Record<string, string> = {
-  high_upper: "High",
-  qualified_upper: "Qualified",
-  watch: "Watch",
-  excluded: "Excluded",
-};
 
 const TIER_STYLES: Record<string, string> = {
   high_upper: "border-emerald-500/40 bg-emerald-500/10 text-accent",
@@ -38,14 +40,14 @@ const RISK_STYLES: Record<string, string> = {
 };
 
 const SORT_OPTIONS = [
-  { value: "score", label: "Score" },
-  { value: "confidence", label: "Confidence" },
+  { value: "score", label: "Điểm" },
+  { value: "confidence", label: "Độ tin cậy" },
   { value: "roi_90d", label: "ROI 90D" },
   { value: "mdd_90d", label: "MDD 90D" },
   { value: "sharpe", label: "Sharpe" },
   { value: "win_rate", label: "WinRate" },
-  { value: "runtime_days", label: "Runtime" },
-  { value: "current_copiers", label: "Copiers" },
+  { value: "runtime_days", label: "Số ngày hoạt động" },
+  { value: "current_copiers", label: "Số copier" },
   { value: "copy_aum", label: "Copy AUM" },
 ];
 
@@ -157,9 +159,9 @@ export default function ScreenerPage() {
       <OnboardingBanner />
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Screener</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">Bộ lọc trader</h1>
           <p className="mt-2 text-muted">
-            Lọc universe xuống shortlist theo score, rủi ro và chất lượng dữ liệu.
+            Lọc universe xuống shortlist theo điểm, rủi ro và chất lượng dữ liệu.
           </p>
         </div>
         {funnel.data ? (
@@ -168,13 +170,13 @@ export default function ScreenerPage() {
               Universe {compact(funnel.data.universe)}
             </span>
             <span className="rounded-full border border-sky-500/40 bg-sky-500/10 px-3 py-1 text-info">
-              Watch {compact(funnel.data.watch + funnel.data.qualified + funnel.data.high)}
+              Theo dõi {compact(funnel.data.watch + funnel.data.qualified + funnel.data.high)}
             </span>
             <span className="rounded-full border border-teal-500/40 bg-teal-500/10 px-3 py-1 text-accent">
-              Qualified {compact(funnel.data.qualified + funnel.data.high)}
+              Đạt {compact(funnel.data.qualified + funnel.data.high)}
             </span>
             <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-accent">
-              High {compact(funnel.data.high)}
+              Cao {compact(funnel.data.high)}
             </span>
           </div>
         ) : null}
@@ -195,7 +197,7 @@ export default function ScreenerPage() {
             />
           </label>
           <label className="text-sm text-body">
-            Tier
+            Nhóm
             <select
               value={tier}
               onChange={(event) => {
@@ -204,15 +206,15 @@ export default function ScreenerPage() {
               }}
               className="mt-1 w-full rounded-lg border border-line bg-app px-3 py-2 text-strong"
             >
-              <option value="">Tất cả (trừ excluded)</option>
-              <option value="high_upper">High</option>
-              <option value="qualified_upper">Qualified</option>
-              <option value="watch">Watch</option>
-              <option value="excluded">Excluded</option>
+              <option value="">Tất cả (trừ bị loại)</option>
+              <option value="high_upper">{TIER_LABELS.high_upper}</option>
+              <option value="qualified_upper">{TIER_LABELS.qualified_upper}</option>
+              <option value="watch">{TIER_LABELS.watch}</option>
+              <option value="excluded">{TIER_LABELS.excluded}</option>
             </select>
           </label>
           <label className="text-sm text-body">
-            Risk
+            Rủi ro
             <select
               value={risk}
               onChange={(event) => {
@@ -222,10 +224,10 @@ export default function ScreenerPage() {
               className="mt-1 w-full rounded-lg border border-line bg-app px-3 py-2 text-strong"
             >
               <option value="">Tất cả</option>
-              <option value="critical">Critical</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
+              <option value="critical">{RISK_LEVEL_LABELS.critical}</option>
+              <option value="high">{RISK_LEVEL_LABELS.high}</option>
+              <option value="medium">{RISK_LEVEL_LABELS.medium}</option>
+              <option value="low">{RISK_LEVEL_LABELS.low}</option>
             </select>
           </label>
           <label className="text-sm text-body">
@@ -291,7 +293,7 @@ export default function ScreenerPage() {
             />
           </label>
           <label className="text-xs uppercase tracking-wide text-faint">
-            Runtime ≥
+            Số ngày hoạt động ≥
             <input
               type="number"
               value={runtimeMin}
@@ -300,7 +302,7 @@ export default function ScreenerPage() {
             />
           </label>
           <label className="text-xs uppercase tracking-wide text-faint">
-            Orders ≥
+            Số lệnh ≥
             <input
               type="number"
               value={ordersMin}
@@ -320,10 +322,10 @@ export default function ScreenerPage() {
                 setPage(1);
               }}
             />
-            Include excluded
+            Bao gồm bị loại
           </label>
           <label className="text-body">
-            Leverage ≤
+            Đòn bẩy ≤
             <input
               type="number"
               value={leverageMax}
@@ -336,19 +338,19 @@ export default function ScreenerPage() {
             onClick={reset}
             className="rounded-lg border border-line px-3 py-1.5 text-body hover:bg-elevated"
           >
-            Reset
+            Đặt lại
           </button>
           <a
             href={`/api/v1/traders/export.csv?${toQuery(filters)}`}
             className="rounded-lg border border-line px-3 py-1.5 text-body hover:bg-elevated"
           >
-            Export CSV
+            Xuất CSV
           </a>
           <div className="ml-auto flex items-center gap-2">
             <input
               value={viewName}
               onChange={(event) => setViewName(event.target.value)}
-              placeholder="Tên view"
+              placeholder="Tên bộ lọc"
               className="w-32 rounded border border-line bg-app px-2 py-1 text-strong"
             />
             <button
@@ -361,7 +363,7 @@ export default function ScreenerPage() {
               }}
               className="rounded-lg bg-emerald-500 px-3 py-1.5 font-medium text-slate-950 disabled:opacity-50"
             >
-              Lưu view
+              Lưu bộ lọc
             </button>
           </div>
         </div>
@@ -397,7 +399,7 @@ export default function ScreenerPage() {
         <span>{data ? `${compact(data.total)} trader khớp` : "Đang tải..."}</span>
         {data ? (
           <span>
-            Trang {data.page}/{totalPages} · score v{data.config_version}
+            Trang {data.page}/{totalPages} · điểm v{data.config_version}
           </span>
         ) : null}
       </div>
@@ -413,13 +415,13 @@ export default function ScreenerPage() {
           <p className="text-body">Không có trader khớp bộ lọc.</p>
           <div className="mt-4 flex flex-wrap justify-center gap-2 text-sm">
             <button type="button" onClick={() => setMddMax("")} className="rounded-lg border border-line px-3 py-1.5 text-body">
-              Bỏ filter MDD
+              Bỏ lọc MDD
             </button>
             <button type="button" onClick={() => setRuntimeMin("30")} className="rounded-lg border border-line px-3 py-1.5 text-body">
-              Runtime ≥ 30
+              Số ngày ≥ 30
             </button>
             <button type="button" onClick={() => setIncludeExcluded(true)} className="rounded-lg border border-line px-3 py-1.5 text-body">
-              Xem cả excluded
+              Xem cả bị loại
             </button>
           </div>
         </div>
@@ -429,18 +431,18 @@ export default function ScreenerPage() {
             <thead className="border-b border-line text-xs uppercase tracking-wide text-faint">
               <tr>
                 <th className="px-3 py-3">Trader</th>
-                <th className="px-3 py-3">Tier</th>
-                <th className="px-3 py-3">Score</th>
-                <th className="px-3 py-3">Conf</th>
+                <th className="px-3 py-3">Nhóm</th>
+                <th className="px-3 py-3">Điểm</th>
+                <th className="px-3 py-3">Tin cậy</th>
                 <th className="px-3 py-3 text-right">ROI 90D</th>
                 <th className="px-3 py-3 text-right">MDD</th>
                 <th className="px-3 py-3 text-right">Sharpe</th>
                 <th className="px-3 py-3 text-right">WinRate</th>
-                <th className="px-3 py-3 text-right">Runtime</th>
-                <th className="px-3 py-3 text-right">Copiers</th>
+                <th className="px-3 py-3 text-right">Số ngày</th>
+                <th className="px-3 py-3 text-right">Số copier</th>
                 <th className="px-3 py-3 text-right">Copy AUM</th>
-                <th className="px-3 py-3 text-right">Lev</th>
-                <th className="px-3 py-3">Risk</th>
+                <th className="px-3 py-3 text-right">Đòn bẩy</th>
+                <th className="px-3 py-3">Rủi ro</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
@@ -454,7 +456,7 @@ export default function ScreenerPage() {
                   </td>
                   <td className="px-3 py-3">
                     <span className={`rounded-full border px-2 py-0.5 text-xs ${TIER_STYLES[item.potential_tier] ?? "border-line text-body"}`}>
-                      {TIER_LABELS[item.potential_tier] ?? item.potential_tier}
+                      {label(TIER_LABELS, item.potential_tier, "Chưa rõ")}
                     </span>
                   </td>
                   <td className="px-3 py-3">
@@ -465,7 +467,9 @@ export default function ScreenerPage() {
                     >
                       {number(item.score, 1)}
                     </button>
-                    <p className="text-xs text-faint">{item.band ?? "—"}</p>
+                    <p className="text-xs text-faint">
+                      {label(BAND_LABELS, item.band, "—")}
+                    </p>
                   </td>
                   <td className="px-3 py-3 text-body">{confidencePct(item.confidence)}</td>
                   <td className="px-3 py-3 text-right text-body">{number(item.roi_90d, 2, "%")}</td>
@@ -481,8 +485,8 @@ export default function ScreenerPage() {
                   <td className="px-3 py-3 text-right text-body">{compact(item.current_copiers)}</td>
                   <td className="px-3 py-3 text-right text-body">{compact(item.copy_aum)}</td>
                   <td className="px-3 py-3 text-right text-body">{number(item.max_leverage, 1, "x")}</td>
-                  <td className={`px-3 py-3 capitalize ${RISK_STYLES[item.risk_level ?? "unknown"] ?? ""}`}>
-                    {item.risk_level ?? "unknown"}
+                  <td className={`px-3 py-3 ${RISK_STYLES[item.risk_level ?? "unknown"] ?? ""}`}>
+                    {label(RISK_LEVEL_LABELS, item.risk_level, "Chưa rõ")}
                   </td>
                 </tr>
               ))}
@@ -521,7 +525,9 @@ export default function ScreenerPage() {
             <div className="flex items-start justify-between">
               <div>
                 <h2 className="text-xl font-semibold">{drawer.nickname ?? drawer.id}</h2>
-                <p className="text-sm text-muted">{drawer.band ?? "—"} · score {number(drawer.score, 1)}</p>
+                <p className="text-sm text-muted">
+                  {label(BAND_LABELS, drawer.band, "—")} · điểm {number(drawer.score, 1)}
+                </p>
               </div>
               <button type="button" onClick={() => setDrawer(null)} className="text-muted">×</button>
             </div>
@@ -529,9 +535,9 @@ export default function ScreenerPage() {
               {Object.entries(drawer.breakdown.components ?? {}).map(([group, value]) => (
                 <div key={group}>
                   <div className="flex justify-between text-sm">
-                    <span className="capitalize text-body">{group.replaceAll("_", " ")}</span>
+                    <span className="text-body">{label(GROUP_LABELS, group, group)}</span>
                     <span className="text-muted">
-                      {number(value.score, 1)} · w{value.weight}
+                      {number(value.score, 1)} · trọng số {value.weight}
                     </span>
                   </div>
                   <div className="mt-1 h-2 rounded bg-elevated">
@@ -542,11 +548,13 @@ export default function ScreenerPage() {
             </div>
             {drawer.breakdown.missing?.length ? (
               <p className="mt-4 text-xs text-warn">
-                Thiếu thành phần: {drawer.breakdown.missing.join(", ")}
+                Thiếu thành phần: {drawer.breakdown.missing.map((key) => label(METRIC_LABELS, key, key)).join(", ")}
               </p>
             ) : null}
             {drawer.hard_flags.length ? (
-              <p className="mt-2 text-xs text-danger">Hard flags: {drawer.hard_flags.join(", ")}</p>
+              <p className="mt-2 text-xs text-danger">
+                Cờ cứng: {drawer.hard_flags.map((flag) => label(HARD_FLAG_LABELS, flag, flag)).join(", ")}
+              </p>
             ) : null}
             <Link
               to={`/traders/${drawer.id}`}
