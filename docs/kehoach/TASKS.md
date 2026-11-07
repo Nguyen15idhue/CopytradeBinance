@@ -554,21 +554,21 @@ hoàn thiện trang Ranking và trang hướng dẫn cho người mới.
 **Tham chiếu:** §11.5 AI & settings API (2071–2084) · §13.7 Màn hình AI Report (2530–2543) · §3 D11 + D31 (277–316) · §15.2 Biến môi trường (2948–2996) · §16.3 Rủi ro sản phẩm (3169–3183)  
 **→ đọc khi:** viết adapter/prompt/schema, evidence, cost control.
 
-- [ ] Cấu hình OpenRouter trong `.env`: `OPENROUTER_API_KEY`, `AI_MODEL_PRIMARY`, `AI_MODEL_FALLBACK`.
-- [ ] AI adapter gọi OpenRouter (OpenAI-compatible), dùng model chính.
-- [ ] Fallback: lỗi/timeout/JSON invalid → thử model dự phòng 1 lần → template.
-- [ ] Lưu model đã dùng (primary/fallback), cost, latency vào report metadata.
-- [ ] Không log/không trả `OPENROUTER_API_KEY` về browser.
-- [ ] Prompt template + JSON schema.
-- [ ] Evidence IDs bắt buộc cho mọi nhận định.
-- [ ] Chỉ nhận dữ liệu đã chuẩn hóa, không nhận raw trade.
-- [ ] Cost tracking.
-- [ ] Budget ngày/tháng.
-- [ ] Cooldown 24h + dedupe input hash.
-- [ ] Fallback template cuối cùng khi cả 2 model đều lỗi.
-- [ ] AI Reports UI.
-- [ ] Nút Analyze trên Detail.
-- [ ] AI không sửa score/ranking.
+- [x] Cấu hình OpenRouter trong `.env`. → Bằng chứng: key + `AI_MODEL_PRIMARY=nvidia/nemotron-3.5-super-vl:free`, fallback `nemotron-3-ultra-550b-a55b:free` (đổi do gemma 429).
+- [x] AI adapter gọi OpenRouter (OpenAI-compatible), dùng model chính. → Bằng chứng: `services/ai/openrouter.py`; live primary fail schema → fallback thành công.
+- [x] Fallback: lỗi/timeout/JSON invalid → thử model dự phòng 1 lần → template. → Bằng chứng: test `primary_invalid_json_falls_back`, `both_fail_use_template`; live 44,3s.
+- [x] Lưu model đã dùng (primary/fallback), cost, latency vào report metadata. → Bằng chứng: `ai_reports.model_role/model_used/cost_usd/latency_ms`; live role=fallback, cost=0.
+- [x] Không log/không trả `OPENROUTER_API_KEY` về browser. → Bằng chứng: response chỉ có `ai_configured` boolean; không có key.
+- [x] Prompt template + JSON schema. → Bằng chứng: `services/ai/prompt.py`, `schema.py` (Pydantic + chặn lời khuyên).
+- [x] Evidence IDs bắt buộc cho mọi nhận định. → Bằng chứng: schema min_length=1 + allowlist; test evidence ngoài danh sách → template.
+- [x] Chỉ nhận dữ liệu đã chuẩn hóa, không nhận raw trade. → Bằng chứng: `build_context` chỉ lấy metrics 90D + derived + risk events.
+- [x] Cost tracking. → Bằng chứng: bảng `ai_usage` (day/model/tokens/cost); live cost 0.
+- [x] Budget ngày/tháng. → Bằng chứng: `check_budget`; test vượt budget → 429 `AI_BUDGET_EXCEEDED`.
+- [x] Cooldown 24h + dedupe input hash. → Bằng chứng: test gọi lần 2 → `cached=true`, cùng report id.
+- [x] Fallback template cuối cùng khi cả 2 model đều lỗi. → Bằng chứng: template tất định; test 2 model lỗi.
+- [x] AI Reports UI. → Bằng chứng: `AIReportPanel` trong Detail; E2E render badge + evidence.
+- [x] Nút Analyze trên Detail. → Bằng chứng: chỉ admin thấy; E2E mock hiển thị.
+- [x] AI không sửa score/ranking. → Bằng chứng: integration test so score trước/sau bằng nhau.
 
 ### Bước 5.2 — Settings & versioning
 

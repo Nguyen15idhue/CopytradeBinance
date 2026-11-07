@@ -14,42 +14,43 @@
 - Kết quả: **FAIL**
 - HTTP: `429`
 - Lỗi: `{"error":{"message":"Provider returned error","code":429,"metadata":{"raw":"google/gemma-4-31b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own provider key to use your own limits: https://openrouter.ai/workspaces/default/byok","provider_name":"Google AI Studio","i`
-- Latency: 6986 ms
+- Latency: 7073 ms
 
 ### Case `young_portfolio`
 - Kết quả: **FAIL**
 - HTTP: `429`
 - Lỗi: `{"error":{"message":"Provider returned error","code":429,"metadata":{"raw":"google/gemma-4-31b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own provider key to use your own limits: https://openrouter.ai/workspaces/default/byok","provider_name":"Google AI Studio","i`
-- Latency: 7013 ms
+- Latency: 6977 ms
 
 ## Model fallback
 
 ### Case `rich_data`
 - Kết quả: **PASS**
-- Latency: 11901 ms
-- Tokens: prompt `349`, completion `2081`
+- Latency: 15670 ms
+- Tokens: prompt `349`, completion `2124`
 - Điểm chất lượng: **30/30**
 - Chi tiết: {'json': 5, 'schema': 5, 'evidence': 5, 'risk': 5, 'uncertainty': 5, 'no_advice': 5}
 
 ```json
 {
-  "summary": "Trader ID 5143921081414022657 đạt ROI 90 ngày 30.3% với mdd_90d 6.52%. Tỷ lệ thắng lệnh là 99.64% trên tổng số 1234 lệnh, Sharpe 3.83 và confidence 0.89. Vị thế tệ nhất có ROI -88.5%, mức rủi ro được đánh giá là high trong thời gian chạy 691 ngày.",
+  "summary": "Trader ID 5143921081414022657 đạt ROI 90 ngày 30.3% và MDD 90 ngày 6.52%. Tỷ lệ thắng lệnh 99.64% trên tổng 1234 lệnh, Sharpe 3.83 và niềm tin 0.89. Vị trí tệ nhất ROI -88.5%, đòn bẩy tối đa 10.0, mức rủi ro cao.",
   "strengths": [
-    "ROI 90 ngày cao 30.3% (roi_90d)",
-    "Tỷ lệ thắng lệnh rất cao 99.64% (win_rate_order)",
-    "Sharpe ratio cao 3.83 (sharpe)",
-    "Tổng số lệnh lớn 1234 (total_orders)",
-    "Confidence cao 0.89 (confidence)"
+    "ROI 90 ngày 30.3% (roi_90d)",
+    "Tỷ lệ thắng lệnh 99.64% với 1234 lệnh (win_rate_order, total_orders)",
+    "Sharpe ratio 3.83 (sharpe)",
+    "Thời gian chạy 691 ngày (runtime_days)",
+    "Niềm tin 0.89 (confidence)"
   ],
   "weaknesses": [
-    "Vị thế tệ nhất lỗ sâu -88.5% (worst_position_roi)",
-    "Mức rủi ro được đánh giá là high (risk_level)",
+    "Vị trí tệ nhất ROI -88.5% (worst_position_roi)",
+    "Mức rủi ro được đánh giá là cao (risk_level)",
     "Đòn bẩy tối đa 10.0 (max_leverage)"
   ],
   "risk_flags": [
-    "Vị thế tệ nhất ROI -88.5% cho thấy khả năng thua lớn trên một vị thế (worst_position_roi)",
-    "Mức rủi ro high (risk_level)",
-    "Đòn bẩy tối đa 10.0 (max_leverage)"
+    "Mức rủi ro cao (risk_level)",
+    "Vị trí lỗ lớn nhất -88.5% (worst_position_roi)",
+    "Đòn bẩy tối đa 10.0 (max_leverage)",
+    "MDD 90 ngày 6.52% (mdd_90d)"
   ],
   "missing_data": [
     "profit_factor",
@@ -75,82 +76,46 @@
 
 ### Case `young_portfolio`
 - Kết quả: **PASS**
-- Latency: 15074 ms
-- Tokens: prompt `345`, completion `2005`
+- Latency: 11423 ms
+- Tokens: prompt `345`, completion `2116`
 - Điểm chất lượng: **30/30**
 - Chi tiết: {'json': 5, 'schema': 5, 'evidence': 5, 'risk': 5, 'uncertainty': 5, 'no_advice': 5}
 
 ```json
 {
-  "summary": "Trader ID 5296057151807357697 có ROI 90 ngày là 61.75% và drawdown 90 ngày là 31.34%. Tài khoản thực hiện tổng cộng 10 lệnh với tỷ lệ thắng 50.0%, hệ số lợi nhuận 1.64 và vị trí kém nhất -97.8%. Thời gian chạy 4.11 ngày, mức rủi ro critical, độ tin cậy 0.31 và tier excluded.",
+  "summary": "Trader ID 5296057151807357697 có ROI 90 ngày 61.75% và MDD 90 ngày 31.34%. Tổng số lệnh là 10, tỷ lệ thắng 50.0%, hệ số lợi nhuận 1.64, thời gian chạy 4.11 ngày. Mức rủi ro được đánh giá critical, đòn bẩy tối đa 15.0, vị trí kém nhất -97.8%, độ tin cậy 0.31.",
   "strengths": [
-    "ROI 90 ngày dương 61.75% (roi_90d)",
-    "Hệ số lợi nhuận 1.64 lớn hơn 1 (profit_factor)",
-    "Tỷ lệ thắng lệnh 50.0% (win_rate_order)"
+    "ROI 90 ngày đạt 61.75% (roi_90d)",
+    "Hệ số lợi nhuận 1.64 lớn hơn 1 (profit_factor)"
   ],
   "weaknesses": [
-    "Vị trí kém nhất -97.8% (worst_position_roi)",
-    "Đòn bẩy tối đa 15.0 (max_leverage)",
-    "Thời gian chạy ngắn 4.11 ngày (runtime_days)",
+    "Thời gian chạy ngắn chỉ 4.11 ngày (runtime_days)",
+    "Tổng số lệnh chỉ 10 lệnh, mẫu dữ liệu nhỏ (total_orders)",
     "Độ tin cậy thấp 0.31 (confidence)",
-    "Tier bị loại trừ (tier)"
+    "Vị trí kém nhất -97.8% (worst_position_roi)"
   ],
   "risk_flags": [
     "Mức rủi ro critical (risk_level)",
-    "Drawdown 90 ngày 31.34% (mdd_90d)",
-    "Vị trí lỗ tối đa -97.8% (worst_position_roi)",
-    "Đòn bẩy cao 15.0 (max_leverage)",
-    "Độ tin cậy 0.31 (confidence)"
+    "MDD 90 ngày 31.34% (mdd_90d)",
+    "Đòn bẩy tối đa 15.0 (max_leverage)",
+    "Vị trí kém nhất -97.8% (worst_position_roi)"
   ],
   "missing_data": [
-    "sharpe (null)",
-    "benchmark_return (null)"
+    "sharpe",
+    "benchmark_return"
   ],
   "evidence_ids": [
     "id",
     "roi_90d",
     "mdd_90d",
-    "win_rate_order",
     "total_orders",
+    "win_rate_order",
     "profit_factor",
-    "worst_position_roi",
     "runtime_days",
     "risk_level",
-    "confidence",
-    "tier",
-    "max_leverage"
+    "max_leverage",
+    "worst_position_roi",
+    "confidence"
   ]
 }
 ```
-
-## Đề xuất
-
-| Phương án | Ưu | Nhược |
-|---|---|---|
-| **A. Đổi primary/fallback** | Dùng ngay, cả 2 đều free và đã test JSON | Latency 12–24s/model |
-| B. Giữ gemma + nạp credit/BYOK | Giữ model đã chọn | Tốn tiền, chưa kiểm chứng chất lượng |
-| C. Chờ free tier gemma hết rate-limit | Không đổi cấu hình | Không ổn định, 429 lặp lại |
-
-Cấu hình đề xuất (phương án A):
-
-```dotenv
-AI_MODEL_PRIMARY=nvidia/nemotron-3.5-super-vl:free
-AI_MODEL_FALLBACK=nvidia/nemotron-3-ultra-550b-a55b:free
-```
-
-Kết quả test model thay thế `nvidia/nemotron-3-ultra-550b-a55b:free`:
-
-| Case | JSON | Điểm | Latency | Tokens |
-|---|---|---|---:|---:|
-| rich_data | hợp lệ | 29/30 | 24,1s | 1.190 |
-| young_portfolio | hợp lệ | 30/30 | 13,5s | 1.154 |
-
-Ghi chú: đây là model reasoning nên `completion_tokens` gồm cả reasoning; cần `max_tokens >= 2000`
-khi dùng thật. Chi phí hiện tại = 0 (free tier).
-
-## Kết luận
-
-- Kết nối OpenRouter + API key: **OK** (HTTP 200).
-- Model primary hiện tại (`google/gemma-4-31b-it:free`): **không dùng được ổn định** do upstream 429.
-- Model fallback hiện tại (`nvidia/nemotron-3.5-super-vl:free`): **chất lượng tốt 30/30**, chậm 12–15s.
-- Cần đổi cấu hình hoặc nạp credit trước khi làm Phase 5.

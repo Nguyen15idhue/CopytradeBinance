@@ -481,3 +481,19 @@ Yêu cầu: chắc chắn hệ thống chạy đúng với use case thực tế,
 - `06-kiem-thu-van-hanh-bao-mat.md`: thêm mục 5.6 tổng hợp Playwright theo nhóm + gate E2E.
 
 Lưu ý: ranking/help cases (K/H) chỉ chạy được sau khi hoàn thành bước 5.4/5.5.
+
+---
+
+## 15. Phase 5 — triển khai
+
+### 15.1. AI report 5.1
+
+- Bảng `ai_reports` + `ai_usage` (migration 0012); prompt v1, schema Pydantic chặn lời khuyên đầu tư.
+- Adapter OpenRouter: primary → fallback 1 lần → template; evidence_ids phải nằm trong allowlist.
+- Budget ngày/tháng + cooldown 24h + dedupe `input_hash`; API admin analyze, user đọc report.
+- **Quyết định:** đổi `.env` do gemma free bị 429:
+  `AI_MODEL_PRIMARY=nvidia/nemotron-3.5-super-vl:free`,
+  `AI_MODEL_FALLBACK=nvidia/nemotron-3-ultra-550b-a55b:free`.
+- Live 1 call: 44,3s, primary fail schema → **fallback thành công**, cost 0, evidence đủ.
+- UI: panel AI trong Trader Detail (badge primary/fallback/template, cost, latency, evidence).
+- Test: 8 unit OpenRouter/schema/template + 2 integration API; E2E mock AI pass.

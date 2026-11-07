@@ -286,6 +286,31 @@ export interface RiskSummary {
   by_severity: Record<string, number>;
 }
 
+export interface AIReportItem {
+  id: number;
+  trader_id: string;
+  model_role: "primary" | "fallback" | "template";
+  model_used: string;
+  prompt_version: string;
+  summary: string;
+  strengths: string[];
+  weaknesses: string[];
+  risk_flags: string[];
+  missing_data: string[];
+  evidence_ids: string[];
+  prompt_tokens: number | null;
+  completion_tokens: number | null;
+  cost_usd: number;
+  latency_ms: number | null;
+  status: string;
+  created_at: string;
+}
+
+export interface AIReportsResponse {
+  items: AIReportItem[];
+  total: number;
+}
+
 export interface AuthUser {
   id: string;
   email: string;

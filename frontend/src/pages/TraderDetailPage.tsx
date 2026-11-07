@@ -23,6 +23,7 @@ import {
   getTrader,
   getTransfers,
 } from "../lib/api";
+import AIReportPanel from "../components/AIReportPanel";
 import type { Metric, PositionRow } from "../types/trader";
 
 const REASON_LABELS: Record<string, string> = {
@@ -409,6 +410,8 @@ export default function TraderDetailPage() {
           </dl>
         </section>
       </div>
+
+      <AIReportPanel traderId={data.trader.id} />
 
       <section className="rounded-2xl border border-line bg-panel p-5">
         <div className="flex items-center justify-between">

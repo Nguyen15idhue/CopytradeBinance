@@ -59,6 +59,20 @@ Base: `/api/v1`
 - Trả `items`, `series` (chartItems), `correlation` (Pearson + `sample_days` + disclaimer “estimated”).
 - Correlation cần ≥ 30 điểm chung; thiếu → `null`, không bịa số.
 
+## AI Report
+
+| Method | Endpoint | Quyền | Mô tả |
+|---|---|---|---|
+| POST | `/ai/analyze/{id}` | admin | Tạo report (cooldown 24h, budget, fallback) |
+| GET | `/ai/reports/{id}` | user | Danh sách report gần nhất |
+| GET | `/ai/reports/{id}/{report_id}` | user | Chi tiết report |
+
+Report gồm `model_role` (primary/fallback/template), `model_used`, `prompt_version`, `summary`,
+`strengths/weaknesses/risk_flags/missing_data/evidence_ids`, tokens, cost, latency.
+Response analyze có `cached`, `ai_configured`, `errors`; không bao giờ trả API key.
+
+Lỗi: 403 viewer, 404 trader/report, 409 `NO_METRICS`/`AI_DISABLED`, 429 `AI_BUDGET_EXCEEDED`.
+
 ## Risk Monitor
 
 | Method | Endpoint | Mô tả |

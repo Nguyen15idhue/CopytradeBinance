@@ -1,5 +1,7 @@
 import { clearSession, getAccessToken } from "./auth";
 import type {
+  AIReportsResponse,
+  AIReportItem,
   CollectorStatus,
   CompareResponse,
   FunnelSummary,
@@ -168,4 +170,17 @@ export async function getRiskSummary(): Promise<RiskSummary> {
 
 export async function getRiskEvents(params: Record<string, unknown>): Promise<RiskEventsResponse> {
   return request<RiskEventsResponse>(`/risk/events?${toQuery(params)}`);
+}
+
+export async function getAIReports(portfolioId: string): Promise<AIReportsResponse> {
+  return request<AIReportsResponse>(`/ai/reports/${id(portfolioId)}`);
+}
+
+export async function analyzeTrader(
+  portfolioId: string,
+): Promise<{ report: AIReportItem; cached: boolean; ai_configured: boolean }> {
+  return request<{ report: AIReportItem; cached: boolean; ai_configured: boolean }>(
+    `/ai/analyze/${id(portfolioId)}`,
+    { method: "POST" },
+  );
 }

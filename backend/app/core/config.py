@@ -37,6 +37,22 @@ class Settings(BaseSettings):
     deep_interval_hours_high: int = 24
     raw_archive_dir: str = "data/raw"
 
+    # AI (Phase 5)
+    ai_enabled: bool = True
+    openrouter_api_key: str = ""
+    openrouter_base_url: str = "https://openrouter.ai/api/v1"
+    ai_model_primary: str = ""
+    ai_model_fallback: str = ""
+    ai_monthly_budget_usd: float = 20.0
+    ai_daily_budget_usd: float = 2.0
+    ai_timeout_seconds: int = 60
+    ai_max_tokens: int = 2500
+    ai_cooldown_hours: int = 24
+    prompt_version: str = "v1"
+
+    # Ops (Phase 5)
+    api_rate_limit_per_min: int = 100
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [item.strip() for item in self.cors_origins.split(",") if item.strip()]

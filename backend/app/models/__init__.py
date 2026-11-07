@@ -1,3 +1,4 @@
+from app.models.ai_report import AIReport, AIUsage
 from app.models.app_setting import AppSetting
 from app.models.base import Base
 from app.models.collection_log import CollectionLog
@@ -20,6 +21,8 @@ from app.models.universe import TraderUniverse
 from app.models.user import User
 
 __all__ = [
+    "AIReport",
+    "AIUsage",
     "AppSetting",
     "Base",
     "CollectionLog",

@@ -113,15 +113,58 @@ try {
 
   const qualifiedId = await pickTrader("qualified");
   assert(Boolean(qualifiedId), "Không có trader qualified trong universe");
+  const aiReport = {
+    id: 1,
+    trader_id: qualifiedId,
+    model_role: "primary",
+    model_used: "fake-model",
+    prompt_version: "v1",
+    summary: "Trader có ROI dương, MDD trong ngưỡng và dữ liệu đủ để tham khảo.",
+    strengths: ["ROI 90D dương"],
+    weaknesses: ["Thiếu benchmark"],
+    risk_flags: ["R02: MDD > 20%"],
+    missing_data: ["missing_benchmark"],
+    evidence_ids: ["id", "roi_90d", "R02"],
+    prompt_tokens: 100,
+    completion_tokens: 200,
+    cost_usd: 0,
+    latency_ms: 1200,
+    status: "success",
+    created_at: new Date().toISOString(),
+  };
+  await page.route("**/api/v1/ai/reports/**", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ data: { items: [aiReport], total: 1 }, meta: {}, error: null }),
+    }),
+  );
+  await page.route("**/api/v1/ai/analyze/**", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        data: { report: aiReport, cached: false, ai_configured: true },
+        meta: {},
+        error: null,
+      }),
+    }),
+  );
   await page.goto(`${base}/traders/${qualifiedId}`, { waitUntil: "domcontentloaded" });
   await page.getByRole("heading", { name: "10 chỉ số cốt lõi" }).waitFor();
+  await page.getByRole("heading", { name: /AI Report/i }).waitFor();
   let body = await page.locator("body").innerText();
   const tooltips = await page.locator('[title*="nguồn:"]').count();
   assert(tooltips >= 10, `Thiếu tooltip nguồn (${tooltips})`);
   assert(body.includes("ROI 90D"), "Thiếu ROI 90D");
   assert(body.toLowerCase().includes("qualified"), "Thiếu badge tier");
+  assert(body.toLowerCase().includes("ai report"), "Thiếu khối AI Report");
+  await page.getByText(/primary/i).first().waitFor();
+  body = await page.locator("body").innerText();
+  assert(body.toLowerCase().includes("primary"), "Thiếu badge model primary");
+  assert(body.includes("roi_90d"), "Thiếu evidence AI");
   assert(!body.includes("undefined") && !body.includes("NaN"), "UI có undefined/NaN");
-  console.log("Trader qualified render: OK");
+  console.log("Trader qualified render + AI: OK");
 
   const excludedId = await pickTrader("excluded");
   assert(Boolean(excludedId), "Không có trader excluded trong universe");
