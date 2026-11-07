@@ -24,30 +24,23 @@ import {
   getTransfers,
 } from "../lib/api";
 import AIReportPanel from "../components/AIReportPanel";
+import {
+  BAND_LABELS,
+  FILTER_REASON_LABELS as REASON_LABELS,
+  FLAG_LABELS,
+  GROUP_LABELS,
+  HARD_FLAG_LABELS,
+  METRIC_LABELS,
+  PORTFOLIO_TYPE_LABELS,
+  RISK_EVENT_LABELS,
+  RISK_LEVEL_LABELS,
+  SOURCE_LABELS,
+  TIER_LABELS,
+  TRADER_STATUS_LABELS,
+  TRANSFER_TYPE_LABELS,
+  label,
+} from "../i18n/vi";
 import type { Metric, PositionRow } from "../types/trader";
-
-const REASON_LABELS: Record<string, string> = {
-  runtime_lt_30: "Runtime < 30 ngày",
-  no_trade_7d: "Không giao dịch 7 ngày",
-  roi_le_0: "ROI ≤ 0",
-  pnl_le_0: "PnL ≤ 0",
-  winrate_lt_40: "WinRate < 40%",
-  mdd_gt_40: "MDD > 40%",
-  aum_lt_5000: "AUM < 5.000",
-  no_slots: "Hết slot copy",
-  total_orders_lt_threshold: "Không đủ totalOrder cho tier",
-};
-
-const FLAG_LABELS: Record<string, string> = {
-  missing_sharpe: "Thiếu Sharpe",
-  missing_mdd: "Thiếu MDD",
-  missing_benchmark: "Chưa có benchmark",
-  no_copiers: "Không có copier",
-  low_sample: "Mẫu giao dịch nhỏ",
-  insufficient_positions: "Thiếu mẫu vị thế",
-  missing_trades: "Chưa có trade history",
-  derived_unavailable: "Chỉ số derived chưa có",
-};
 
 const TIER_STYLES: Record<string, string> = {
   high_upper: "border-emerald-500/40 bg-emerald-500/10 text-accent",
@@ -93,7 +86,9 @@ function MetricCard({ metric }: { metric: Metric }) {
         metric.window ? ` · cửa sổ ${metric.window}` : ""
       }${metric.note ? ` · ${metric.note}` : ""}`}
     >
-      <p className="text-xs uppercase tracking-wide text-faint">{metric.label}</p>
+      <p className="text-xs uppercase tracking-wide text-faint">
+        {label(METRIC_LABELS, metric.key, metric.label)}
+      </p>
       <p className="mt-2 text-2xl font-semibold">
         {noCopier ? "0" : fmt(numeric, 2, metric.unit === "%" ? "%" : "")}
         {metric.unit && numeric !== null && metric.unit !== "%" ? (
@@ -175,7 +170,7 @@ export default function TraderDetailPage() {
           {trader.error instanceof Error ? trader.error.message : "Lỗi không xác định"}
         </p>
         <Link to="/screener" className="mt-4 inline-block text-sm text-accent">
-          ← Về Screener
+          ← Về Bộ lọc trader
         </Link>
       </div>
     );
@@ -196,7 +191,7 @@ export default function TraderDetailPage() {
   return (
     <div className="space-y-6">
       <Link to="/screener" className="text-sm text-muted hover:text-strong">
-        ← Screener
+        ← Bộ lọc trader
       </Link>
 
       <section className="rounded-2xl border border-line bg-panel p-6">
@@ -205,17 +200,17 @@ export default function TraderDetailPage() {
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-2xl font-semibold">{data.trader.nickname ?? data.trader.id}</h1>
               <span className={`rounded-full border px-2.5 py-0.5 text-xs uppercase ${tierClass}`}>
-                {data.tier}
+                {label(TIER_LABELS, data.tier)}
               </span>
               <span className="rounded-full border border-line px-2.5 py-0.5 text-xs text-muted">
-                {data.trader.portfolio_type ?? "N/A"}
+                {label(PORTFOLIO_TYPE_LABELS, data.trader.portfolio_type, "Chưa rõ")}
               </span>
               <span className="rounded-full border border-line px-2.5 py-0.5 text-xs text-muted">
-                {data.trader.status ?? "N/A"}
+                {label(TRADER_STATUS_LABELS, data.trader.status, "Chưa rõ")}
               </span>
               {risk.data?.risk_level ? (
-                <span className="rounded-full border border-orange-500/40 bg-orange-500/10 px-2.5 py-0.5 text-xs capitalize text-warn">
-                  risk {risk.data.risk_level}
+                <span className="rounded-full border border-orange-500/40 bg-orange-500/10 px-2.5 py-0.5 text-xs text-warn">
+                  rủi ro {label(RISK_LEVEL_LABELS, risk.data.risk_level)}
                 </span>
               ) : null}
             </div>
@@ -226,15 +221,17 @@ export default function TraderDetailPage() {
           </div>
           <div className="flex gap-6 text-right">
             <div>
-              <p className="text-xs uppercase tracking-wide text-faint">Score</p>
+              <p className="text-xs uppercase tracking-wide text-faint">Điểm</p>
               <p className="text-2xl font-semibold">{fmt(score.data?.score ?? null, 1)}</p>
-              <p className="text-xs text-faint">{score.data?.band ?? "—"} · v{score.data?.config_version ?? 1}</p>
+              <p className="text-xs text-faint">
+                {label(BAND_LABELS, score.data?.band, "—")} · v{score.data?.config_version ?? 1}
+              </p>
             </div>
             <div>
               <p className="text-xs uppercase tracking-wide text-faint">Độ tin cậy</p>
               <p className="text-2xl font-semibold">{Math.round(data.confidence * 100)}%</p>
               <p className="text-xs text-faint">
-                {data.provenance.source ?? "N/A"} · {data.provenance.window}
+                {label(SOURCE_LABELS, data.provenance.source, "Chưa rõ")} · {data.provenance.window}
               </p>
             </div>
           </div>
@@ -246,7 +243,7 @@ export default function TraderDetailPage() {
             <div className="mt-2 flex flex-wrap gap-2">
               {data.reasons.map((reason) => (
                 <span key={reason} className="rounded-full border border-amber-500/30 px-2.5 py-1 text-xs text-warn">
-                  {REASON_LABELS[reason] ?? reason}
+                  {label(REASON_LABELS, reason, reason)}
                 </span>
               ))}
             </div>
@@ -286,7 +283,7 @@ export default function TraderDetailPage() {
 
         <section className="rounded-2xl border border-line bg-panel p-5">
           <h2 className="text-sm font-medium uppercase tracking-wide text-faint">
-            Drawdown (estimated)
+            Drawdown (ước tính)
           </h2>
           <p className="mt-1 text-xs text-warn/80">
             Ước tính từ chartItems, chưa điều chỉnh nạp/rút — chỉ tham khảo.
@@ -334,15 +331,15 @@ export default function TraderDetailPage() {
 
         <section className="rounded-2xl border border-line bg-panel p-5">
           <h2 className="text-sm font-medium uppercase tracking-wide text-faint">
-            Score breakdown
+            Phân rã điểm
           </h2>
           <div className="mt-3 space-y-2">
             {Object.entries(score.data?.breakdown.components ?? {}).map(([group, value]) => (
               <div key={group}>
                 <div className="flex justify-between text-sm">
-                  <span className="capitalize text-body">{group.replaceAll("_", " ")}</span>
+                  <span className="text-body">{label(GROUP_LABELS, group, group)}</span>
                   <span className="text-muted">
-                    {fmt(value.score, 1)} · w{value.weight}
+                    {fmt(value.score, 1)} · trọng số {value.weight}
                   </span>
                 </div>
                 <div className="mt-1 h-2 rounded bg-elevated">
@@ -351,22 +348,24 @@ export default function TraderDetailPage() {
               </div>
             ))}
             {!score.data?.breakdown.components ? (
-              <p className="text-sm text-muted">Trader chưa có score.</p>
+              <p className="text-sm text-muted">Trader chưa có điểm.</p>
             ) : null}
           </div>
           {score.data?.hard_flags.length ? (
-            <p className="mt-3 text-xs text-danger">Hard flags: {score.data.hard_flags.join(", ")}</p>
+            <p className="mt-3 text-xs text-danger">
+              Cờ cứng: {score.data.hard_flags.map((flag) => label(HARD_FLAG_LABELS, flag, flag)).join(", ")}
+            </p>
           ) : null}
         </section>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
         <section className="rounded-2xl border border-line bg-panel p-5">
-          <h2 className="text-sm font-medium uppercase tracking-wide text-faint">Risk flags</h2>
+          <h2 className="text-sm font-medium uppercase tracking-wide text-faint">Cảnh báo rủi ro</h2>
           <div className="mt-3 flex flex-wrap gap-2">
             {(risk.data?.events ?? []).map((event) => (
               <span key={event.code} className="rounded-full border border-orange-500/30 bg-orange-500/10 px-2.5 py-1 text-xs text-orange-200" title={JSON.stringify(event.evidence)}>
-                {event.code} · {event.label}
+                {event.code} · {label(RISK_EVENT_LABELS, event.code, event.label)}
               </span>
             ))}
             {risk.data && risk.data.events.length === 0 ? (
@@ -379,10 +378,10 @@ export default function TraderDetailPage() {
         </section>
 
         <section className="rounded-2xl border border-line bg-panel p-5">
-          <h2 className="text-sm font-medium uppercase tracking-wide text-faint">What&apos;s missing</h2>
+          <h2 className="text-sm font-medium uppercase tracking-wide text-faint">Dữ liệu còn thiếu</h2>
           <ul className="mt-3 space-y-1.5 text-sm text-muted">
             {[...new Set(missing)].map((flag) => (
-              <li key={flag}>• {FLAG_LABELS[flag] ?? flag}</li>
+              <li key={flag}>• {label(FLAG_LABELS, flag, flag)}</li>
             ))}
           </ul>
         </section>
@@ -391,9 +390,9 @@ export default function TraderDetailPage() {
           <h2 className="text-sm font-medium uppercase tracking-wide text-faint">Nguồn dữ liệu</h2>
           <dl className="mt-3 space-y-2 text-sm">
             {[
-              ["Source", data.provenance.source ?? "N/A"],
-              ["Window", data.provenance.window],
-              ["Published", data.provenance.published ? "Có" : "Không"],
+              ["Nguồn", label(SOURCE_LABELS, data.provenance.source, "Chưa rõ")],
+              ["Cửa sổ", data.provenance.window],
+              ["Binance công bố", data.provenance.published ? "Có" : "Không"],
               ["Benchmark", performance.data?.benchmark === null ? "Không có" : "Có"],
               [
                 "Thu thập",
@@ -415,16 +414,16 @@ export default function TraderDetailPage() {
 
       <section className="rounded-2xl border border-line bg-panel p-5">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-medium uppercase tracking-wide text-faint">Positions</h2>
+          <h2 className="text-sm font-medium uppercase tracking-wide text-faint">Vị thế</h2>
           <span className="text-xs text-faint">{positions.data ? `${positions.data.total} vị thế đóng` : ""}</span>
         </div>
         <div className="mt-3 overflow-x-auto">
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead className="text-xs uppercase tracking-wide text-faint">
               <tr>
-                <th className="pb-2">Symbol</th>
-                <th className="pb-2">Side</th>
-                <th className="pb-2 text-right">Lev</th>
+                <th className="pb-2">Cặp</th>
+                <th className="pb-2">Chiều</th>
+                <th className="pb-2 text-right">Đòn bẩy</th>
                 <th className="pb-2 text-right">PnL</th>
                 <th className="pb-2 text-right">ROI</th>
                 <th className="pb-2">Đóng lúc</th>
@@ -465,7 +464,7 @@ export default function TraderDetailPage() {
                   {row.symbol} · {row.side}
                 </span>
                 <span className="text-faint">
-                  {money(row.notional)} · fee {fmt(row.fee, 4)}
+                  {money(row.notional)} · phí {fmt(row.fee, 4)}
                 </span>
               </li>
             ))}
@@ -476,12 +475,12 @@ export default function TraderDetailPage() {
         </section>
 
         <section className="rounded-2xl border border-line bg-panel p-5">
-          <h2 className="text-sm font-medium uppercase tracking-wide text-faint">Transfers</h2>
+          <h2 className="text-sm font-medium uppercase tracking-wide text-faint">Nạp/rút</h2>
           <ul className="mt-3 space-y-2 text-sm">
             {(transfers.data?.items ?? []).map((row) => (
               <li key={`${row.time}-${row.amount}-${row.type}`} className="flex items-center justify-between gap-3">
                 <span className="text-body">
-                  {row.type} · {row.coin}
+                  {label(TRANSFER_TYPE_LABELS, row.type, row.type ?? "—")} · {row.coin}
                 </span>
                 <span className={row.type?.includes("WITHDRAW") ? "text-danger" : "text-accent"}>
                   {money(row.amount)}
