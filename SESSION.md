@@ -678,3 +678,14 @@ Kết luận: **không phải lỗi parse hay đảo dấu**.
 Ba lỗi phụ đã đưa vào kế hoạch 05: V7 (không cảnh báo dữ liệu cũ), V8 (`as_of` lấy
 `computed_at` thay vì `performance_at`), V9 (`risk_score` trống 531/531).
 Đã chạy refresh dữ liệu thủ công sau khi cập nhật kế hoạch.
+
+Kết quả refresh (`collector_cli`):
+- `perf`: 517 trader, **2068 metrics**, 0 lỗi, `collected_at = 17:00 UTC`, 10 demotion.
+- `metrics`: 517 saved/4,96s; `risk`: 532 trader, 1618 event; `score`: 532 scored, 243 rankable;
+  `rank`: overall 50 / low_risk 34 / consistency 50.
+- Trader `5076854789130646529` sau refresh: `roi_7d = -3.5698`, `pnl = -19.4531`,
+  `copier_pnl_7d = -1394.2219`, MDD 8,13%, win 5/6 → **khớp Binance**;
+  `risk_score = 35.60`, `risk_level = high`; `freshness_minutes = 35,31`,
+  `performance_at = 17:00 UTC`.
+- `risk_score` đủ **529/532** (3 trader excluded chưa có dòng `trader_metrics` — đúng thiết kế).
+- Độ mới `performance_metrics` sau refresh: 36 phút.
