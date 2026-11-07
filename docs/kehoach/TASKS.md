@@ -240,14 +240,14 @@
 **Tham chiếu:** §6.3 Danh sách endpoint (565–575) · §6.5 List (589–665) · §6.6 Detail (666–719) · §6.7 Performance (720–757) · §6.8 Position (758–810) · §6.9 Trade (811–860) · §6.10 Transfer (861–896) · §12.1 Adapter (2107–2123) · §12.3 Rate limit & retry (2136–2154)  
 **→ đọc khi:** viết adapter/parser, xử lý page size, base URL, retry.
 
-- [ ] `BinanceBapiAdapter` list (page size 30).
-- [ ] `BinanceBapiAdapter` detail.
-- [ ] `BinanceBapiAdapter` performance (`BASE_P`, 4 window).
-- [ ] `BinanceBapiAdapter` position-history (page size 50).
-- [ ] `BinanceBapiAdapter` trade-history (page size 200).
-- [ ] `BinanceBapiAdapter` transfer-history.
-- [ ] Retry/backoff `11012005`; timeout 20s.
-- [ ] Circuit breaker khi lỗi liên tiếp.
+- [x] `BinanceBapiAdapter` list (page size 30). → Bằng chứng: `app/services/collector/binance.py`; live total PUBLIC=8966.
+- [x] `BinanceBapiAdapter` detail. → Bằng chứng: live trader `4520644381136785152` status=ACTIVE, paused=False.
+- [x] `BinanceBapiAdapter` performance (`BASE_P`, 4 window). → Bằng chứng: live 90D roi=19.22040291, mdd=8.5435368.
+- [x] `BinanceBapiAdapter` position-history (page size 50). → Bằng chứng: `PAGE_SIZE_POSITIONS=50`; live total=1251.
+- [x] `BinanceBapiAdapter` trade-history (page size 200). → Bằng chứng: `PAGE_SIZE_TRADES=200`; live total=2556.
+- [x] `BinanceBapiAdapter` transfer-history. → Bằng chứng: page size 50; live total=2.
+- [x] Retry/backoff `11012005`; timeout 20s. → Bằng chứng: `collector/http.py`; test retry 2 lần rồi success + test 500 retry + test 404 không retry.
+- [x] Circuit breaker khi lỗi liên tiếp. → Bằng chứng: `CircuitBreaker(threshold=5, reset=60s)`; test mở sau 3 lỗi cấu hình.
 
 ### Bước 2.2 — Tầng 0: Universe scan
 

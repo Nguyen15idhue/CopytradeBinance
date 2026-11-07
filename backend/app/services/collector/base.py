@@ -10,7 +10,9 @@ class Page:
 
 
 class DataSourceAdapter(Protocol):
-    async def list_traders(self, time_range: str, page: int) -> Page: ...
+    async def list_traders(
+        self, time_range: str, page: int, portfolio_type: str = "PUBLIC"
+    ) -> Page: ...
 
     async def get_detail(self, portfolio_id: str) -> dict[str, Any]: ...
 

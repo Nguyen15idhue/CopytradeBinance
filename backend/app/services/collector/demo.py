@@ -69,7 +69,9 @@ _PERFORMANCE: dict[str, dict[str, dict[str, Any]]] = {
 class DemoAdapter:
     """Fixture cố định cho dev/test, không gọi mạng."""
 
-    async def list_traders(self, time_range: str, page: int) -> Page:
+    async def list_traders(
+        self, time_range: str, page: int, portfolio_type: str = "PUBLIC"
+    ) -> Page:
         items = [dict(value, window=time_range) for value in _FIXTURES.values()]
         return Page(items=items, total=len(items), page=page)
 
