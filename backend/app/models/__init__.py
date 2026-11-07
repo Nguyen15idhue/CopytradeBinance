@@ -11,6 +11,7 @@ from app.models.audit_log import AuditLog
 from app.models.base import Base
 from app.models.collection_log import CollectionLog
 from app.models.data_quality_flag import DataQualityFlag
+from app.models.knowledge_chunk import KnowledgeChunk
 from app.models.performance import PerformanceMetric
 from app.models.position import Position
 from app.models.ranking_snapshot import RankingSnapshot
@@ -41,6 +42,7 @@ __all__ = [
     "Base",
     "CollectionLog",
     "DataQualityFlag",
+    "KnowledgeChunk",
     "PerformanceMetric",
     "PortfolioSnapshot",
     "Position",

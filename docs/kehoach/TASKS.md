@@ -892,7 +892,7 @@ Tóm tắt: không auto-trading, không realtime WebSocket, không Paper Copy tr
 - [x] B5. Floating chat UI. → Bằng chứng: `AgentLauncher/Panel` + `lib/agent.ts` (SSE flush buffer); chỉ admin; E2E full PASS (agent mock SSE + viewer ẩn icon, 0 console error).
 - [x] B6. QA Phase 1 agent. → Bằng chứng: full suite 145 pass, ruff pass, build pass, E2E PASS, check_refs 174/0, không secret trong agent code.
 - [x] B7. Tavily web search + cache. → Bằng chứng: `web_tools.py` (mock Tavily, cache Redis 24h, timeout 10s, tắt khi thiếu key); `test_agent_web.py` 2 pass (gồm prompt-injection snippet chỉ là dữ liệu).
-- [ ] B8. Knowledge index code/docs.
+- [x] B8. Knowledge index code/docs. → Bằng chứng: migration `0017_knowledge_chunks` + `knowledge.py`/`knowledge_cli.py`; dry-run 204 file → 996 chunk; `test_agent_knowledge.py` 3 pass (path/line).
 - [ ] B9. Citation + verifier hardening.
 - [ ] B10. Portfolio fit + vốn 100$.
 - [ ] B11. Search tự nhiên trong Screener.

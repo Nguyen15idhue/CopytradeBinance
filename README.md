@@ -90,6 +90,7 @@ Trợ lý AI chat (chỉ admin): icon ✦ góc phải dưới mọi trang sau đ
 - Panel drawer desktop (~440px), full-screen mobile; Esc đóng; Ctrl/Cmd+Enter gửi.
 - Stream SSE: tool trace collapsible, citation chips, cảnh báo; session lưu DB.
 - API: `POST /agent/chat` (SSE), `GET/PATCH/DELETE /agent/sessions`, `POST /agent/feedback`.
+- Rebuild knowledge index: `docker compose exec backend python -m app.knowledge_cli index` (idempotent; `--dry-run` để đếm trước).
 
 ```bash
 # Chạy tay từng tầng
