@@ -911,6 +911,6 @@ Tóm tắt: không auto-trading, không realtime WebSocket, không Paper Copy tr
 - [x] B4.0.5 UI Screener đa khung. → Bằng chứng: selector khung + 3 nhóm filter + badge; E2E đa khung/mobile PASS.
 - [x] B4.0.6 Detail hiển thị 4 khung. → Bằng chứng: bảng 4 dòng × 7 cột từ `performance.windows`; E2E PASS.
 - [x] B4.0.7 Agent trả đủ dữ liệu trader. → Bằng chứng: `detail=full/summary`, 4 khung × 8 field + 38 derived + 10 profile; test 6 pass.
-- [ ] B4.0.8 Orchestrator JSON compact.
+- [x] B4.0.8 Orchestrator JSON compact. → Bằng chứng: `compact_observation` + test 3 pass; tokens 4000.
 - [ ] B4.0.9 Eval agent đa use case (15 case phân tích/đánh giá).
 - [ ] B4.0.10 QA cuối kế hoạch 04.

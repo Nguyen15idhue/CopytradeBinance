@@ -46,7 +46,7 @@ class Settings(BaseSettings):
     ai_monthly_budget_usd: float = 20.0
     ai_daily_budget_usd: float = 2.0
     ai_timeout_seconds: int = 60
-    ai_max_tokens: int = 2500
+    ai_max_tokens: int = 4000
     ai_reasoning_effort: str = "auto"
     ai_cooldown_hours: int = 24
     prompt_version: str = "v1"
@@ -60,6 +60,7 @@ class Settings(BaseSettings):
     agent_timeout_seconds: int = 120
     agent_rate_limit_per_min: int = 20
     agent_retention_days: int = 90
+    agent_observation_chars: int = 8000
     tavily_api_key: str = ""
     agent_web_search_enabled: bool = True
     agent_web_search_max_results: int = 5

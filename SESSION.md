@@ -643,3 +643,7 @@ Nguồn: `docs/0/04-ke-hoach-screener-da-khung.md`. Khảo sát xác nhận V1�
   (roi/pnl/mdd/sharpe/copier_pnl/win_rate_order/win_orders/total_orders), `derived` 38 field,
   `profile` 10 field, `flags`, `breakdown`; evidence từng khung + derived chính;
   `search_traders` thêm `include` và trả `windows` + evidence 7D/30D/180D. Test 6 pass.
+- B4.0.8: `compact_observation()` JSON compact; vượt `agent_observation_chars=8000` → cắt theo
+  từng row kèm `truncated/omitted_rows/hint` (không cắt giữa object, không cắt giữa chuỗi);
+  `ai_max_tokens` 2500→4000; prompt nhắc nêu rõ khung 7D/30D/90D/180D và unknown khi thiếu.
+  Test `test_agent_observation` 3 pass.

@@ -1,6 +1,7 @@
 """Agent orchestrator: planner + tool loop (tối đa 8 bước) + verifier + lưu DB."""
 
 import asyncio
+import json
 import time
 from collections.abc import AsyncIterator
 from datetime import datetime
@@ -22,7 +23,8 @@ from app.services.agent.verifier import build_answer_contract, check_units, veri
 SYSTEM_PROMPT = (
     "Bạn là trợ lý AI của hệ thống CopytradeBinance. Trả lời tiếng Việt, "
     "chỉ dùng số liệu từ tool, ghi rõ nguồn. Không đưa lời khuyên đầu tư. "
-    "Khi thiếu dữ liệu, nói rõ unknown, không bịa số."
+    "Khi câu hỏi liên quan ngắn hạn hay dài hạn, nêu rõ khung 7D/30D/90D/180D và "
+    "hiển thị đủ các khung liên quan. Khung thiếu dữ liệu thì ghi unknown, không bịa số."
 )
 
 _RATE: dict[str, list[float]] = {}
@@ -35,6 +37,44 @@ def check_rate_limit(user_key: str, per_min: int) -> None:
         raise ApiError(429, "AGENT_RATE_LIMITED", "Gửi quá nhanh, thử lại sau")
     window.append(now)
     _RATE[user_key] = window
+
+
+def compact_observation(data: Any, limit: int) -> str:
+    """JSON compact; vượt giới hạn thì cắt có cấu trúc (không cắt giữa chuỗi)."""
+    serialized = json.dumps(data, ensure_ascii=False, separators=(",", ":"), default=str)
+    if len(serialized) <= limit:
+        return serialized
+    rows: list[Any] = []
+    if isinstance(data, dict):
+        for key in ("items", "rows"):
+            if isinstance(data.get(key), list):
+                rows = data[key]
+                break
+    kept: list[Any] = []
+    size = 0
+    for row in rows:
+        row_size = len(
+            json.dumps(row, ensure_ascii=False, separators=(",", ":"), default=str)
+        )
+        if size + row_size > limit - 200:
+            break
+        kept.append(row)
+        size += row_size
+    payload: dict[str, Any] = {
+        "truncated": True,
+        "omitted_rows": max(0, len(rows) - len(kept)),
+        "hint": "gọi lại tool với limit nhỏ hơn hoặc lọc thêm để lấy dữ liệu đầy đủ",
+    }
+    if kept:
+        key = "items" if isinstance(data, dict) and isinstance(data.get("items"), list) else "rows"
+        payload[key] = kept
+        if isinstance(data, dict):
+            for extra in ("total", "config_version", "window", "as_of"):
+                if extra in data:
+                    payload[extra] = data[extra]
+    else:
+        payload["preview"] = serialized[: max(0, limit - 200)]
+    return json.dumps(payload, ensure_ascii=False, separators=(",", ":"), default=str)
 
 
 def template_from_evidence(evidence: list[dict]) -> str:
@@ -195,7 +235,11 @@ async def run_chat(
                         message_id=None,
                         tool_name=call.name,
                         arguments=call.arguments,
-                        result_summary=(str(tool_result.data)[:2000] if tool_result else None),
+                        result_summary=(
+                            compact_observation(tool_result.data, 2000)
+                            if tool_result
+                            else None
+                        ),
                         status="ok" if not tool_error else "error",
                         duration_ms=duration,
                         error=tool_error,
@@ -207,7 +251,9 @@ async def run_chat(
                         facts.append({"id": item.id, "value": item.value, "unit": item.unit})
                         if item.row_id:
                             row_ids.append(item.row_id)
-                    observation = str(tool_result.data)[:4000]
+                    observation = compact_observation(
+                        tool_result.data, settings.agent_observation_chars
+                    )
                 else:
                     observation = f"Lỗi tool {call.name}: {tool_error}"
                 yield SseEvent(

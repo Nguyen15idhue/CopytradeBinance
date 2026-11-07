@@ -393,3 +393,7 @@ Commit: test(phase6): 4.0.9 eval agent da use case
   `risk_events`; evidence cho từng khung (`roi_7d`…`win_rate_180d`) + derived chính;
   `search_traders(include=metrics|full)` trả thêm `windows` + evidence 7D/30D/180D.
   → Bằng chứng: `test_agent_db_tools` 6 pass; verifier/core 17 pass; ruff pass.
+- [x] B4.0.8 Orchestrator JSON compact — `compact_observation` dùng `json.dumps` compact,
+  vượt `agent_observation_chars=8000` thì trả `{truncated, omitted_rows, hint, items|preview}`
+  (không cắt giữa object); `ai_max_tokens` 2500 → 4000; prompt nhắc trả lời theo khung.
+  → Bằng chứng: `test_agent_observation` 3 pass; `test_agent_core` + observation 13 pass.
