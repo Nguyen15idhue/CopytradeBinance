@@ -385,3 +385,6 @@ Commit: test(phase6): 4.0.9 eval agent da use case
   nhãn tách file `i18n/screener.ts` (không đụng i18n/vi.ts đang có thay đổi ngoài phạm vi).
   → Bằng chứng: build pass; E2E thêm "Screener đa khung + filter" + "Screener mobile 390" PASS;
   toàn bộ E2E PASS, 0 console error.
+- [x] B4.0.6 Detail 4 khung — bảng "Hiệu suất theo khung" 4 dòng (7D/30D/90D/180D) ×
+  ROI/PnL/MDD/Sharpe/WinRate/Copier PnL/Số lệnh, dùng `performance.data.windows`; null → `N/A`.
+  → Bằng chứng: build pass; E2E assert 4 dòng PASS.

@@ -327,6 +327,10 @@ try {
   );
   await page.goto(`${base}/traders/${qualifiedId}`, { waitUntil: "domcontentloaded" });
   await page.getByRole("heading", { name: "10 chỉ số cốt lõi" }).waitFor();
+  await page.getByRole("heading", { name: "Hiệu suất theo khung" }).waitFor();
+  const windowRows = await page.locator("section", { hasText: "Hiệu suất theo khung" })
+    .locator("tbody tr").count();
+  assert(windowRows === 4, `Detail thiếu bảng 4 khung (${windowRows} dòng)`);
   await page.getByRole("heading", { name: /Nhận định AI/i }).waitFor();
   let body = await page.locator("body").innerText();
   const tooltips = await page.locator('[title*="nguồn:"]').count();

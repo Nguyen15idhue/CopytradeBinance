@@ -636,3 +636,6 @@ Nguồn: `docs/0/04-ke-hoach-screener-da-khung.md`. Khảo sát xác nhận V1�
   theo khung + cột Số copier/AUM/Copy AUM/Profit factor; 3 nhóm filter thu gọn; badge filter +
   "Xóa tất cả"; `i18n/screener.ts` cho nhãn mới; `screenerQuery.ts` thêm `avg_lev_max/risk_score_max`.
   E2E: "Screener đa khung + filter" (7D→90D, copier≥5, AUM≥1000) và "Screener mobile 390" PASS.
+- B4.0.6: `TraderDetailPage` thêm bảng "Hiệu suất theo khung" 4 dòng × ROI/PnL/MDD/Sharpe/
+  WinRate/Copier PnL/Số lệnh từ `performance.data.windows` (API đã có sẵn); null → `N/A`.
+  E2E assert 4 dòng PASS.

@@ -51,6 +51,8 @@ const TIER_STYLES: Record<string, string> = {
   excluded: "border-amber-500/40 bg-amber-500/10 text-warn",
 };
 
+const WINDOWS = ["7D", "30D", "90D", "180D"] as const;
+
 const METRIC_HELP: Record<string, string> = {
   roi_90d: "ROI do Binance công bố trong cửa sổ 90D.",
   mdd_90d: "MDD do Binance công bố; không tự tính từ chartItems.",
@@ -284,6 +286,45 @@ export default function TraderDetailPage() {
           {data.metrics.map((metric) => (
             <MetricCard key={metric.key} metric={metric} />
           ))}
+        </div>
+      </section>
+
+      <section>
+        <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-faint">
+          Hiệu suất theo khung
+        </h2>
+        <div className="overflow-x-auto rounded-2xl border border-line bg-panel">
+          <table className="w-full min-w-[720px] text-left text-sm">
+            <thead className="border-b border-line text-xs uppercase tracking-wide text-faint">
+              <tr>
+                <th className="px-3 py-2">Khung</th>
+                <th className="px-3 py-2 text-right">ROI</th>
+                <th className="px-3 py-2 text-right">PnL</th>
+                <th className="px-3 py-2 text-right">MDD</th>
+                <th className="px-3 py-2 text-right">Sharpe</th>
+                <th className="px-3 py-2 text-right">WinRate</th>
+                <th className="px-3 py-2 text-right">Copier PnL</th>
+                <th className="px-3 py-2 text-right">Số lệnh</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line">
+              {WINDOWS.map((window) => {
+                const row = performance.data?.windows?.[window] ?? null;
+                return (
+                  <tr key={window}>
+                    <td className="px-3 py-2 font-medium text-strong">{window}</td>
+                    <td className="px-3 py-2 text-right text-body">{fmt(row?.roi, 2, "%")}</td>
+                    <td className="px-3 py-2 text-right text-body">{fmt(row?.pnl, 2)}</td>
+                    <td className="px-3 py-2 text-right text-body">{fmt(row?.mdd, 2, "%")}</td>
+                    <td className="px-3 py-2 text-right text-body">{fmt(row?.sharpe)}</td>
+                    <td className="px-3 py-2 text-right text-body">{fmt(row?.win_rate, 1, "%")}</td>
+                    <td className="px-3 py-2 text-right text-body">{fmt(row?.copier_pnl, 2)}</td>
+                    <td className="px-3 py-2 text-right text-body">{fmt(row?.total_orders, 0)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </section>
 
