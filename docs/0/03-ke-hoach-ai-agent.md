@@ -610,3 +610,4 @@ Timeout: 120s/request, tool 10s, SQL 5s.
 - [x] B3 (DB tools): `search_traders/get_trader_profile/compare_traders/get_ranking/get_risk_events` + `get_data_health`; filter an toàn, limit ≤50, evidence + as_of; test 4 pass.
 - [x] B4 (SQL read-only): migration `0016_agent_views` + `sql_tools.py`; test 4 pass.
 - [x] B5 (floating chat UI): `AgentLauncher/Panel`, SSE client, session CRUD; chỉ admin; E2E PASS.
+- [x] B6 (QA Phase 1): full backend 145 pass, ruff/build/E2E/check_refs pass.

@@ -95,3 +95,48 @@ async def test_agent_chat_rbac_and_sse(monkeypatch) -> None:
         sessions = await client.get("/api/v1/agent/sessions", headers=admin)
         assert sessions.status_code == 200
         assert sessions.json()["data"]["items"]
+
+
+@pytest.mark.asyncio
+async def test_agent_budget_exceeded_blocks() -> None:
+    from datetime import date
+
+    from sqlalchemy import delete
+
+    from app.core.database import SessionLocal
+    from app.core.errors import ApiError
+    from app.models.ai_report import AIUsage
+    from app.services.agent.tools import check_agent_budget
+
+    async with SessionLocal() as db:
+        await db.execute(delete(AIUsage).where(AIUsage.feature == "agent"))
+        db.add(
+            AIUsage(
+                day=date.today(),
+                model="test",
+                prompt_tokens=1,
+                completion_tokens=1,
+                cost_usd=999,
+                feature="agent",
+            )
+        )
+        await db.commit()
+        try:
+            with pytest.raises(ApiError) as exc:
+                await check_agent_budget(db, 2.0, 20.0)
+            assert exc.value.code == "AGENT_BUDGET_EXCEEDED"
+        finally:
+            await db.execute(delete(AIUsage).where(AIUsage.feature == "agent"))
+            await db.commit()
+
+
+def test_agent_rate_limit_blocks() -> None:
+    from app.core.errors import ApiError
+    from app.services.agent.orchestrator import check_rate_limit
+
+    key = "qa-rate-limit-test"
+    for _ in range(20):
+        check_rate_limit(key, 20)
+    with pytest.raises(ApiError) as exc:
+        check_rate_limit(key, 20)
+    assert exc.value.code == "AGENT_RATE_LIMITED"
