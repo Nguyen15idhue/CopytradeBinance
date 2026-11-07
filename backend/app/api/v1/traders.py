@@ -24,6 +24,20 @@ def _float(value: Any) -> float | None:
     return float(value)
 
 
+def _num(value: Any) -> float | None:
+    if value is None or value == "":
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _int(value: Any) -> int | None:
+    number = _num(value)
+    return int(number) if number is not None else None
+
+
 def _metric(
     key: str,
     label: str,
@@ -98,11 +112,11 @@ async def get_trader(
     if runtime_days is None and trader.start_time is not None:
         delta = datetime.now(UTC) - trader.start_time
         runtime_days = round(delta.total_seconds() / 86_400, 2)
-    aum = raw.get("aum") or raw.get("aumAmount")
-    copy_aum = raw.get("copyAum")
-    current_copiers = raw.get("currentCopyCount")
-    max_copiers = raw.get("maxCopyCount")
-    leverage = raw.get("leverage") or raw.get("maxLeverage")
+    aum = _num(raw.get("aum") or raw.get("aumAmount"))
+    copy_aum = _num(raw.get("copyAum"))
+    current_copiers = _int(raw.get("currentCopyCount"))
+    max_copiers = _int(raw.get("maxCopyCount"))
+    leverage = _num(raw.get("leverage") or raw.get("maxLeverage"))
 
     mdd = _float(metric.mdd) if metric else None
     sharpe = _float(metric.sharpe) if metric else None

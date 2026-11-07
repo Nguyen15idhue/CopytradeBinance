@@ -389,3 +389,11 @@ cd frontend; npm run build
 - Positions/trades phân trang + filter symbol/side; 404 wrapper thống nhất.
 - Performance trả chartItems từ list snapshot + note flow; benchmark null có ghi chú.
 - Test contract + 404 + phân trang: 3 test pass.
+
+### 11.2. Trader Detail UI 4.2
+
+- Trang detail dùng 6 endpoint mới + `recharts` (Line ROI, Area drawdown estimated, Bar PnL histogram).
+- Header score/confidence/risk; 10 metric card kèm tooltip định nghĩa + nguồn + cửa sổ.
+- Score breakdown 7 nhóm; risk chips có evidence; “what’s missing”; positions table; trades; transfers.
+- Fix dữ liệu: API detail convert chuỗi số từ JSONB sang number (tránh `.toFixed` crash).
+- E2E pass, không console error.

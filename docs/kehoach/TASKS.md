@@ -481,19 +481,19 @@
 **Tham chiếu:** §13.4 Trader Detail (2345–2456) · §8.2 10 chỉ số cốt lõi (1206–1220) · §13.11 Checklist UI (2599–2616)  
 **→ đọc khi:** dựng header, metric cards, chart, tooltip, empty state.
 
-- [ ] Trader Detail header.
-- [ ] 10 metric cards.
-- [ ] ROI vs benchmark chart.
-- [ ] Drawdown chart (có disclaimer “estimated”).
-- [ ] Position PnL distribution.
-- [ ] Score breakdown.
-- [ ] Risk flags + evidence.
-- [ ] What’s missing.
-- [ ] Positions table.
-- [ ] Trades summary.
-- [ ] Transfers timeline.
-- [ ] Tooltip definitions + nguồn + cửa sổ.
-- [ ] Empty/loading/error.
+- [x] Trader Detail header. → Bằng chứng: nickname, tier/status/type, score/band, confidence, risk level.
+- [x] 10 metric cards. → Bằng chứng: grid 5×2; giá trị null hiển thị N/A, copy AUM 0 ghi “Không có copier”.
+- [x] ROI vs benchmark chart. → Bằng chứng: LineChart chartItems; benchmark null kèm ghi chú (không bịa).
+- [x] Drawdown chart (có disclaimer “estimated”). → Bằng chứng: AreaChart từ equity 1+ROI, nhãn “estimated”, cảnh báo chưa điều chỉnh nạp/rút.
+- [x] Position PnL distribution. → Bằng chứng: histogram 7 bucket từ 200 vị thế gần nhất.
+- [x] Score breakdown. → Bằng chứng: 7 nhóm score/weight + thanh đóng góp; hard flags.
+- [x] Risk flags + evidence. → Bằng chứng: chips R01–R11, tooltip JSON evidence, link Risk Monitor.
+- [x] What’s missing. → Bằng chứng: flags + open positions/per-copier/funding/benchmark.
+- [x] Positions table. → Bằng chứng: 10 dòng gần nhất + tổng số vị thế.
+- [x] Trades summary. → Bằng chứng: 10 fill gần nhất (symbol/side/notional/fee).
+- [x] Transfers timeline. → Bằng chứng: danh sách nạp/rút 20 dòng.
+- [x] Tooltip definitions + nguồn + cửa sổ. → Bằng chứng: tooltip từng metric card ghi định nghĩa + source + window; dòng phụ hiển thị nguồn.
+- [x] Empty/loading/error. → Bằng chứng: skeleton 10 card, panel lỗi, “Không có position-history/transfer”.
 
 ### Bước 4.3 — Compare 2–4 trader
 

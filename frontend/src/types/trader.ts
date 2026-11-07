@@ -1,7 +1,7 @@
 export interface Metric {
   key: string;
   label: string;
-  value: number | null;
+  value: number | string | null;
   unit: string;
   source: string;
   window: string | null;
@@ -136,6 +136,97 @@ export interface SavedView {
   name: string;
   filters: Record<string, unknown>;
   created_at?: string;
+}
+
+export interface PerformanceWindow {
+  window: string;
+  roi: number | null;
+  pnl: number | null;
+  mdd: number | null;
+  copier_pnl: number | null;
+  win_rate: number | null;
+  win_orders: number | null;
+  total_orders: number | null;
+  sharpe: number | null;
+  collected_at: string;
+}
+
+export interface PerformanceResponse {
+  windows: Record<string, PerformanceWindow | null>;
+  chart: Array<{ date_time: number; value: number }>;
+  chart_note: string;
+  benchmark: number | null;
+  benchmark_note: string;
+}
+
+export interface PositionRow {
+  id: string;
+  symbol: string | null;
+  side: string | null;
+  leverage: number | null;
+  isolated: string | null;
+  opened_at: string | null;
+  closed_at: string | null;
+  closing_pnl: number | null;
+  roi: number | null;
+  status: string | null;
+}
+
+export interface TradeRow {
+  hash: string;
+  time: string | null;
+  symbol: string | null;
+  side: string | null;
+  price: number | null;
+  qty: number | null;
+  notional: number | null;
+  fee: number | null;
+  realized_profit: number | null;
+  position_side: string | null;
+}
+
+export interface TransferRow {
+  time: string | null;
+  coin: string | null;
+  amount: number | null;
+  from: string | null;
+  to: string | null;
+  type: string | null;
+}
+
+export interface Paged<T> {
+  items: T[];
+  page: number;
+  page_size: number;
+  total: number;
+}
+
+export interface RiskResponse {
+  risk_level: string | null;
+  flags: string[];
+  events: Array<{
+    code: string;
+    severity: string;
+    label: string;
+    evidence: Record<string, unknown>;
+    status: string;
+  }>;
+}
+
+export interface ScoreResponse {
+  config_version: number;
+  score: number | null;
+  band: string | null;
+  confidence: number | null;
+  rankable: boolean;
+  hard_flags: string[];
+  breakdown: {
+    components?: Record<
+      string,
+      { score: number; weight: number; contribution: number | null; missing?: string[] }
+    >;
+    missing?: string[];
+  };
 }
 
 export interface AuthUser {

@@ -3,9 +3,16 @@ import type {
   CollectorStatus,
   FunnelSummary,
   LoginResult,
+  Paged,
+  PerformanceResponse,
+  PositionRow,
+  RiskResponse,
   SavedView,
+  ScoreResponse,
   ScreenerResponse,
   TraderDetail,
+  TradeRow,
+  TransferRow,
 } from "../types/trader";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "/api/v1";
@@ -108,4 +115,42 @@ export async function saveView(name: string, filters: Record<string, unknown>): 
 
 export async function deleteView(id: string): Promise<{ deleted: boolean }> {
   return request<{ deleted: boolean }>(`/saved-views/${id}`, { method: "DELETE" });
+}
+
+const id = (value: string) => encodeURIComponent(value);
+
+export async function getPerformance(portfolioId: string): Promise<PerformanceResponse> {
+  return request<PerformanceResponse>(`/traders/${id(portfolioId)}/performance`);
+}
+
+export async function getPositions(
+  portfolioId: string,
+  page = 1,
+  pageSize = 50,
+): Promise<Paged<PositionRow>> {
+  return request<Paged<PositionRow>>(
+    `/traders/${id(portfolioId)}/positions?page=${page}&page_size=${pageSize}`,
+  );
+}
+
+export async function getTrades(
+  portfolioId: string,
+  page = 1,
+  pageSize = 50,
+): Promise<Paged<TradeRow>> {
+  return request<Paged<TradeRow>>(
+    `/traders/${id(portfolioId)}/trades?page=${page}&page_size=${pageSize}`,
+  );
+}
+
+export async function getTransfers(portfolioId: string): Promise<Paged<TransferRow>> {
+  return request<Paged<TransferRow>>(`/traders/${id(portfolioId)}/transfers?page_size=20`);
+}
+
+export async function getRisk(portfolioId: string): Promise<RiskResponse> {
+  return request<RiskResponse>(`/traders/${id(portfolioId)}/risk`);
+}
+
+export async function getScore(portfolioId: string): Promise<ScoreResponse> {
+  return request<ScoreResponse>(`/traders/${id(portfolioId)}/score`);
 }
