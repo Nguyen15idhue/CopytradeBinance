@@ -913,4 +913,4 @@ Tóm tắt: không auto-trading, không realtime WebSocket, không Paper Copy tr
 - [x] B4.0.7 Agent trả đủ dữ liệu trader. → Bằng chứng: `detail=full/summary`, 4 khung × 8 field + 38 derived + 10 profile; test 6 pass.
 - [x] B4.0.8 Orchestrator JSON compact. → Bằng chứng: `compact_observation` + test 3 pass; tokens 4000.
 - [x] B4.0.9 Eval agent đa use case (15 case phân tích/đánh giá). → Bằng chứng: 15/15 pass; scorecard trong plan 04.
-- [ ] B4.0.10 QA cuối kế hoạch 04.
+- [x] B4.0.10 QA cuối kế hoạch 04. → Bằng chứng: 249 pass, ruff/build/E2E 20 checkpoint, head `0018`, check_refs 174/0, check_tech_docs 20/20.

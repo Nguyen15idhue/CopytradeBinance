@@ -145,6 +145,12 @@ Tham số mới (4.0.4):
 Response thêm: mỗi item có `windows` (`7D/30D/90D/180D` × `roi/mdd/sharpe/copier_pnl/win_rate`),
 `avg_leverage`, `position_win_rate`, `risk_score`; meta có `window` và `window_missing`.
 
+## Trader Detail — hiệu suất đa khung
+
+`GET /traders/{id}/performance` trả `windows` cho cả 4 khung; UI hiển thị bảng
+"Hiệu suất theo khung" (ROI, PnL, MDD, Sharpe, WinRate, Copier PnL, số lệnh).
+Null giữ `N/A`, không đổi thành 0.
+
 Tham số cũ vẫn dùng được: `max_min_copy_usd` (vốn tối thiểu ≤ X, qua view `agent_trader_copy_constraints`).
 
 ### GET `/traders`

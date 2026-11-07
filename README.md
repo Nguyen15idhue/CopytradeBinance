@@ -92,6 +92,7 @@ Trợ lý AI chat (chỉ admin): icon ✦ góc phải dưới mọi trang sau đ
 - Screener có ô “Mô tả trader bạn muốn tìm” → chips + Áp dụng (admin diễn giải qua `/agent/search`).
 - Screener có selector khung `7/30/90/180 ngày`, 3 nhóm lọc (Hiệu suất / Quy mô & phổ biến /
   Rủi ro & chất lượng) và badge số filter; trạng thái lưu trên URL nên back/F5/share đều giữ nguyên.
+- Trader Detail có bảng “Hiệu suất theo khung” 4 khung × ROI/PnL/MDD/Sharpe/WinRate/Copier PnL.
 - Stream SSE: tool trace collapsible, citation chips, cảnh báo; session lưu DB.
 - API: `POST /agent/chat` (SSE), `GET/PATCH/DELETE /agent/sessions`, `POST /agent/feedback`.
 - Rebuild knowledge index: `docker compose exec backend python -m app.knowledge_cli index` (idempotent; `--dry-run` để đếm trước).

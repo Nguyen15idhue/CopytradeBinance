@@ -405,3 +405,44 @@ Commit: test(phase6): 4.0.9 eval agent da use case
   `7D/30D/90D/180D`; `analyze_portfolio_fit` thêm evidence `capital_usd`;
   `EvidenceItem/ToolResult` chuẩn hoá Decimal/date sang JSON-safe (trước đó gây lỗi JSONB).
   → Bằng chứng: `pytest tests/test_agent_eval_analysis.py` 15 pass; full backend 249 pass; ruff pass.
+- [x] B4.0.10 QA cuối — backend 249 pass (`RUN_INTEGRATION=1`); ruff pass; build pass;
+  E2E 20 checkpoint PASS (gồm giữ trạng thái, đa khung, mobile 390, agent SSE);
+  alembic head `0018_metric_windows`; `check_refs` 174/0; `check_tech_docs` 20/20;
+  secret scan 0 match; working tree sạch ngoài 3 file ngoài phạm vi đã biết.
+
+## 10. Kết quả triển khai
+
+| Bước | Commit | Nội dung chính |
+|---|---|---|
+| 4.0.1 | `645e05a` | URL state Screener + back giữ vị trí |
+| 4.0.2 | `895a943` | Migration `0018_metric_windows` (15 cột + 6 index) |
+| 4.0.3 | `0bea6ca` | Builder ghi đa khung, backfill 531 trader |
+| 4.0.4 | `d8a2e8b` | Screener API `window` + 17 filter |
+| 4.0.5 | `133165a` | UI đa khung, 3 nhóm lọc, badge |
+| 4.0.6 | `5e33c10` | Detail bảng 4 khung |
+| 4.0.7 | `4fbfe7f` | Agent trả 4 khung × 8 field + 38 derived + 10 profile |
+| 4.0.8 | `4989f41` | JSON compact + cắt có cấu trúc, tokens 4000 |
+| 4.0.9 | `c4de336` | Eval 15 case + fix verifier/Decimal |
+| 4.0.10 | (commit này) | QA cuối + báo cáo |
+
+### Đóng 4 vấn đề
+
+| Vấn đề | Trạng thái | Bằng chứng |
+|---|---|---|
+| V1 mất filter/vị trí | ĐÓNG | E2E "Screener giữ trạng thái": lọc MDD → mở trader → back → F5 vẫn giữ; URL chứa `mdd_max=20` |
+| V2 thiếu filter | ĐÓNG | 17 filter mới; E2E lọc copier≥5 + AUM≥1000; `test_screener_api` 6 pass |
+| V3 chỉ 90D | ĐÓNG | Selector 7/30/90/180; cột đổi theo khung; Detail bảng 4 khung; E2E 2 checkpoint |
+| V4 AI thiếu dữ liệu | ĐÓNG | `detail=full` trả ~110 chỉ số; eval 15/15; observation JSON không cắt giữa object |
+
+### Số liệu dữ liệu
+
+- 531 trader có metrics; **501** có đủ 7D/30D/180D (30 thiếu performance nguồn → null đúng).
+- 15 cột mới + 6 index; 17 filter mới; 4 khung hiển thị ở Screener + Detail.
+- AI: 4 khung × 8 field (32) + 38 derived + 10 profile + breakdown + flags + risk events.
+
+### Rủi ro còn lại
+
+- 13 trader có `roi_7d = 0` đúng theo published (không phải 0 giả) — cần phân biệt khi đọc.
+- 30 trader thiếu performance ở nguồn → các khung null; UI hiển thị `N/A`.
+- `min_copy_aum_ratio` lọc qua JSONB cast nên không dùng index; chỉ dùng khi cần.
+- Live OpenRouter chưa test trong CI (mock theo quy định); smoke live khi có key.

@@ -655,3 +655,7 @@ Nguồn: `docs/0/04-ke-hoach-screener-da-khung.md`. Khảo sát xác nhận V1�
   `analyze_portfolio_fit` thêm evidence `capital_usd`; `EvidenceItem/ToolResult` chuẩn hoá
   Decimal/date sang JSON-safe (lỗi JSONB thật khi lưu facts).
   Full backend 249 pass, ruff pass.
+- B4.0.10: QA cuối — backend 249 pass, ruff pass, build pass, E2E 20 checkpoint PASS,
+  alembic head `0018_metric_windows`, check_refs 174/0, check_tech_docs 20/20,
+  secret scan 0. Kế hoạch 04 hoàn tất; bảng commit + đóng V1–V4 ghi ở
+  `docs/0/04-ke-hoach-screener-da-khung.md §10`.
