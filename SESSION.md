@@ -343,3 +343,11 @@ cd frontend; npm run build
 - Live: 511 scored, **236 rankable**; band good 14 / average 145 / weak 240 / high_risk 112;
   sai số breakdown ≤ **0,0051**.
 - Lệnh: `python -m app.collector_cli score`.
+
+### 10.5. Ranking 3 bảng 3.5
+
+- `services/ranking.py`: Overall (score), Low Risk (runtime ≥ 90, MDD ≤ 20, lev ≤ 5, confidence ≥ 0.8),
+  Consistency (theo điểm consistency, runtime ≥ 90). Không có bảng High Return.
+- Snapshot `ranking_snapshots` theo `config_version`; live: overall 50, low_risk 38, consistency 50.
+- Test: loại not-rankable, loại leverage/MDD/runtime/confidence, consistency không phụ thuộc ROI.
+- Lệnh: `python -m app.collector_cli rank`.

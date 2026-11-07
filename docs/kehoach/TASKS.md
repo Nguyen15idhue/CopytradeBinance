@@ -417,11 +417,11 @@
 **Tham chiếu:** §9.8 Ranking boards (1573–1584) · §9.9 Ví dụ trader mẫu (1585–1612)  
 **→ đọc khi:** định nghĩa Overall / Low Risk / Consistency.
 
-- [ ] Overall.
-- [ ] Low Risk.
-- [ ] Consistency.
-- [ ] Snapshot ranking theo `scoring_config_version`.
-- [ ] Không có trader top chỉ vì ROI.
+- [x] Overall. → Bằng chứng: top 50 theo score trong `rankable`; live 50 item.
+- [x] Low Risk. → Bằng chứng: runtime ≥ 90, MDD ≤ 20, leverage ≤ 5, confidence ≥ 0.8; live 38 item.
+- [x] Consistency. → Bằng chứng: xếp theo `components.consistency.score`, runtime ≥ 90; live 50 item.
+- [x] Snapshot ranking theo `scoring_config_version`. → Bằng chứng: 3 bản ghi `ranking_snapshots` version 1 (overall/low_risk/consistency).
+- [x] Không có trader top chỉ vì ROI. → Bằng chứng: test `test_overall_not_only_roi` và `test_consistency_uses_consistency_score_not_roi` pass; Overall dùng score tổng.
 
 ### Bước 3.6 — Screener API + UI
 

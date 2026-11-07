@@ -129,6 +129,14 @@ async def cmd_score() -> int:
     return 0
 
 
+async def cmd_rank() -> int:
+    from app.services.ranking import build_rankings
+
+    async with SessionLocal() as db:
+        print(json.dumps(await build_rankings(db), ensure_ascii=False))
+    return 0
+
+
 async def cmd_deep() -> int:
     from app.services.deep_fetch import run_deep_fetch
 
@@ -152,7 +160,7 @@ def main() -> int:
         "command",
         choices=[
             "scan", "recompute", "perf", "detail", "trades", "metrics", "audit",
-            "risk", "score", "deep",
+            "risk", "score", "rank", "deep",
         ],
     )
     args = parser.parse_args()
@@ -174,6 +182,8 @@ def main() -> int:
         return asyncio.run(cmd_risk())
     if args.command == "score":
         return asyncio.run(cmd_score())
+    if args.command == "rank":
+        return asyncio.run(cmd_rank())
     return asyncio.run(cmd_deep())
 
 
