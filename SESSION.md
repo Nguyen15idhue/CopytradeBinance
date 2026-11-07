@@ -555,3 +555,19 @@ Lưu ý: ranking/help cases (K/H) chỉ chạy được sau khi hoàn thành bư
 | Báo cáo | `docs/kehoach/PHASE5-REPORT.md` |
 
 **Gate Phase 5: ĐẠT.**
+
+### 15.7. Việt hóa giao diện 5.7
+
+- Quyết định: UI 100% tiếng Việt; backend giữ mã tiếng Anh; giữ “Trader”; tier UI `Cao (A)/Đạt (B)/Theo dõi (C)/Bị loại`.
+- Nhãn tập trung tại `frontend/src/i18n/vi.ts`: tier, band, risk, severity, model role, job, source,
+  layer, hard flag, filter reason, R01–R11, nhóm điểm, board, metric.
+- Đã Việt hóa Layout/Login/Home/Banner/Screener/Detail/AI/Compare/Risk/Ranking/Data Health/Settings/Help.
+- CSV header đổi sang tiếng Việt (`Mã trader`…); test `test_screener_api` cập nhật.
+- AI prompt **v2** + template **v2**: trả tiếng Việt, mỗi nhận định có chỉ số + giá trị + ý nghĩa/ngưỡng;
+  template fallback cũng phân tích, không liệt kê chung chung.
+- `parse_json` đọc được JSON kèm text phía sau; tắt reasoning để model free trả content.
+- Validator yêu cầu summary ≥2 số, mỗi danh sách strengths/weaknesses có ít nhất 1 số.
+- AI live: fallback `nemotron-3-ultra` trả report v2 tiếng Việt, có ROI/MDD/Sharpe/leverage, trade-off,
+  không có lời khuyên đầu tư; primary vẫn có lúc thiếu field → fallback.
+- Test: backend **117 passed**; ruff pass; E2E 13 checkpoint; check_refs 174/0.
+- Chưa push.

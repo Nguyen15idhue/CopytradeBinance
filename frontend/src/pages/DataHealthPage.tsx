@@ -73,7 +73,7 @@ export default function DataHealthPage() {
       <section>
         <div className="mb-3 flex items-end justify-between">
           <h2 className="text-sm font-medium uppercase tracking-wide text-faint">
-            Universe theo tier
+            Universe theo nhóm
           </h2>
           <p className="text-sm text-muted">
             Tổng {total.toLocaleString("vi-VN")} · Theo dõi {watchTotal.toLocaleString("vi-VN")}

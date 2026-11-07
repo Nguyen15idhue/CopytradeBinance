@@ -129,7 +129,7 @@ async def get_trader(
 
     metrics = [
         _metric("roi_90d", "ROI 90D", roi, "%", "published"),
-        _metric("mdd_90d", "MDD 90D", mdd, "%", "published", note="Dùng performance.mdd"),
+        _metric("mdd_90d", "MDD 90D", mdd, "%", "published", note="Dùng MDD do Binance công bố"),
         _metric("sharpe", "Sharpe", sharpe, "", "published", note="N/A nếu null"),
         _metric("win_rate_order", "WinRate (order)", win_rate, "%", "published"),
         _metric("profit_factor", "Profit Factor", profit_factor, "", "derived", window=None),

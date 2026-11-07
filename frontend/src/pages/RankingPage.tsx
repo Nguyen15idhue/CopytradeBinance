@@ -38,7 +38,7 @@ export default function RankingPage() {
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">Bảng xếp hạng</h1>
           <p className="mt-2 text-muted">
-            Ba bảng xếp hạng có kiểm soát. Không có bảng “High Return” để tránh chase ROI.
+            Ba bảng xếp hạng có kiểm soát. Không có bảng “Lợi nhuận cao” để tránh chạy theo ROI.
           </p>
         </div>
         {isAdmin ? (

@@ -57,6 +57,10 @@ def test_parse_json_rejects_garbage() -> None:
         parse_json("không phải json")
 
 
+def test_parse_json_accepts_trailing_text() -> None:
+    assert parse_json('{"a": 1}\n\nGiải thích thêm') == {"a": 1}
+
+
 def test_schema_rejects_investment_advice() -> None:
     with pytest.raises(ValueError):
         AIReportPayload(

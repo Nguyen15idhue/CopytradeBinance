@@ -35,7 +35,7 @@ def test_correlation_inverse_series_is_minus_one() -> None:
 def test_correlation_null_when_insufficient_days() -> None:
     result = correlation_matrix({"a": _chart(1.0, days=10), "b": _chart(1.0, days=10)})
     assert result["matrix"][0][1] is None
-    assert "estimated" in result["disclaimer"]
+    assert "ước tính" in result["disclaimer"]
 
 
 def test_correlation_handles_empty_chart() -> None:

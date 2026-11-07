@@ -30,13 +30,19 @@ class AIResult:
 
 def parse_json(content: str) -> dict[str, Any]:
     cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", content.strip(), flags=re.IGNORECASE)
-    start, end = cleaned.find("{"), cleaned.rfind("}")
-    if start == -1 or end == -1:
+    start = cleaned.find("{")
+    if start == -1:
         raise AIError("Không tìm thấy JSON trong phản hồi")
     try:
-        data = json.loads(cleaned[start : end + 1])
-    except json.JSONDecodeError as exc:
-        raise AIError(f"JSON không hợp lệ: {exc}") from exc
+        data, _end = json.JSONDecoder().raw_decode(cleaned[start:])
+    except json.JSONDecodeError:
+        end = cleaned.rfind("}")
+        if end == -1:
+            raise AIError("Không tìm thấy JSON trong phản hồi") from None
+        try:
+            data = json.loads(cleaned[start : end + 1])
+        except json.JSONDecodeError as exc:
+            raise AIError(f"JSON không hợp lệ: {exc}") from exc
     if not isinstance(data, dict):
         raise AIError("Phản hồi không phải object JSON")
     return data
@@ -60,7 +66,7 @@ async def call_model(
         "model": model,
         "temperature": 0.2,
         "max_tokens": max_tokens,
-        "reasoning": {"effort": "low"},
+        "reasoning": {"enabled": False},  # tránh reasoning đốt hết token trước khi trả JSON
         "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": prompt},

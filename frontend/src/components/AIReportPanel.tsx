@@ -20,7 +20,7 @@ function ReportCard({ report }: { report: AIReportItem }) {
           {label(MODEL_ROLE_LABELS, report.model_role)}
         </span>
         <span className="text-faint">{report.model_used}</span>
-        <span className="text-faint">prompt {report.prompt_version}</span>
+        <span className="text-faint">phiên bản prompt {report.prompt_version}</span>
         <span className="ml-auto text-faint">
           {report.latency_ms !== null ? `${report.latency_ms}ms · ` : ""}
           {report.cost_usd.toFixed(4)} USD

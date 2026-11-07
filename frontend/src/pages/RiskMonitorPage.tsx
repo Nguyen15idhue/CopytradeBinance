@@ -42,7 +42,7 @@ export default function RiskMonitorPage() {
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">Cảnh báo rủi ro</h1>
         <p className="mt-2 text-muted">
-          Risk event R01–R11 kèm bằng chứng. Không hiển thị vị thế đang mở vì Binance không cung cấp.
+          Cảnh báo rủi ro R01–R11 kèm bằng chứng. Không hiển thị vị thế đang mở vì Binance không cung cấp.
         </p>
       </div>
 

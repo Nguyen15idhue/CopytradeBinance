@@ -5,14 +5,14 @@ const traders = [
     id: "4520644381136785152",
     name: "Mẫu Đạt",
     tier: "Đạt (B)",
-    description: "Trader B từ bộ dữ liệu mẫu Phase 0 — đủ dữ liệu cho vertical slice.",
+    description: "Trader B từ bộ dữ liệu mẫu Phase 0 — đủ dữ liệu cho luồng mẫu.",
     className: "border-emerald-500/30 bg-emerald-500/5",
   },
   {
     id: "5296057151807357697",
     name: "Mẫu Bị loại",
     tier: "Bị loại",
-    description: "Portfolio mới, runtime < 30 ngày — dùng kiểm tra badge và lý do loại.",
+    description: "Danh mục mới, runtime < 30 ngày — dùng kiểm tra badge và lý do loại.",
     className: "border-amber-500/30 bg-amber-500/5",
   },
 ];
@@ -23,8 +23,8 @@ export default function DemoHomePage() {
       <div className="max-w-2xl">
         <h1 className="text-3xl font-semibold tracking-tight">Trader mẫu</h1>
         <p className="mt-2 text-muted">
-          Hai trader mẫu Phase 0 dùng để kiểm tra luồng collect → raw → API → UI. Không phải
-          dữ liệu thị trường realtime.
+          Hai trader mẫu Phase 0 dùng để kiểm tra luồng thu thập → dữ liệu thô → API → giao diện.
+          Không phải dữ liệu thị trường thời gian thực.
         </p>
       </div>
 

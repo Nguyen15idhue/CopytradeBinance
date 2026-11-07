@@ -652,6 +652,25 @@ hoàn thiện trang Ranking và trang hướng dẫn cho người mới.
 
 **Gate:** AI không sửa score; settings version hóa; backup restore OK; Ranking dùng được; Help đủ nội dung cho người mới.
 
+### Bước 5.7 — Việt hóa giao diện
+
+**Mục tiêu:** UI 100% tiếng Việt; backend giữ mã tiếng Anh; CSV và AI cũng tiếng Việt.
+
+- [x] Tạo `frontend/src/i18n/vi.ts` map tier/band/risk/severity/model role/job/source/layer/flag/reason/risk event/nhóm điểm. → Bằng chứng: build pass.
+- [x] Menu, login, trang chủ, banner, title tiếng Việt. → Bằng chứng: E2E + screenshot.
+- [x] Screener: heading, bộ lọc, cột, drawer, empty state. → Bằng chứng: E2E; không lọt `high_upper`, `excellent`, `hf0`.
+- [x] Trader Detail: 10 metric, badge, cảnh báo, vị thế/giao dịch/nạp rút, nguồn dữ liệu. → Bằng chứng: E2E; không lọt mã thô.
+- [x] AI panel: nhãn Việt, hiện điểm mạnh/cần lưu ý/rủi ro/bằng chứng. → Bằng chứng: E2E.
+- [x] Compare + Risk Monitor. → Bằng chứng: E2E tương quan/bằng chứng.
+- [x] Ranking + Data Health. → Bằng chứng: E2E bảng xếp hạng/sức khỏe dữ liệu.
+- [x] Settings: 7 tab, nhóm trọng số, preview, phiên bản, khôi phục. → Bằng chứng: E2E preview/save/rollback.
+- [x] Help + 5 hình minh hoạ + docs. → Bằng chứng: E2E help/search/anchor.
+- [x] CSV header tiếng Việt. → Bằng chứng: `test_screener_api` assert `Mã trader`.
+- [x] AI prompt v2: tiếng Việt, phân tích theo số liệu, bắt buộc số liệu; template v2. → Bằng chứng: 13 unit test; live fallback report có ROI/MDD/Sharpe/leverage và trade-off.
+- [x] QA: backend 117 passed, ruff pass, E2E 13 checkpoint, check_refs 174/0. → Bằng chứng: log chạy ngày 07/11/2026.
+
+**Gate:** không còn chuỗi UI tiếng Anh ngoài allowlist; không lọt mã enum; AI trả tiếng Việt và có số liệu.
+
 ---
 
 ## Phase 6 — Testing + Deploy + Beta

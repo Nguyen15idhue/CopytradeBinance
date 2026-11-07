@@ -13,8 +13,8 @@ from app.models.trader_score import TraderScore
 from app.models.universe import TraderUniverse
 
 DISCLAIMER = (
-    "Correlation estimated từ ROI lũy kế chartItems (sai phân theo ngày), "
-    "bị pha loãng bởi nạp/rút; không dùng cho position sizing."
+    "Tương quan ước tính từ ROI lũy kế chartItems (sai phân theo ngày), "
+    "bị pha loãng bởi nạp/rút; không dùng để phân bổ vốn."
 )
 
 

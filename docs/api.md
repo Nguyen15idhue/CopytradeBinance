@@ -91,8 +91,10 @@ risk_level, ROI/MDD/Sharpe), `total`. Board không hợp lệ → 422.
 | GET | `/ai/reports/{id}` | user | Danh sách report gần nhất |
 | GET | `/ai/reports/{id}/{report_id}` | user | Chi tiết report |
 
-Report gồm `model_role` (primary/fallback/template), `model_used`, `prompt_version`, `summary`,
-`strengths/weaknesses/risk_flags/missing_data/evidence_ids`, tokens, cost, latency.
+Report gồm `model_role` (primary/fallback/template), `model_used`, `prompt_version` (v2),
+`summary`, `strengths`, `weaknesses`, `risk_flags`, `missing_data`, `evidence_ids`.
+Prompt v2 yêu cầu trả lời tiếng Việt, mỗi nhận định phải có chỉ số + giá trị + ý nghĩa/ngưỡng;
+validator từ chối output không có số liệu để buộc fallback template.
 Response analyze có `cached`, `ai_configured`, `errors`; không bao giờ trả API key.
 
 Lỗi: 403 viewer, 404 trader/report, 409 `NO_METRICS`/`AI_DISABLED`, 429 `AI_BUDGET_EXCEEDED`.
@@ -129,7 +131,9 @@ Mỗi item có score, band, confidence, breakdown, risk_level, tier, metrics ch�
 
 ### GET `/traders/export.csv`
 
-CSV theo filter hiện tại (tối đa 100 dòng), UTF-8.
+CSV theo filter hiện tại (tối đa 100 dòng), UTF-8. Header tiếng Việt:
+`Mã trader, Biệt danh, Nhóm, Điểm, Mức điểm, Độ tin cậy, ROI 90D, MDD 90D,
+Sharpe, WinRate, Số lệnh, Số ngày hoạt động, Số copier, Copy AUM, Đòn bẩy tối đa, Rủi ro`.
 
 ### Saved views
 

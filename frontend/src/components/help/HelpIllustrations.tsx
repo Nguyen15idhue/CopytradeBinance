@@ -228,11 +228,11 @@ export function RiskEvidenceDiagram() {
 }
 
 export function WorkflowDiagram() {
-  const steps = ["Lọc", "Đọc Detail", "So sánh", "Xem Risk", "Tự quyết định"];
+  const steps = ["Lọc", "Đọc chi tiết", "So sánh", "Xem rủi ro", "Tự quyết định"];
   return (
     <Frame
       title="Quy trình 5 bước"
-      caption="Không bỏ qua bước Risk và không copy chỉ vì ROI cao."
+      caption="Không bỏ qua bước rủi ro và không copy chỉ vì ROI cao."
     >
       {steps.map((label, index) => {
         const x = 20 + index * 140;

@@ -32,10 +32,9 @@ class AIReportPayload(BaseModel):
 
     @field_validator("strengths", "weaknesses")
     @classmethod
-    def items_have_numbers(cls, value: list[str]) -> list[str]:
-        for item in value:
-            if not NUMBER_PATTERN.search(item):
-                raise ValueError("mỗi điểm mạnh/điểm cần lưu ý phải có ít nhất 1 số liệu")
+    def lists_have_numbers(cls, value: list[str]) -> list[str]:
+        if not any(NUMBER_PATTERN.search(item) for item in value):
+            raise ValueError("mỗi danh sách điểm mạnh/điểm cần lưu ý phải có ít nhất 1 số liệu")
         return value
 
     @field_validator("summary", "strengths", "weaknesses", "risk_flags")

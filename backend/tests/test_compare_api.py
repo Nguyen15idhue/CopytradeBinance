@@ -45,7 +45,7 @@ async def test_compare_two_traders_contract() -> None:
         assert len(data["items"]) == 2
         assert data["correlation"]["ids"] == ids
         assert len(data["correlation"]["matrix"]) == 2
-        assert "estimated" in data["correlation"]["disclaimer"]
+        assert "ước tính" in data["correlation"]["disclaimer"]
         assert data["correlation"]["matrix"][0][0] == 1.0
         assert set(data["series"]) == set(ids)
 

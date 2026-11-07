@@ -50,15 +50,15 @@ const TIER_STYLES: Record<string, string> = {
 };
 
 const METRIC_HELP: Record<string, string> = {
-  roi_90d: "ROI published 90D từ Binance performance.",
-  mdd_90d: "Max drawdown published; không tự tính từ chartItems.",
-  sharpe: "Sharpe published; null nghĩa là N/A, không chấm 0.",
-  win_rate_order: "winOrders / totalOrder của performance.",
+  roi_90d: "ROI do Binance công bố trong cửa sổ 90D.",
+  mdd_90d: "MDD do Binance công bố; không tự tính từ chartItems.",
+  sharpe: "Sharpe do Binance công bố; null nghĩa là N/A, không chấm 0.",
+  win_rate_order: "winOrders / totalOrder từ dữ liệu hiệu suất.",
   profit_factor: "Tổng lãi / |tổng lỗ| từ position-history; null nếu mẫu < 5.",
-  max_leverage: "Leverage lớn nhất trong position-history.",
-  avg_holding: "Thời gian giữ vị thế trung bình (derived).",
-  copier_pnl: "PnL của copier theo performance.",
-  copy_aum: "Vốn copier hiện tại từ detail.",
+  max_leverage: "Đòn bẩy lớn nhất trong position-history.",
+  avg_holding: "Thời gian giữ vị thế trung bình (hệ thống tính).",
+  copier_pnl: "PnL của copier theo dữ liệu hiệu suất.",
+  copy_aum: "Vốn copier hiện tại từ dữ liệu chi tiết.",
   copiers: "Số copier hiện tại / slot tối đa.",
 };
 
@@ -82,9 +82,12 @@ function MetricCard({ metric }: { metric: Metric }) {
   return (
     <div
       className="rounded-xl border border-line bg-panel p-4"
-      title={`${METRIC_HELP[metric.key] ?? metric.label} — nguồn: ${metric.source}${
-        metric.window ? ` · cửa sổ ${metric.window}` : ""
-      }${metric.note ? ` · ${metric.note}` : ""}`}
+      title={`${METRIC_HELP[metric.key] ?? metric.label} — nguồn: ${label(
+        SOURCE_LABELS,
+        metric.source,
+      )}${metric.window ? ` · cửa sổ ${metric.window}` : ""}${
+        metric.note ? ` · ${metric.note}` : ""
+      }`}
     >
       <p className="text-xs uppercase tracking-wide text-faint">
         {label(METRIC_LABELS, metric.key, metric.label)}
@@ -96,7 +99,7 @@ function MetricCard({ metric }: { metric: Metric }) {
         ) : null}
       </p>
       <p className="mt-1 text-xs text-faint">
-        {noCopier ? "Không có copier" : metric.note ?? metric.source}
+        {noCopier ? "Không có copier" : metric.note ?? label(SOURCE_LABELS, metric.source)}
         {metric.window ? ` · ${metric.window}` : ""}
       </p>
     </div>
@@ -373,7 +376,7 @@ export default function TraderDetailPage() {
             ) : null}
           </div>
           <Link to={`/risk?trader=${data.trader.id}`} className="mt-4 inline-block text-sm text-accent">
-            Mở Risk Monitor →
+            Mở Cảnh báo rủi ro →
           </Link>
         </section>
 
@@ -393,7 +396,7 @@ export default function TraderDetailPage() {
               ["Nguồn", label(SOURCE_LABELS, data.provenance.source, "Chưa rõ")],
               ["Cửa sổ", data.provenance.window],
               ["Binance công bố", data.provenance.published ? "Có" : "Không"],
-              ["Benchmark", performance.data?.benchmark === null ? "Không có" : "Có"],
+              ["Chỉ số tham chiếu (Benchmark)", performance.data?.benchmark === null ? "Không có" : "Có"],
               [
                 "Thu thập",
                 data.provenance.collected_at
@@ -456,7 +459,7 @@ export default function TraderDetailPage() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <section className="rounded-2xl border border-line bg-panel p-5">
-          <h2 className="text-sm font-medium uppercase tracking-wide text-faint">Trades gần nhất</h2>
+          <h2 className="text-sm font-medium uppercase tracking-wide text-faint">Giao dịch gần nhất</h2>
           <ul className="mt-3 space-y-2 text-sm">
             {(trades.data?.items ?? []).map((row) => (
               <li key={row.hash} className="flex items-center justify-between gap-3">

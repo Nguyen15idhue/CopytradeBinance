@@ -8,6 +8,7 @@ import {
   GROUP_LABELS,
   HARD_FLAG_LABELS,
   METRIC_LABELS,
+  PORTFOLIO_TYPE_LABELS,
   RISK_LEVEL_LABELS,
   TIER_LABELS,
   label,
@@ -161,7 +162,7 @@ export default function ScreenerPage() {
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">Bộ lọc trader</h1>
           <p className="mt-2 text-muted">
-            Lọc universe xuống shortlist theo điểm, rủi ro và chất lượng dữ liệu.
+            Lọc universe xuống danh sách ngắn theo điểm, rủi ro và chất lượng dữ liệu.
           </p>
         </div>
         {funnel.data ? (
@@ -192,7 +193,7 @@ export default function ScreenerPage() {
                 setSearch(event.target.value);
                 setPage(1);
               }}
-              placeholder="nickname"
+              placeholder="biệt danh"
               className="mt-1 w-full rounded-lg border border-line bg-app px-3 py-2 text-strong"
             />
           </label>
@@ -452,10 +453,12 @@ export default function ScreenerPage() {
                     <Link to={`/traders/${item.id}`} className="text-strong hover:text-accent">
                       {item.nickname ?? item.id}
                     </Link>
-                    <p className="text-xs text-faint">{item.portfolio_type ?? "N/A"}</p>
+                    <p className="text-xs text-faint">
+                      {label(PORTFOLIO_TYPE_LABELS, item.portfolio_type, "Chưa rõ")}
+                    </p>
                   </td>
                   <td className="px-3 py-3">
-                    <span className={`rounded-full border px-2 py-0.5 text-xs ${TIER_STYLES[item.potential_tier] ?? "border-line text-body"}`}>
+                    <span className={`whitespace-nowrap rounded-full border px-2 py-0.5 text-xs ${TIER_STYLES[item.potential_tier] ?? "border-line text-body"}`}>
                       {label(TIER_LABELS, item.potential_tier, "Chưa rõ")}
                     </span>
                   </td>

@@ -35,7 +35,7 @@ try {
   await page.getByRole("button", { name: "Đăng nhập" }).click();
 
   await page.waitForURL(`${base}/`);
-  await page.getByRole("heading", { name: "Trader demo" }).waitFor();
+  await page.getByRole("heading", { name: "Trader mẫu" }).waitFor();
   console.log("Đăng nhập: OK");
 
   await page.getByRole("button", { name: /Sáng/ }).click();
@@ -59,14 +59,14 @@ try {
     return (await response.json()).data.scoring.version;
   });
 
-  await page.getByRole("link", { name: "Settings" }).click();
-  await page.getByRole("heading", { name: "Settings" }).waitFor();
-  await page.getByRole("button", { name: "Preview impact" }).click();
-  await page.getByRole("heading", { name: "Preview impact" }).waitFor();
+  await page.getByRole("link", { name: "Cài đặt" }).click();
+  await page.getByRole("heading", { name: "Cài đặt" }).waitFor();
+  await page.getByRole("button", { name: "Xem trước ảnh hưởng" }).click();
+  await page.getByRole("heading", { name: "Xem trước ảnh hưởng" }).waitFor();
   const previewBody = await page.locator("body").innerText();
-  assert(previewBody.includes("đổi band"), "Preview không có thống kê band");
-  await page.getByRole("button", { name: "Lưu version mới" }).click();
-  await page.getByText("Đã tạo version mới").waitFor();
+  assert(previewBody.includes("đổi mức điểm"), "Preview không có thống kê mức điểm");
+  await page.getByRole("button", { name: "Lưu phiên bản mới" }).click();
+  await page.getByText("Đã tạo phiên bản mới").waitFor();
   await page.evaluate(async (version) => {
     const token = localStorage.getItem("ct_access_token");
     await fetch(`/api/v1/settings/rollback/${version}`, {
@@ -76,14 +76,14 @@ try {
   }, originalVersion);
   console.log("Settings preview/save/rollback: OK");
 
-  await page.getByRole("link", { name: "Ranking" }).click();
-  await page.getByRole("heading", { name: "Ranking" }).waitFor();
-  await page.getByText(/config v/).waitFor();
+  await page.getByRole("link", { name: "Bảng xếp hạng" }).click();
+  await page.getByRole("heading", { name: "Bảng xếp hạng" }).waitFor();
+  await page.getByText(/phiên bản cấu hình v/).waitFor();
   const rankingBody = await page.locator("body").innerText();
-  assert(rankingBody.includes("Overall"), "Ranking thiếu tab Overall");
-  assert(rankingBody.includes("Low Risk"), "Ranking thiếu tab Low Risk");
-  await page.getByRole("button", { name: "Low Risk" }).click();
-  await page.getByText(/config v/).waitFor();
+  assert(rankingBody.includes("Tổng hợp"), "Ranking thiếu tab Tổng hợp");
+  assert(rankingBody.includes("Rủi ro thấp"), "Ranking thiếu tab Rủi ro thấp");
+  await page.getByRole("button", { name: "Rủi ro thấp" }).click();
+  await page.getByText(/phiên bản cấu hình v/).waitFor();
   console.log("Ranking render: OK");
 
   await page.getByRole("link", { name: "Hướng dẫn" }).click();
@@ -107,30 +107,35 @@ try {
   await page.getByPlaceholder("Tìm trong hướng dẫn...").fill("");
   console.log("Help render/search: OK");
 
-  await page.getByRole("link", { name: "Data Health" }).click();
-  await page.getByRole("heading", { name: "Data Health" }).waitFor();
-  await page.getByRole("heading", { name: "Universe theo tier" }).waitFor();
+  await page.getByRole("link", { name: "Sức khỏe dữ liệu" }).click();
+  await page.getByRole("heading", { name: "Sức khỏe dữ liệu" }).waitFor();
+  await page.getByRole("heading", { name: "Universe theo nhóm" }).waitFor();
   const health = await page.locator("body").innerText();
+  const healthLower = health.toLowerCase();
   assert(
-    health.toLowerCase().includes("collector đang bật"),
-    "Thiếu trạng thái collector",
+    healthLower.includes("bộ thu thập") &&
+      (healthLower.includes("đang bật") || healthLower.includes("công tắc dừng")),
+    "Thiếu trạng thái bộ thu thập",
   );
-  assert(health.includes("L0 — Universe scan"), "Thiếu bảng lần chạy");
+  assert(health.includes("L0 — Quét universe"), "Thiếu bảng lần chạy");
   console.log("Data Health render: OK");
 
-  await page.getByRole("link", { name: "Screener" }).click();
-  await page.getByRole("heading", { name: "Screener" }).waitFor();
+  await page.getByRole("link", { name: "Bộ lọc trader" }).click();
+  await page.getByRole("heading", { name: "Bộ lọc trader" }).waitFor();
   await page.getByText(/trader khớp/).waitFor();
   const screenerBody = await page.locator("body").innerText();
-  assert(screenerBody.includes("High"), "Screener thiếu tier High");
-  assert(screenerBody.includes("Score"), "Screener thiếu cột Score");
+  assert(screenerBody.includes("Cao (A)"), "Screener thiếu nhóm Cao (A)");
+  assert(screenerBody.includes("Điểm"), "Screener thiếu cột Điểm");
+  for (const code of ["high_upper", "qualified_upper", "excellent", "low_sample", "hf0", "fallback"]) {
+    assert(!screenerBody.includes(code), `Screener lọt mã thô ${code}`);
+  }
   console.log("Screener render: OK");
 
   const banner = page.getByText("Mới bắt đầu?");
   if (await banner.count()) {
     await page.getByRole("button", { name: "Đã hiểu" }).click();
     await page.reload({ waitUntil: "domcontentloaded" });
-    await page.getByRole("heading", { name: "Screener" }).waitFor();
+    await page.getByRole("heading", { name: "Bộ lọc trader" }).waitFor();
   }
   const bannerAfter = await page.getByText("Mới bắt đầu?").count();
   assert(bannerAfter === 0, "Banner onboarding không dismiss vĩnh viễn");
@@ -145,10 +150,10 @@ try {
     return json.data.items.map((item) => item.id).join(",");
   });
   await page.goto(`${base}/compare?ids=${compareIds}`, { waitUntil: "domcontentloaded" });
-  await page.getByRole("heading", { name: "Compare" }).waitFor();
-  await page.getByRole("heading", { name: "Correlation" }).waitFor();
+  await page.getByRole("heading", { name: "So sánh" }).waitFor();
+  await page.getByRole("heading", { name: "Tương quan" }).waitFor();
   const compareBody = await page.locator("body").innerText();
-  assert(compareBody.includes("estimated"), "Correlation thiếu disclaimer");
+  assert(compareBody.includes("ước tính"), "Tương quan thiếu disclaimer");
   assert(!compareBody.includes("undefined") && !compareBody.includes("NaN"), "Compare có undefined/NaN");
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - window.innerWidth,
@@ -156,14 +161,14 @@ try {
   assert(overflow <= 4, `Compare vỡ layout ngang (${overflow}px)`);
   console.log("Compare render: OK");
 
-  await page.getByRole("link", { name: "Risk" }).click();
-  await page.getByRole("heading", { name: "Risk Monitor" }).waitFor();
-  await page.getByText(/event/).first().waitFor();
+  await page.getByRole("link", { name: "Cảnh báo rủi ro" }).click();
+  await page.getByRole("heading", { name: "Cảnh báo rủi ro" }).waitFor();
+  await page.getByText(/cảnh báo/).first().waitFor();
   const riskBody = await page.locator("body").innerText();
-  assert(riskBody.includes("open positions"), "Risk thiếu ghi chú open positions");
+  assert(riskBody.includes("vị thế đang mở"), "Risk thiếu ghi chú vị thế đang mở");
   assert(!riskBody.includes("undefined") && !riskBody.includes("NaN"), "Risk có undefined/NaN");
   await page.locator("article button").first().click();
-  await page.getByText("Evidence", { exact: true }).waitFor();
+  await page.getByText("Bằng chứng", { exact: true }).waitFor();
   console.log("Risk Monitor render: OK");
 
   async function pickTrader(tier) {
@@ -184,10 +189,11 @@ try {
     trader_id: qualifiedId,
     model_role: "primary",
     model_used: "fake-model",
-    prompt_version: "v1",
-    summary: "Trader có ROI dương, MDD trong ngưỡng và dữ liệu đủ để tham khảo.",
-    strengths: ["ROI 90D dương"],
-    weaknesses: ["Thiếu benchmark"],
+    prompt_version: "v2",
+    summary:
+      "ROI 90D 20,00% cao hơn ngưỡng 0 nhưng MDD 10,00% vẫn trong ngưỡng cảnh báo 20%; độ tin cậy 0,90 cho thấy dữ liệu khá đầy đủ.",
+    strengths: ["ROI 90D 20,00% cao hơn 0, cho thấy hiệu suất dương trong 90 ngày."],
+    weaknesses: ["Độ tin cậy 0,90 chưa đạt 1,0 nên vẫn còn khoảng trống dữ liệu."],
     risk_flags: ["R02: MDD > 20%"],
     missing_data: ["missing_benchmark"],
     evidence_ids: ["id", "roi_90d", "R02"],
@@ -218,17 +224,24 @@ try {
   );
   await page.goto(`${base}/traders/${qualifiedId}`, { waitUntil: "domcontentloaded" });
   await page.getByRole("heading", { name: "10 chỉ số cốt lõi" }).waitFor();
-  await page.getByRole("heading", { name: /AI Report/i }).waitFor();
+  await page.getByRole("heading", { name: /Nhận định AI/i }).waitFor();
   let body = await page.locator("body").innerText();
   const tooltips = await page.locator('[title*="nguồn:"]').count();
   assert(tooltips >= 10, `Thiếu tooltip nguồn (${tooltips})`);
   assert(body.includes("ROI 90D"), "Thiếu ROI 90D");
-  assert(body.toLowerCase().includes("qualified"), "Thiếu badge tier");
-  assert(body.toLowerCase().includes("ai report"), "Thiếu khối AI Report");
-  await page.getByText(/primary/i).first().waitFor();
+  const detailBodyLower = body.toLowerCase();
+  assert(
+    detailBodyLower.includes("cao (a)") || detailBodyLower.includes("đạt (b)"),
+    "Thiếu badge nhóm tiếng Việt",
+  );
+  assert(body.toLowerCase().includes("nhận định ai"), "Thiếu khối Nhận định AI");
+  await page.getByText(/Model chính/i).first().waitFor();
   body = await page.locator("body").innerText();
-  assert(body.toLowerCase().includes("primary"), "Thiếu badge model primary");
-  assert(body.includes("roi_90d"), "Thiếu evidence AI");
+  assert(body.toLowerCase().includes("model chính"), "Thiếu badge model chính");
+  assert(body.includes("roi_90d"), "Thiếu bằng chứng AI");
+  for (const code of ["qualified_upper", "fallback", "hf0"]) {
+    assert(!body.includes(code), `Detail lọt mã thô ${code}`);
+  }
   assert(!body.includes("undefined") && !body.includes("NaN"), "UI có undefined/NaN");
   console.log("Trader qualified render + AI: OK");
 
