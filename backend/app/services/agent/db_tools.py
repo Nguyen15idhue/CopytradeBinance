@@ -75,7 +75,6 @@ async def search_traders(db: AsyncSession, args: dict[str, Any]) -> ToolResult:
         max_leverage=args.get("max_leverage"),
         min_sharpe=args.get("min_sharpe"),
         min_score=args.get("min_score"),
-        min_confidence=None,
         max_min_copy_usd=args.get("min_copy_usd_max"),
     )
     version_row = (
