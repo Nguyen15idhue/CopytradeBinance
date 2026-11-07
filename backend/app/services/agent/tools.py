@@ -58,7 +58,6 @@ def _stub(tool_name: str) -> ToolHandler:
 
 
 for _name in (
-    "analyze_portfolio_fit",
     "sql_query",
     "search_knowledge",
     "web_search",

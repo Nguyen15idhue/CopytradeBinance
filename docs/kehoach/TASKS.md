@@ -894,7 +894,7 @@ Tóm tắt: không auto-trading, không realtime WebSocket, không Paper Copy tr
 - [x] B7. Tavily web search + cache. → Bằng chứng: `web_tools.py` (mock Tavily, cache Redis 24h, timeout 10s, tắt khi thiếu key); `test_agent_web.py` 2 pass (gồm prompt-injection snippet chỉ là dữ liệu).
 - [x] B8. Knowledge index code/docs. → Bằng chứng: migration `0017_knowledge_chunks` + `knowledge.py`/`knowledge_cli.py`; dry-run 204 file → 996 chunk; `test_agent_knowledge.py` 3 pass (path/line).
 - [x] B9. Citation + verifier hardening. → Bằng chứng: `verifier.py` (số/đơn vị/trader_id/advice + contract confidence) + citation UI nhóm nguồn; `test_agent_verifier.py` 6 pass; E2E citation PASS.
-- [ ] B10. Portfolio fit + vốn 100$.
+- [x] B10. Portfolio fit + vốn 100$. → Bằng chứng: `portfolio.py` (`evaluate_fit` thuần + tool); unit 3 case dưới/bằng/trên min + unknown; integration trader thật; E2E $100 mock ở B12.
 - [ ] B11. Search tự nhiên trong Screener.
 - [ ] B12. QA Phase 3.
 - [ ] B13. Eval + security + cost + retention.

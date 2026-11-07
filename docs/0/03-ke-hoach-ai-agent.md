@@ -614,3 +614,4 @@ Timeout: 120s/request, tool 10s, SQL 5s.
 - [x] B7 (Tavily web search): tool + cache 24h + test pass.
 - [x] B8 (knowledge index): bảng `knowledge_chunks` + CLI + tool `search_knowledge`; dry-run OK; test pass.
 - [x] B9 (citation + verifier): check đơn vị/trader_id/advice + contract + citation UI nhóm nguồn; test 6 pass; E2E PASS.
+- [x] B10 (portfolio fit): `evaluate_fit` + tool `analyze_portfolio_fit`; test 5 pass.
