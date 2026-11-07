@@ -100,7 +100,7 @@ async def test_saved_views_crud_and_csv() -> None:
         )
         assert csv_response.status_code == 200
         assert "text/csv" in csv_response.headers["content-type"]
-        assert "Trader ID" in csv_response.text.splitlines()[0]
+        assert "Mã trader" in csv_response.text.splitlines()[0]
 
         deleted = await client.delete(f"/api/v1/saved-views/{view_id}", headers=headers)
         assert deleted.status_code == 200

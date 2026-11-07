@@ -5,7 +5,7 @@ import pytest
 
 from app.core.config import get_settings
 from app.services.ai.openrouter import AIError, generate_report, parse_json
-from app.services.ai.prompt import template_report
+from app.services.ai.prompt import PROMPT_VERSION, build_prompt, template_report
 from app.services.ai.schema import AIReportPayload
 
 CONTEXT = {
@@ -20,9 +20,17 @@ CONTEXT = {
 }
 
 GOOD = {
-    "summary": "Trader có ROI dương và MDD trong ngưỡng, dữ liệu đủ để tham khảo.",
-    "strengths": ["ROI 90D dương"],
-    "weaknesses": ["Thiếu benchmark"],
+    "summary": (
+        "ROI 90D 20,00% cao hơn ngưỡng 0 nhưng MDD 10,00% vẫn trong ngưỡng cảnh báo "
+        "20%; độ tin cậy 0,90 cho thấy dữ liệu khá đầy đủ."
+    ),
+    "strengths": [
+        "ROI 90D 20,00% cao hơn 0, cho thấy hiệu suất dương trong 90 ngày.",
+        "Độ tin cậy 0,90 cho thấy phần lớn nhóm dữ liệu đã có mặt.",
+    ],
+    "weaknesses": [
+        "Độ tin cậy 0,90 chưa đạt 1,0 nên vẫn còn khoảng trống dữ liệu.",
+    ],
     "risk_flags": ["R02: MDD > 20%"],
     "missing_data": ["benchmark"],
     "evidence_ids": ["id", "roi_90d", "R02"],
@@ -61,13 +69,37 @@ def test_schema_rejects_investment_advice() -> None:
         )
 
 
+def test_schema_rejects_metricless_analysis() -> None:
+    with pytest.raises(ValueError):
+        AIReportPayload(
+            summary="Trader có dấu hiệu tích cực nhưng cần thận trọng.",
+            strengths=["ROI cao"],
+            weaknesses=["MDD cao"],
+            risk_flags=[],
+            missing_data=[],
+            evidence_ids=["id"],
+        )
+
+
+def test_prompt_v2_is_vietnamese_and_analytical() -> None:
+    prompt = build_prompt(CONTEXT)
+    assert PROMPT_VERSION == "v2"
+    assert "tiếng Việt" in prompt
+    assert "đánh đổi" in prompt
+    assert "không bịa số" in prompt
+
+
 def test_template_is_deterministic_and_uses_evidence() -> None:
     first = template_report(CONTEXT)
     second = template_report(CONTEXT)
     assert first.model_dump() == second.model_dump()
     assert "42" in first.summary
+    assert "20,00" in first.summary
+    assert "10,00" in first.summary
     assert "roi_90d" in first.evidence_ids
     assert first.risk_flags
+    assert all(any(char.isdigit() for char in item) for item in first.strengths)
+    assert all(any(char.isdigit() for char in item) for item in first.weaknesses)
 
 
 @pytest.mark.asyncio

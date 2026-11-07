@@ -18,22 +18,22 @@ from app.services.screener import (
 router = APIRouter(prefix="/traders", tags=["screener"])
 
 EXPORT_COLUMNS = [
-    ("id", "Trader ID"),
-    ("nickname", "Nickname"),
-    ("potential_tier", "Tier"),
-    ("score", "Score"),
-    ("band", "Band"),
-    ("confidence", "Confidence"),
+    ("id", "Mã trader"),
+    ("nickname", "Biệt danh"),
+    ("potential_tier", "Nhóm"),
+    ("score", "Điểm"),
+    ("band", "Mức điểm"),
+    ("confidence", "Độ tin cậy"),
     ("roi_90d", "ROI 90D"),
     ("mdd_90d", "MDD 90D"),
     ("sharpe", "Sharpe"),
     ("win_rate_order_90d", "WinRate"),
-    ("total_orders_90d", "Orders"),
-    ("runtime_days", "Runtime days"),
-    ("current_copiers", "Copiers"),
+    ("total_orders_90d", "Số lệnh"),
+    ("runtime_days", "Số ngày hoạt động"),
+    ("current_copiers", "Số copier"),
     ("copy_aum", "Copy AUM"),
-    ("max_leverage", "Max leverage"),
-    ("risk_level", "Risk"),
+    ("max_leverage", "Đòn bẩy tối đa"),
+    ("risk_level", "Rủi ro"),
 ]
 
 
