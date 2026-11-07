@@ -54,6 +54,9 @@ docker compose logs -f worker
 docker compose exec redis redis-cli DEL lock:collector:scan lock:collector:deep
 ```
 
+Khi BAPI trả `11012005` hoặc HTTP 429, client tự cooldown 30–180s và retry (tối đa 5 lần).
+Trade-history chạy 1 trader/lần, nghỉ 0,4s mỗi trang để tránh bị chặn tần suất.
+
 ## Lệnh thường dùng
 
 ```bash

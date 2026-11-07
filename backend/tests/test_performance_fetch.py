@@ -22,8 +22,10 @@ class FakePerformanceAdapter:
     def __init__(self, total_orders: dict[str, int], fail: set[str] | None = None) -> None:
         self.total_orders = total_orders
         self.fail = fail or set()
+        self.calls: list[str] = []
 
     async def get_performance(self, portfolio_id: str, time_range: str) -> dict:
+        self.calls.append(portfolio_id)
         if portfolio_id in self.fail:
             raise RuntimeError("lỗi giả lập")
         return {
@@ -124,6 +126,24 @@ async def test_performance_saved_and_tier_demoted() -> None:
             .where(PerformanceMetric.lead_portfolio_id.like(f"{PREFIX}%"))
         )
         assert count_after == 12  # cùng giờ → upsert, không nhân bản
+
+
+@pytest.mark.asyncio
+async def test_excluded_trader_never_targeted() -> None:
+    await _seed_tiers(
+        {f"{PREFIX}-excluded": "excluded", f"{PREFIX}-watch": "watch"}
+    )
+    adapter = FakePerformanceAdapter(
+        {f"{PREFIX}-excluded": 100, f"{PREFIX}-watch": 100}
+    )
+    async with SessionLocal() as db:
+        result = await fetch_performance_for_watch(
+            adapter,
+            db,
+            portfolio_ids=[f"{PREFIX}-excluded", f"{PREFIX}-watch"],
+        )
+        assert result["targets"] == 1
+        assert all(call == f"{PREFIX}-watch" for call in adapter.calls)
 
 
 @pytest.mark.asyncio

@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     bapi_base_url: str = "https://www.binance.com"
     bapi_concurrency: int = 6
     bapi_timeout_seconds: int = 20
-    bapi_max_retries: int = 4
+    bapi_max_retries: int = 5
     redis_url: str = "redis://redis:6379/0"
     collector_kill_switch: bool = False
     aum_preset: int = 5000

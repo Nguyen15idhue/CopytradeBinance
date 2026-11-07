@@ -111,8 +111,8 @@ async def test_retry_on_rate_limit_code_then_success() -> None:
     adapter = make_adapter(handler, sleep=fake_sleep)
     page = await adapter.list_traders("90D", 1)
     assert len(attempts) == 3
-    assert len(sleeps) == 2
-    assert sleeps == sorted(sleeps)
+    assert len(sleeps) >= 2
+    assert sleeps[0] >= 30
     assert page.total == 1
 
 
@@ -142,6 +142,63 @@ async def test_404_is_not_retried() -> None:
     with pytest.raises(BapiError):
         await adapter.get_detail("42")
     assert len(attempts) == 1
+
+
+@pytest.mark.asyncio
+async def test_429_html_body_is_retried_with_long_delay() -> None:
+    attempts = []
+    sleeps = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        attempts.append(1)
+        if len(attempts) == 1:
+            return httpx.Response(429, text="<html>Too Many Requests</html>")
+        return ok({"total": 1, "list": [{"leadPortfolioId": "1"}]})
+
+    async def fake_sleep(delay: float) -> None:
+        sleeps.append(delay)
+
+    adapter = make_adapter(handler, sleep=fake_sleep)
+    page = await adapter.list_traders("90D", 1)
+    assert page.total == 1
+    assert len(attempts) == 2
+    assert sleeps[0] >= 30
+
+
+@pytest.mark.asyncio
+async def test_429_retry_after_is_honored() -> None:
+    attempts = []
+    sleeps = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        attempts.append(1)
+        if len(attempts) == 1:
+            return httpx.Response(
+                429, text="slow down", headers={"Retry-After": "45"}
+            )
+        return ok({"total": 0, "list": []})
+
+    async def fake_sleep(delay: float) -> None:
+        sleeps.append(delay)
+
+    adapter = make_adapter(handler, sleep=fake_sleep)
+    await adapter.get_detail("42")
+    assert sleeps[0] >= 45
+
+
+@pytest.mark.asyncio
+async def test_429_exhausted_raises_rate_limited() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(429, text="too many")
+
+    async def fake_sleep(_delay: float) -> None:
+        return None
+
+    adapter = make_adapter(handler, max_retries=1, sleep=fake_sleep)
+    with pytest.raises(BapiError) as excinfo:
+        await adapter.get_detail("42")
+    assert excinfo.value.status_code == 429
+    assert excinfo.value.code == "RATE_LIMITED"
 
 
 @pytest.mark.asyncio

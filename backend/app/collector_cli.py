@@ -21,7 +21,12 @@ async def cmd_scan() -> int:
         async with CollectorLock("lock:collector:scan"):
             async with SessionLocal() as db:
                 result = await scan_universe(adapter, db)
-                print(json.dumps(result.as_dict(), ensure_ascii=False))
+                tiering = await recompute_universe(db)
+                print(
+                    json.dumps(
+                        {"scan": result.as_dict(), "tiering": tiering}, ensure_ascii=False
+                    )
+                )
     except LockUnavailable as exc:
         print(json.dumps({"skipped": True, "reason": str(exc)}, ensure_ascii=False))
         return 2

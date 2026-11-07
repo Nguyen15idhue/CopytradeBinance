@@ -18,7 +18,7 @@
 |---|---|---:|---|---|
 | 0 — Data spike & pre-filter | `[x]` hoàn thành | 3–5 ngày | GO có điều kiện | `phase0/PHASE0_REPORT.md` |
 | 1 — Foundation + vertical slice | `[x]` hoàn thành | 5–7 ngày | 1 trader chạy E2E | §5.2 (417–439), §10.1 (1615–1921), §13.4 (2345–2456) |
-| 2 — Collector 2 tầng | `[ ]` | 4–6 ngày | Scan 11.124 ≥ 99%, Watch 400–700 | §6 (528–973), §12 (2105–2219) |
+| 2 — Collector 2 tầng | `[x]` hoàn thành | 4–6 ngày | Scan 11.124 ≥ 99%, Watch 400–700 | §6 (528–973), §12 (2105–2219) |
 | 3 — Quant + Scoring + Screener | `[ ]` | 7–9 ngày | Screener dùng được, score breakdown đúng | §8 (1187–1449), §9 (1450–1612) |
 | 4 — Detail + Compare + Risk | `[ ]` | 5–7 ngày | Detail sâu, compare 4 trader, risk evidence | §11.2–11.3 (2009–2057), §13.4–13.5 (2345–2489) |
 | 5 — AI + Settings + Hardening | `[ ]` | 5–7 ngày | AI không sửa score, config version/rollback | §11.5 (2071–2084), §13.6–13.7 (2490–2543), §15.8 (3075–3095) |
@@ -230,7 +230,7 @@
 
 ---
 
-## Phase 2 — Collector 2 tầng + raw storage
+## Phase 2 — Collector 2 tầng + raw storage — HOÀN THÀNH
 
 **Mục tiêu:** quét universe 11.124, tạo shortlist ~515, chỉ deep-fetch trader có tiềm năng.  
 **Thời lượng:** 4–6 ngày.
@@ -330,14 +330,16 @@
 **Tham chiếu:** §14.7 Data quality test (2822–2862) · §14.8 Performance test (2863–2877) · §14.10 Acceptance MVP (2898–2918)  
 **→ đọc khi:** kiểm tra coverage, duplicate, resume, excluded.
 
-- [ ] Scan đủ ≥ 99% của 11.124 trader trong 1 run.
-- [ ] Shortlist Watch nằm trong **400–700**.
-- [ ] Không có trader excluded nào bị deep fetch.
-- [ ] Chạy lại 3 lần không duplicate.
-- [ ] Restart giữa crawl resume được.
-- [ ] Test rate limit/backoff (`11012005`).
-- [ ] 1 chu kỳ list scan + deep fetch shortlist < 15 phút.
-- [ ] Full-scale deep fetch ~515 đo được (không chỉ ngoại suy).
+- [x] Scan đủ ≥ 99% của 11.124 trader trong 1 run. → Bằng chứng: 11.132 trader = 100,07%; 372 trang; 142,6s; 0 lỗi.
+- [x] Shortlist Watch nằm trong **400–700**. → Bằng chứng: Watch tổng **511** (watch 425 + qualified 76 + high 10).
+- [x] Không có trader excluded nào bị deep fetch. → Bằng chứng: filter tier trong mọi hàm chọn; test `test_excluded_trader_never_targeted`; L4 chỉ có high/qualified.
+- [x] Chạy lại 3 lần không duplicate. → Bằng chứng: counts giống hệt 3 lần: traders 11.133, list snapshots 22.261, universe 11.133, metrics 4.088, trades 120.595.
+- [x] Restart giữa crawl resume được. → Bằng chứng: kill sau 35s → chạy lại đủ 11.132; duplicate snapshot trong giờ = 0.
+- [x] Test rate limit/backoff (`11012005`). → Bằng chứng: 3 mock test (11012005, 429 HTML, Retry-After) + live 679 request trades, 0 lỗi.
+- [x] 1 chu kỳ list scan + deep fetch shortlist < 15 phút. → Bằng chứng: scan 142,6s + performance 38,7s = **181,3s**.
+- [x] Full-scale deep fetch ~515 đo được (không chỉ ngoại suy). → Bằng chứng: L2 511 trader/38,7s; L3 278/77,9s; L4 57 trader/130.962 fill/134,2s; tổng 250,8s.
+- [x] Ghi bằng chứng vào `docs/kehoach/PHASE2-REPORT.md`. → Bằng chứng: file report đầy đủ số liệu gate.
+- [x] Full suite backend + build frontend + E2E. → Bằng chứng: container **40 passed**; `npm run build` OK; E2E PASS; `npm audit` 0 lỗi.
 
 **Gate:** scan 11.124 ≥ 99%, shortlist 400–700, không deep fetch excluded, resume được.
 

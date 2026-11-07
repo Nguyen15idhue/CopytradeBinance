@@ -17,11 +17,28 @@ OK_CODES = {"", "0", "000000"}
 
 
 class BapiError(Exception):
-    def __init__(self, status_code: int, code: str, message: str) -> None:
+    def __init__(
+        self,
+        status_code: int,
+        code: str,
+        message: str,
+        retry_after: float | None = None,
+    ) -> None:
         self.status_code = status_code
         self.code = code
         self.message = message
+        self.retry_after = retry_after
         super().__init__(f"BAPI {status_code} [{code}]: {message}")
+
+
+def _retry_after_seconds(response: httpx.Response) -> float | None:
+    raw = response.headers.get("Retry-After")
+    if not raw:
+        return None
+    try:
+        return float(raw)
+    except ValueError:
+        return None
 
 
 class CircuitOpenError(BapiError):
@@ -78,6 +95,7 @@ class BapiHttpClient:
         self._transport = transport
         self.breaker = breaker or CircuitBreaker()
         self._sleep = sleep or asyncio.sleep
+        self._cooldown_until = 0.0
         self._client: httpx.AsyncClient | None = None
 
     def _ensure_client(self) -> httpx.AsyncClient:
@@ -126,14 +144,20 @@ class BapiHttpClient:
 
         last_error: Exception | None = None
         for attempt in range(self.max_retries + 1):
+            await self._wait_for_cooldown()
             try:
                 async with self._semaphore:
                     response = await client.request(method, path, params=params, json=json)
+                if response.status_code == 429:
+                    raise BapiError(
+                        429,
+                        "RATE_LIMITED",
+                        "BAPI chặn tần suất (HTTP 429)",
+                        retry_after=_retry_after_seconds(response),
+                    )
                 payload = self._parse_json(response)
                 code = str(payload.get("code", ""))
                 if response.status_code >= 500 or code in RATE_LIMIT_CODES:
-                    if response.status_code >= 500:
-                        self.breaker.record_failure()
                     raise BapiError(
                         response.status_code, code or "HTTP_5XX", "Lỗi tạm thời từ BAPI"
                     )
@@ -153,15 +177,33 @@ class BapiHttpClient:
                 self.breaker.record_success()
                 return payload.get("data")
             except (httpx.TimeoutException, httpx.TransportError, BapiError) as exc:
-                retryable = isinstance(exc, (httpx.TimeoutException, httpx.TransportError)) or (
-                    isinstance(exc, BapiError) and exc.status_code >= 500
-                ) or (isinstance(exc, BapiError) and exc.code in RATE_LIMIT_CODES)
+                is_rate_limited = isinstance(exc, BapiError) and (
+                    exc.code == "RATE_LIMITED" or exc.code in RATE_LIMIT_CODES
+                )
+                retryable = (
+                    isinstance(exc, (httpx.TimeoutException, httpx.TransportError))
+                    or (isinstance(exc, BapiError) and exc.status_code >= 500)
+                    or (isinstance(exc, BapiError) and exc.code in RATE_LIMIT_CODES)
+                    or is_rate_limited
+                )
                 if not retryable or attempt >= self.max_retries:
-                    if not isinstance(exc, BapiError):
+                    if isinstance(exc, BapiError):
+                        if exc.status_code >= 500 or is_rate_limited:
+                            self.breaker.record_failure()
+                    else:
                         self.breaker.record_failure()
                     raise
                 last_error = exc
-                delay = min(2 ** (attempt + 1), 16) + random.uniform(0, 0.5)
+                if is_rate_limited:
+                    wait = max(30.0, min(exc.retry_after or 30.0, 120.0))
+                    delay = min(wait * (attempt + 1), 180.0)
+                else:
+                    delay = min(2 ** (attempt + 1), 16)
+                delay += random.uniform(0, 0.5)
+                if is_rate_limited:
+                    self._cooldown_until = max(
+                        self._cooldown_until, time.monotonic() + delay
+                    )
                 logger.warning(
                     "BAPI lỗi tạm thời (attempt %s/%s), thử lại sau %.1fs: %s",
                     attempt + 1,
@@ -171,6 +213,11 @@ class BapiHttpClient:
                 )
                 await self._sleep(delay)
         raise last_error or RuntimeError("BAPI request thất bại")
+
+    async def _wait_for_cooldown(self) -> None:
+        remaining = self._cooldown_until - time.monotonic()
+        if remaining > 0:
+            await self._sleep(remaining)
 
     @staticmethod
     def _parse_json(response: httpx.Response) -> dict[str, Any]:

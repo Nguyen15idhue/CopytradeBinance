@@ -33,6 +33,7 @@ MAX_TRANSFER_PAGES = 10
 MAX_TRADE_PAGES = 500
 TOP_WATCH_LIMIT = 200
 TOP_QUALIFIED_TRADES = 50
+TRADE_PAGE_DELAY = 0.4
 
 
 def _decimal(value: Any) -> Decimal | None:
@@ -255,7 +256,9 @@ def _apply_total_order_rules(
     return changes
 
 
-async def _fetch_pages(fetch_page, portfolio_id: str, max_pages: int) -> tuple[list, str | None]:
+async def _fetch_pages(
+    fetch_page, portfolio_id: str, max_pages: int, delay: float = 0.0
+) -> tuple[list, str | None]:
     collected: list[dict] = []
     page = 1
     while page <= max_pages:
@@ -267,6 +270,8 @@ async def _fetch_pages(fetch_page, portfolio_id: str, max_pages: int) -> tuple[l
         if not result.items or len(collected) >= result.total:
             break
         page += 1
+        if delay:
+            await asyncio.sleep(delay)
     return collected, None
 
 
@@ -421,7 +426,7 @@ async def fetch_detail_and_history(
         record.finished_at = datetime.now(UTC)
         record.pages = 0
         record.requests = len(target_ids) + sum(
-            len(position_map.get(pid, [])) + len(transfer_map.get(pid, []))
+            -(-len(position_map.get(pid, [])) // 50) + -(-len(transfer_map.get(pid, [])) // 50)
             for pid in history_targets
         )
         record.items_ok = len(detail_by_id)
@@ -481,11 +486,13 @@ async def fetch_full_trades(
     await db.commit()
     log_id = log.id
 
-    trade_semaphore = asyncio.Semaphore(3)
+    trade_semaphore = asyncio.Semaphore(1)
 
     async def fetch_one(portfolio_id: str):
         async with trade_semaphore:
-            return await _fetch_pages(adapter.get_trades, portfolio_id, MAX_TRADE_PAGES)
+            return await _fetch_pages(
+                adapter.get_trades, portfolio_id, MAX_TRADE_PAGES, delay=TRADE_PAGE_DELAY
+            )
 
     results = await asyncio.gather(*(fetch_one(pid) for pid in target_ids))
 
