@@ -13,4 +13,10 @@ def _reset_login_rate_limit():
             limiter.reset()
         except Exception:  # noqa: BLE001 - storage có thể không hỗ trợ reset
             pass
+        try:
+            from app.main import API_HITS
+
+            API_HITS.clear()
+        except Exception:  # noqa: BLE001
+            pass
     yield

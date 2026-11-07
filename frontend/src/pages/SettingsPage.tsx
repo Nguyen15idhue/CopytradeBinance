@@ -81,6 +81,7 @@ export default function SettingsPage() {
   const [tab, setTab] = useState<Tab>("scoring");
   const [weights, setWeights] = useState<Record<string, number>>({});
   const [ai, setAi] = useState<SettingsSnapshot["ai"] | null>(null);
+  const [apiKeyInput, setApiKeyInput] = useState("");
   const [collector, setCollector] = useState<SettingsSnapshot["collector"] | null>(null);
   const [preview, setPreview] = useState<PreviewImpact | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -333,6 +334,19 @@ export default function SettingsPage() {
           <p className="mt-3 text-sm text-muted">
             API key: {ai.key_configured ? `đã cấu hình (${ai.key_masked})` : "chưa cấu hình"}
           </p>
+          {isAdmin ? (
+            <label className="mt-3 block text-sm text-body">
+              Đổi API key (để trống nếu giữ nguyên)
+              <input
+                type="password"
+                value={apiKeyInput}
+                disabled={busy}
+                onChange={(event) => setApiKeyInput(event.target.value)}
+                autoComplete="off"
+                className="mt-1 w-full rounded-lg border border-line bg-app px-3 py-2 text-strong"
+              />
+            </label>
+          ) : null}
           <label className="mt-3 flex items-center gap-2 text-sm text-body">
             <input
               type="checkbox"
@@ -355,6 +369,7 @@ export default function SettingsPage() {
                       monthly_budget_usd: ai.monthly_budget_usd,
                       daily_budget_usd: ai.daily_budget_usd,
                       enabled: ai.enabled,
+                      ...(apiKeyInput ? { api_key: apiKeyInput } : {}),
                     },
                   }),
                 "Đã lưu cấu hình AI",

@@ -32,3 +32,6 @@ Thumbs.db
 
 # Graphify artifact
 graphify-out/
+
+# Backups local
+backups/

@@ -1,0 +1,24 @@
+groups:
+  - name: copytrade-alerts
+    rules:
+      - alert: CollectorStale
+        expr: time() - collector_last_scan_success_timestamp > 9000
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Collector không scan thành công > 150 phút"
+      - alert: HighErrorRate
+        expr: sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m])) > 0.01
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Tỷ lệ 5xx > 1% trong 5 phút"
+      - alert: ApiLatencyHigh
+        expr: sum(rate(http_request_duration_seconds_sum[5m])) / sum(rate(http_requests_total[5m])) > 1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Độ trễ API trung bình > 1s"

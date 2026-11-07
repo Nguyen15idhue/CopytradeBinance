@@ -589,15 +589,15 @@ hoàn thiện trang Ranking và trang hướng dẫn cho người mới.
 **Tham chiếu:** §15.3 Quy trình deploy (2997–3012) · §15.5 Backup & restore (3029–3043) · §15.6 Monitoring (3044–3059) · §15.8 Security checklist (3075–3095)  
 **→ đọc khi:** mã hóa secret, rate limit, backup, alert.
 
-- [ ] Mã hóa API key at rest.
-- [ ] Không trả API key về browser.
-- [ ] Rate limit login/API.
-- [ ] Backup script.
-- [ ] Restore test trên staging.
-- [ ] Prometheus metrics.
-- [ ] Alert rules.
-- [ ] Security headers + CORS production.
-- [ ] Dependency scan (`pip-audit`, `npm audit`).
+- [x] Mã hóa API key at rest. → Bằng chứng: `services/crypto.py` Fernet derive từ `JWT_SECRET`; lưu `ai.openrouter_key`; test roundtrip.
+- [x] Không trả API key về browser. → Bằng chứng: API chỉ trả `key_configured/key_masked`; test assert secret không có trong response/DB plaintext.
+- [x] Rate limit login/API. → Bằng chứng: login 5/phút/IP; API 100/phút/user (test monkeypatch 3 → request 4 trả 429).
+- [x] Backup script. → Bằng chứng: `infra/backup.sh`, `scripts/backup.ps1` (UTF-8 BOM); chạy thật tạo dump **65 MB** + env backup.
+- [x] Restore test trên staging. → Bằng chứng: restore vào DB `restore_test` → 11.185 traders, alembic `0013_audit_logs`, sau đó drop DB.
+- [x] Prometheus metrics. → Bằng chứng: `GET /metrics` trả `http_requests_total`, latency, `collector_last_scan_success_timestamp`.
+- [x] Alert rules. → Bằng chứng: `infra/prometheus-alerts.yml` (collector stale, 5xx, latency).
+- [x] Security headers + CORS production. → Bằng chứng: Nginx trả CSP, `X-Frame-Options=DENY`, `nosniff`, Referrer-Policy, Permissions-Policy; CORS đọc env `CORS_ORIGINS`.
+- [x] Dependency scan (`pip-audit`, `npm audit`). → Bằng chứng: tách `requirements-dev.txt`; `pip-audit` **0 lỗi**, `npm audit` 0 lỗi; CI thêm bước scan.
 
 ### Bước 5.4 — Ranking UI (chuyển từ Phase 4)
 

@@ -507,3 +507,14 @@ Lưu ý: ranking/help cases (K/H) chỉ chạy được sau khi hoàn thành bư
 - UI `/settings`: 6 tab; admin sửa, viewer read-only; preview top thay đổi; versions + rollback.
 - Test: 2 unit validation + 2 integration (version/preview/rollback/audit/RBAC); E2E preview/save/rollback pass.
 - Bug đã sửa: preview thiếu key `metrics`; test giả định version tăng 1 (thực tế max+1).
+
+### 15.3. Hardening 5.3
+
+- `services/crypto.py`: Fernet key derive SHA-256 từ `JWT_SECRET`; API key lưu mã hoá, chỉ trả masked.
+- Rate limit API 100/phút/user (middleware theo JWT sub, fallback IP); login giữ 5/phút/IP.
+- `/metrics` Prometheus: request count/latency + collector last success; `infra/prometheus-alerts.yml`.
+- Nginx: CSP, X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy (đã kiểm header thật).
+- Backup: `infra/backup.sh` + `scripts/backup.ps1`; dump thật 65 MB; restore sang DB tạm 11.185 trader OK.
+- Tách `backend/requirements-dev.txt` để pip-audit production sạch; nâng cryptography lên 50.x.
+- `pip-audit` 0 lỗi; `npm audit` 0 lỗi; CI thêm scan.
+- Bug đã sửa: `param()` phải đứng trước mọi lệnh trong script PowerShell.

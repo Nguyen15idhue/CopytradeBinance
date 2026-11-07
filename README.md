@@ -39,6 +39,20 @@ data/raw/       JSONL archive (không commit)
 - Mặc định theo OS, lưu lựa chọn ở `localStorage`.
 - Chi tiết token và quy tắc màu: `docs/ui-theme.md`.
 
+## Backup & restore
+
+```bash
+# Linux/VPS
+bash infra/backup.sh
+
+# Windows
+powershell -ExecutionPolicy Bypass -File scripts/backup.ps1
+powershell -ExecutionPolicy Bypass -File scripts/backup.ps1 -DryRun
+```
+
+Backup gồm `pg_dump -Fc` + `.env`, giữ 7 ngày trong `backups/` (đã gitignore).
+Hướng dẫn restore và monitoring: `docs/deployment.md` (`/metrics`, alert rules).
+
 ## Collector Phase 2
 
 - `worker` chạy scheduler: scan 60 phút; performance 6h; detail 12h; trades 24h.

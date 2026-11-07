@@ -15,6 +15,7 @@ from app.models.trader_metric import TraderMetric
 from app.models.trader_score import TraderScore
 from app.services import scoring as sc
 from app.services.config_store import get_setting, set_setting
+from app.services.crypto import encrypt_secret
 from app.services.scoring_service import _components
 
 AI_CONFIG_KEY = "ai.config"
@@ -46,6 +47,7 @@ class AIUpdate(BaseModel):
     monthly_budget_usd: float | None = Field(default=None, ge=0, le=10000)
     daily_budget_usd: float | None = Field(default=None, ge=0, le=10000)
     enabled: bool | None = None
+    api_key: str | None = Field(default=None, max_length=256)
 
 
 class CollectorUpdate(BaseModel):
@@ -218,11 +220,21 @@ async def update_settings(
         changed["scoring_version"] = next_version
 
     if payload.ai:
-        override = (await get_setting(db, AI_CONFIG_KEY)) or {}
-        override.update(payload.ai.model_dump(exclude_none=True))
-        await set_setting(db, AI_CONFIG_KEY, override)
-        await _audit(db, user_id, "ai.update", "app_settings", AI_CONFIG_KEY, None, override)
-        changed["ai"] = override
+        data = payload.ai.model_dump(exclude_none=True)
+        api_key = data.pop("api_key", None)
+        if api_key:
+            await set_setting(db, "ai.openrouter_key", encrypt_secret(api_key))
+            await _audit(
+                db, user_id, "ai.key_update", "app_settings", "ai.openrouter_key", None,
+                {"configured": True},
+            )
+            changed["ai_key_configured"] = True
+        if data:
+            override = (await get_setting(db, AI_CONFIG_KEY)) or {}
+            override.update(data)
+            await set_setting(db, AI_CONFIG_KEY, override)
+            await _audit(db, user_id, "ai.update", "app_settings", AI_CONFIG_KEY, None, override)
+            changed["ai"] = override
 
     if payload.collector:
         override = (await get_setting(db, COLLECTOR_CONFIG_KEY)) or {}
