@@ -4,6 +4,7 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { NAV_LABELS } from "../i18n/vi";
 import { clearSession, getStoredUser } from "../lib/auth";
 import ThemeToggle from "./ThemeToggle";
+import AgentLauncher from "./agent/AgentLauncher";
 
 type NavItem = { to: string; label: string; phase?: string };
 
@@ -137,6 +138,7 @@ export default function Layout() {
           <Outlet />
         </main>
       </div>
+      <AgentLauncher />
     </div>
   );
 }

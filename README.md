@@ -74,6 +74,7 @@ docker compose exec backend python -m app.collector_cli audit
 
 UI: `/screener`, `/traders/:id`, `/compare?ids=a,b`, `/risk`, `/ranking`, `/settings`,
 `/data-health`, `/help` (hướng dẫn người mới), `/technical` (tài liệu kỹ thuật).
+Trợ lý AI chat (chỉ admin): icon ✦ góc phải dưới mọi trang sau đăng nhập.
 
 ## AI Report (Phase 5)
 
@@ -82,6 +83,13 @@ UI: `/screener`, `/traders/:id`, `/compare?ids=a,b`, `/risk`, `/ranking`, `/sett
 - Budget ngày/tháng + cooldown 24h; API key lưu mã hoá, chỉ trả trạng thái masked.
 - Test model: `python scripts/test_ai_models.py`.
 - Báo cáo: `docs/kehoach/AI-MODEL-TEST.md`.
+
+## AI Agent chat (Phase 6b, chỉ admin)
+
+- Icon ✦ góc phải dưới mọi trang; viewer không thấy, không gọi API.
+- Panel drawer desktop (~440px), full-screen mobile; Esc đóng; Ctrl/Cmd+Enter gửi.
+- Stream SSE: tool trace collapsible, citation chips, cảnh báo; session lưu DB.
+- API: `POST /agent/chat` (SSE), `GET/PATCH/DELETE /agent/sessions`, `POST /agent/feedback`.
 
 ```bash
 # Chạy tay từng tầng

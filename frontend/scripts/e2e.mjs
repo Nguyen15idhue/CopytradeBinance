@@ -290,9 +290,53 @@ try {
   assert(body.includes("ROI 90D"), "Thiếu chỉ số");
   console.log("Trader excluded render: OK");
 
+  await page.route("**/api/v1/agent/sessions", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ data: { items: [] }, meta: {}, error: null }),
+    }),
+  );
+  const sseBody = [
+    'event: citation',
+    'data: {"items": [{"source_type": "database", "ref": "roi_90d"}]}',
+    "",
+    "event: done",
+    'data: {"session_id": 1, "message_id": 2, "answer": "ROI 90D là 19,19% theo dữ liệu.", "model": "mock", "usage": {}}',
+    "",
+    "",
+  ].join("\n");
+  await page.route("**/api/v1/agent/chat", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "text/event-stream",
+      body: sseBody,
+    }),
+  );
+  await page.getByRole("button", { name: "Mở trợ lý AI" }).click();
+  await page.getByRole("dialog", { name: "Trợ lý AI" }).waitFor();
+  await page.getByRole("button", { name: /Top 10 trader an toàn/ }).click();
+  await page.getByText("ROI 90D là 19,19%").waitFor();
+  await page.getByText("database: roi_90d").waitFor();
+  body = await page.locator("body").innerText();
+  assert(!body.includes("undefined") && !body.includes("NaN"), "Agent UI có undefined/NaN");
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Mở trợ lý AI" }).waitFor();
+  console.log("Agent chat mock SSE: OK");
+
   await page.getByRole("button", { name: "Đăng xuất" }).click();
   await page.getByRole("heading", { name: "Đăng nhập" }).waitFor();
   console.log("Đăng xuất: OK");
+
+  await page.getByLabel("Email").fill("viewer@example.com");
+  await page.getByLabel("Mật khẩu").fill("Viewer123!ChangeMe");
+  await page.getByRole("button", { name: "Đăng nhập" }).click();
+  await page.waitForURL(`${base}/`);
+  assert(
+    (await page.getByRole("button", { name: "Mở trợ lý AI" }).count()) === 0,
+    "Viewer vẫn thấy icon agent",
+  );
+  console.log("Agent ẩn với viewer: OK");
 
   assert(consoleErrors.length === 0, `Console error: ${consoleErrors.join(" | ")}`);
   console.log("E2E frontend: PASS");

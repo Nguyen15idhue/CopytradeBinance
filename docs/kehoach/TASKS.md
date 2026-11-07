@@ -889,7 +889,7 @@ Tóm tắt: không auto-trading, không realtime WebSocket, không Paper Copy tr
 - [x] B2. Agent core + model + SSE skeleton. → Bằng chứng: `services/agent/` 5 module + `api/v1/agent.py` (admin-only); `test_agent_core.py` 11 pass (container, gồm RBAC viewer 403 + SSE done/citation); reasoning auto dùng chung; `docs/api.md` + `12-ai.md` + section TSX.
 - [x] B3. DB tools (search/profile/compare/ranking/risk/health). → Bằng chứng: `services/agent/db_tools.py` + `test_agent_db_tools.py` 4 pass (container); regression screener/compare/ranking/core 14 pass; top-10 sort deterministic; unknown/empty có cấu trúc; risk_score chưa backfill → rỗng đúng.
 - [x] B4. Read-only SQL + views. → Bằng chứng: migration `0016_agent_views` (5 view); `sql_tools.py` (chỉ SELECT/WITH, chặn DDL/DML/multi-statement/bảng secret, limit 200/500, timeout 5s, transaction READ ONLY); `test_agent_sql.py` 4 pass.
-- [ ] B5. Floating chat UI.
+- [x] B5. Floating chat UI. → Bằng chứng: `AgentLauncher/Panel` + `lib/agent.ts` (SSE flush buffer); chỉ admin; E2E full PASS (agent mock SSE + viewer ẩn icon, 0 console error).
 - [ ] B6. QA Phase 1 agent.
 - [ ] B7. Tavily web search + cache.
 - [ ] B8. Knowledge index code/docs.
