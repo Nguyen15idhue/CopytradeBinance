@@ -1,5 +1,5 @@
 import { clearSession, getAccessToken } from "./auth";
-import type { LoginResult, TraderDetail } from "../types/trader";
+import type { CollectorStatus, LoginResult, TraderDetail } from "../types/trader";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "/api/v1";
 
@@ -61,4 +61,8 @@ export async function login(email: string, password: string): Promise<LoginResul
 
 export async function getTrader(id: string): Promise<TraderDetail> {
   return request<TraderDetail>(`/traders/${encodeURIComponent(id)}`);
+}
+
+export async function getCollectorStatus(): Promise<CollectorStatus> {
+  return request<CollectorStatus>("/collector/status");
 }

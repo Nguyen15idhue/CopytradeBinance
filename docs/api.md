@@ -37,6 +37,20 @@ Base: `/api/v1`
 - Login rate limit 5/phút/IP.
 - Gửi header `Authorization: Bearer <access_token>` cho endpoint bảo vệ.
 
+## Collector & Data Health
+
+| Method | Endpoint | Quyền | Mô tả |
+|---|---|---|---|
+| GET | `/collector/status` | user | Tier counts, lần chạy gần nhất theo tầng, jobs, raw archive, kill switch |
+| POST | `/collector/run-scan` | admin | 202 + `job_id`; scan + recompute |
+| POST | `/collector/run-deep` | admin | 202 + `job_id`; performance → detail/positions/transfers → trades |
+| GET | `/collector/jobs/{job_id}` | user | Trạng thái job trong process |
+| POST | `/collector/kill-switch` | admin | `{active: true}` tắt collector; `{active: false}` bật lại |
+
+- Kill switch: env `COLLECTOR_KILL_SWITCH` hoặc `app_settings['collector.enabled']`; khi tắt, run-* trả **409** `COLLECTOR_DISABLED`.
+- Job chạy nền trong process API; restart sẽ mất trạng thái job (Phase 5 chuyển sang queue/DB).
+- Khóa chống chạy song song: Redis `lock:collector:scan` / `lock:collector:deep`, TTL 30 phút.
+
 ## Universe
 
 ### GET `/universe/summary`

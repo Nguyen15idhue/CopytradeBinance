@@ -45,6 +45,35 @@ export interface TraderDetail {
   generated_at: string;
 }
 
+export interface CollectorStatus {
+  enabled: boolean;
+  kill_switch_key: string;
+  tiers: Record<string, number>;
+  latest_runs: Record<
+    string,
+    | {
+        status: string;
+        started_at: string;
+        finished_at: string | null;
+        requests: number;
+        items_ok: number;
+        error_count: number;
+        detail: Record<string, unknown> | null;
+      }
+    | null
+  >;
+  jobs: Array<{
+    id: string;
+    kind: string;
+    status: string;
+    started_at: string;
+    finished_at: string | null;
+    error: string | null;
+  }>;
+  raw_archive: { files: number; bytes: number };
+  generated_at: string;
+}
+
 export interface AuthUser {
   id: string;
   email: string;

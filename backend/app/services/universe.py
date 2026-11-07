@@ -6,17 +6,23 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import func, select
+from sqlalchemy import and_, func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
 from app.models.collection_log import CollectionLog
+from app.models.performance import PerformanceMetric
 from app.models.snapshot import PortfolioSnapshot
 from app.models.tier_history import TierHistory
 from app.models.trader import Trader
 from app.models.universe import TraderUniverse
-from app.services.funnel import TIER_RANK, annotate_pre_score, evaluate_item
+from app.services.funnel import (
+    TIER_RANK,
+    annotate_pre_score,
+    apply_total_order_demotion,
+    evaluate_item,
+)
 from app.services.storage.raw import RawArchive
 
 logger = logging.getLogger(__name__)
@@ -273,12 +279,44 @@ async def recompute_universe(db: AsyncSession, aum_min: int | None = None) -> di
         ).all()
     )
 
+    latest_perf = (
+        select(
+            PerformanceMetric.lead_portfolio_id.label("portfolio_id"),
+            func.max(PerformanceMetric.collected_at).label("collected_at"),
+        )
+        .where(PerformanceMetric.time_range == "90D")
+        .group_by(PerformanceMetric.lead_portfolio_id)
+        .subquery()
+    )
+    total_orders_map = {
+        portfolio_id: total_orders
+        for portfolio_id, total_orders in (
+            await db.execute(
+                select(
+                    PerformanceMetric.lead_portfolio_id,
+                    PerformanceMetric.total_orders,
+                ).join(
+                    latest_perf,
+                    and_(
+                        PerformanceMetric.lead_portfolio_id == latest_perf.c.portfolio_id,
+                        PerformanceMetric.collected_at == latest_perf.c.collected_at,
+                    ),
+                )
+            )
+        ).all()
+    }
+
     counts: dict[str, int] = {}
     rows: list[dict[str, Any]] = []
     history: list[dict[str, Any]] = []
     for item in items:
         evaluated = evaluate_item(item, now_ms, aum_min=float(threshold))
-        tier = evaluated["tier"]
+        tier = apply_total_order_demotion(
+            evaluated["tier"], total_orders_map.get(item["leadPortfolioId"])
+        )
+        reasons = list(evaluated["reasons"])
+        if tier != evaluated["tier"]:
+            reasons.append("total_orders_lt_threshold")
         counts[tier] = counts.get(tier, 0) + 1
         portfolio_id = item["leadPortfolioId"]
         rows.append(
@@ -286,7 +324,7 @@ async def recompute_universe(db: AsyncSession, aum_min: int | None = None) -> di
                 "lead_portfolio_id": portfolio_id,
                 "potential_tier": tier,
                 "pre_score": item["pre_score"],
-                "filter_reasons": evaluated["reasons"],
+                "filter_reasons": reasons,
                 "deep_fetch_status": "skipped" if tier == "excluded" else "pending",
             }
         )
@@ -298,7 +336,7 @@ async def recompute_universe(db: AsyncSession, aum_min: int | None = None) -> di
                     "old_tier": old_tier,
                     "new_tier": tier,
                     "pre_score": item["pre_score"],
-                    "reasons": evaluated["reasons"],
+                    "reasons": reasons,
                 }
             )
 

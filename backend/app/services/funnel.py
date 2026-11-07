@@ -38,6 +38,20 @@ TIER_LABELS = {
     "high_upper": "A — High (upper bound)",
 }
 
+# HF04: không đủ mẫu totalOrder thì hạ tier tương ứng.
+DEMOTE_RULES = {
+    "high_upper": ("qualified_upper", 100),
+    "qualified_upper": ("watch", 50),
+}
+
+
+def apply_total_order_demotion(tier: str, total_orders: int | None) -> str:
+    rule = DEMOTE_RULES.get(tier)
+    if rule is None or total_orders is None:
+        return tier
+    new_tier, threshold = rule
+    return new_tier if total_orders < threshold else tier
+
 
 def fnum(value: Any) -> float | None:
     if value is None or value == "":

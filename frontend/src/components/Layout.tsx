@@ -4,6 +4,7 @@ import { clearSession, getStoredUser } from "../lib/auth";
 
 const navItems = [
   { to: "/", label: "Demo traders" },
+  { to: "/data-health", label: "Data Health" },
   { to: "/screener", label: "Screener", phase: "Phase 3" },
   { to: "/ranking", label: "Ranking", phase: "Phase 3" },
   { to: "/compare", label: "Compare", phase: "Phase 4" },

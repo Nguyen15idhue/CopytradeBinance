@@ -53,6 +53,21 @@ services:
     depends_on:
       - backend
 
+  worker:
+    build: ./backend
+    env_file: .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://copytrade:copytrade_dev_password@db:5432/copytrade}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: python -m app.worker.scheduler
+
   nginx:
     image: nginx:1.27-alpine
     ports:

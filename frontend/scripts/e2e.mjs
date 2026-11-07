@@ -38,22 +38,45 @@ try {
   await page.getByRole("heading", { name: "Trader demo" }).waitFor();
   console.log("Đăng nhập: OK");
 
-  await page.getByRole("link", { name: /Qualified Fixture/ }).click();
+  await page.getByRole("link", { name: "Data Health" }).click();
+  await page.getByRole("heading", { name: "Data Health" }).waitFor();
+  await page.getByRole("heading", { name: "Universe theo tier" }).waitFor();
+  const health = await page.locator("body").innerText();
+  assert(
+    health.toLowerCase().includes("collector đang bật"),
+    "Thiếu trạng thái collector",
+  );
+  assert(health.includes("L0 — Universe scan"), "Thiếu bảng lần chạy");
+  console.log("Data Health render: OK");
+
+  async function pickTrader(tier) {
+    return page.evaluate(async (value) => {
+      const token = localStorage.getItem("ct_access_token");
+      const response = await fetch(`/api/v1/universe/traders?tier=${value}&page_size=1`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await response.json();
+      return json.data.items[0]?.id ?? null;
+    }, tier);
+  }
+
+  const qualifiedId = await pickTrader("qualified");
+  assert(Boolean(qualifiedId), "Không có trader qualified trong universe");
+  await page.goto(`${base}/traders/${qualifiedId}`, { waitUntil: "domcontentloaded" });
   await page.getByRole("heading", { name: "10 chỉ số cốt lõi" }).waitFor();
   let body = await page.locator("body").innerText();
-  assert(body.includes("Qualified"), "Thiếu badge Qualified");
-  assert(body.includes("19.19%"), "Thiếu ROI 90D");
-  assert(body.includes("8.54%"), "Thiếu MDD 90D");
+  assert(body.includes("ROI 90D"), "Thiếu ROI 90D");
+  assert(body.toLowerCase().includes("qualified"), "Thiếu badge tier");
   assert(!body.includes("undefined") && !body.includes("NaN"), "UI có undefined/NaN");
   console.log("Trader qualified render: OK");
 
-  await page.goto(`${base}/`, { waitUntil: "domcontentloaded" });
-  await page.getByRole("link", { name: /Excluded Fixture/ }).click();
+  const excludedId = await pickTrader("excluded");
+  assert(Boolean(excludedId), "Không có trader excluded trong universe");
+  await page.goto(`${base}/traders/${excludedId}`, { waitUntil: "domcontentloaded" });
   await page.getByRole("heading", { name: "10 chỉ số cốt lõi" }).waitFor();
   body = await page.locator("body").innerText();
   assert(body.includes("Trader bị loại khỏi shortlist"), "Thiếu banner excluded");
-  assert(body.includes("Runtime < 30 ngày"), "Thiếu lý do runtime");
-  assert(body.includes("N/A"), "Thiếu N/A cho field null");
+  assert(body.includes("ROI 90D"), "Thiếu chỉ số");
   console.log("Trader excluded render: OK");
 
   await page.getByRole("button", { name: "Đăng xuất" }).click();

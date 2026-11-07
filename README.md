@@ -25,11 +25,33 @@ docker compose up -d --build
 ## Cấu trúc
 
 ```text
-backend/        FastAPI, SQLAlchemy async, Alembic
+backend/        FastAPI, SQLAlchemy async, Alembic, collector, worker scheduler
 frontend/       React + Vite + TypeScript + Tailwind
 infra/nginx/    Reverse proxy
 docs/kehoach/   Kế hoạch và checklist
 phase0/         Bằng chứng spike dữ liệu (không commit data/)
+data/raw/       JSONL archive (không commit)
+```
+
+## Collector Phase 2
+
+- `worker` chạy scheduler: scan 60 phút; performance 6h; detail 12h; trades 24h.
+- API vận hành: `/api/v1/collector/status`, `run-scan`, `run-deep`, `kill-switch`.
+- UI: http://localhost:8080/data-health
+
+```bash
+# Chạy tay từng tầng
+docker compose exec backend python -m app.collector_cli scan
+docker compose exec backend python -m app.collector_cli recompute
+docker compose exec backend python -m app.collector_cli perf
+docker compose exec backend python -m app.collector_cli detail
+docker compose exec backend python -m app.collector_cli trades
+
+# Xem log worker
+docker compose logs -f worker
+
+# Gỡ khóa collector khi process chết giữa chừng (TTL 30 phút)
+docker compose exec redis redis-cli DEL lock:collector:scan lock:collector:deep
 ```
 
 ## Lệnh thường dùng

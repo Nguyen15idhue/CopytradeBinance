@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter, Depends, Request
-from sqlalchemy import desc, select
+from sqlalchemy import case, desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
@@ -64,8 +64,18 @@ async def get_trader(
 
     snapshot_result = await db.execute(
         select(PortfolioSnapshot)
-        .where(PortfolioSnapshot.lead_portfolio_id == portfolio_id)
-        .order_by(desc(PortfolioSnapshot.collected_at))
+        .where(
+            PortfolioSnapshot.lead_portfolio_id == portfolio_id,
+            PortfolioSnapshot.source.in_(("demo", "detail", "list")),
+        )
+        .order_by(
+            case(
+                (PortfolioSnapshot.source == "demo", 0),
+                (PortfolioSnapshot.source == "detail", 1),
+                else_=2,
+            ),
+            desc(PortfolioSnapshot.collected_at),
+        )
         .limit(1)
     )
     snapshot = snapshot_result.scalar_one_or_none()
@@ -85,11 +95,14 @@ async def get_trader(
     tier = universe.potential_tier if universe else "unknown"
     reasons = universe.filter_reasons if universe else ["not_in_universe"]
     runtime_days = raw.get("runtimeDays")
-    aum = raw.get("aum")
+    if runtime_days is None and trader.start_time is not None:
+        delta = datetime.now(UTC) - trader.start_time
+        runtime_days = round(delta.total_seconds() / 86_400, 2)
+    aum = raw.get("aum") or raw.get("aumAmount")
     copy_aum = raw.get("copyAum")
     current_copiers = raw.get("currentCopyCount")
     max_copiers = raw.get("maxCopyCount")
-    leverage = raw.get("leverage")
+    leverage = raw.get("leverage") or raw.get("maxLeverage")
 
     mdd = _float(metric.mdd) if metric else None
     sharpe = _float(metric.sharpe) if metric else None

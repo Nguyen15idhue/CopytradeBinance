@@ -11,6 +11,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.collection_log import CollectionLog
+from app.models.data_quality_flag import DataQualityFlag
 from app.models.performance import PerformanceMetric
 from app.models.position import Position
 from app.models.snapshot import PortfolioSnapshot
@@ -20,6 +21,7 @@ from app.models.trader import Trader
 from app.models.transfer import Transfer
 from app.models.universe import TraderUniverse
 from app.services.collector.parsers import ms_to_dt, parse_position, parse_trade, parse_transfer
+from app.services.funnel import apply_total_order_demotion
 
 logger = logging.getLogger(__name__)
 
@@ -31,12 +33,6 @@ MAX_TRANSFER_PAGES = 10
 MAX_TRADE_PAGES = 500
 TOP_WATCH_LIMIT = 200
 TOP_QUALIFIED_TRADES = 50
-
-# HF04: không đủ mẫu thì hạ tier tương ứng.
-DEMOTE_RULES = {
-    "high_upper": ("qualified_upper", 100),
-    "qualified_upper": ("watch", 50),
-}
 
 
 def _decimal(value: Any) -> Decimal | None:
@@ -153,6 +149,45 @@ async def fetch_performance_for_watch(
         )
         await db.execute(statement)
 
+    flags: list[dict[str, Any]] = []
+    for portfolio_id, windows in by_trader.items():
+        performance = windows.get("90D") or {}
+        if performance.get("sharpRatio") is None:
+            flags.append(
+                {
+                    "lead_portfolio_id": portfolio_id,
+                    "flag": "missing_sharpe",
+                    "severity": "info",
+                    "detail": {"window": "90D"},
+                }
+            )
+        if performance.get("mdd") is None:
+            flags.append(
+                {
+                    "lead_portfolio_id": portfolio_id,
+                    "flag": "missing_mdd",
+                    "severity": "info",
+                    "detail": {"window": "90D"},
+                }
+            )
+        total_orders = _int(performance.get("totalOrder"))
+        if total_orders is not None and total_orders < 20:
+            flags.append(
+                {
+                    "lead_portfolio_id": portfolio_id,
+                    "flag": "low_sample",
+                    "severity": "warning",
+                    "detail": {"total_orders": total_orders},
+                }
+            )
+    if flags:
+        statement = pg_insert(DataQualityFlag).values(flags)
+        statement = statement.on_conflict_do_update(
+            index_elements=[DataQualityFlag.lead_portfolio_id, DataQualityFlag.flag],
+            set_={"severity": statement.excluded.severity, "detail": statement.excluded.detail},
+        )
+        await db.execute(statement)
+
     demotions = _apply_total_order_rules(by_trader, dict(targets))
     for portfolio_id, (old_tier, new_tier, total_orders) in demotions.items():
         row = await db.get(TraderUniverse, portfolio_id)
@@ -208,17 +243,14 @@ def _apply_total_order_rules(
 ) -> dict[str, tuple[str, str, int]]:
     changes: dict[str, tuple[str, str, int]] = {}
     for portfolio_id, tier in tiers.items():
-        rule = DEMOTE_RULES.get(tier)
-        if rule is None:
-            continue
         performance = by_trader.get(portfolio_id, {}).get("90D")
         if not performance:
             continue
         total_orders = _int(performance.get("totalOrder"))
         if total_orders is None:
             continue
-        new_tier, threshold = rule
-        if total_orders < threshold:
+        new_tier = apply_total_order_demotion(tier, total_orders)
+        if new_tier != tier:
             changes[portfolio_id] = (tier, new_tier, total_orders)
     return changes
 

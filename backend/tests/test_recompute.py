@@ -5,6 +5,7 @@ import pytest
 from sqlalchemy import delete, select
 
 from app.core.database import SessionLocal
+from app.models.performance import PerformanceMetric
 from app.models.snapshot import PortfolioSnapshot
 from app.models.tier_history import TierHistory
 from app.models.trader import Trader
@@ -136,3 +137,24 @@ async def test_recompute_assigns_tiers_and_is_idempotent() -> None:
         second = await recompute_universe(db)
         assert second["changed"] == 0
         assert second["counts"] == first["counts"]
+
+
+@pytest.mark.asyncio
+async def test_recompute_applies_total_order_demotion() -> None:
+    await _seed([_item(f"{PREFIX}-demote")])
+    async with SessionLocal() as db:
+        db.add(
+            PerformanceMetric(
+                lead_portfolio_id=f"{PREFIX}-demote",
+                time_range="90D",
+                collected_at=datetime(2026, 11, 7, 3, 0, tzinfo=UTC),
+                total_orders=40,
+            )
+        )
+        await db.commit()
+
+        await recompute_universe(db)
+        row = await db.get(TraderUniverse, f"{PREFIX}-demote")
+        assert row is not None
+        assert row.potential_tier == "qualified_upper"  # high cần >= 100
+        assert "total_orders_lt_threshold" in row.filter_reasons

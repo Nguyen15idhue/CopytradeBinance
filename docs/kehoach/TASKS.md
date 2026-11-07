@@ -311,19 +311,19 @@
 **Tham chiếu:** §10.4 Chống trùng (1941–1952) · §10.5 JSONL archive (1953–1960) · §10.6 Retention (1961–1979) · §12.4 Scheduler (2155–2161) · §12.5 Resume (2162–2172) · §12.6 Logs (2173–2181) · §12.8 Kill switch (2206–2219) · §15.4 Lịch chạy (3013–3028) · §11.4 Data health API (2058–2070)  
 **→ đọc khi:** làm scheduler, raw archive, data health.
 
-- [ ] JSONL archive append-only; nén sau 7 ngày.
-- [ ] Parser detail/performance/position/trade/transfer → DB.
-- [ ] Hash trade/transfer chống trùng.
-- [ ] `collection_logs` theo từng tầng.
-- [ ] `data_quality_flags`.
-- [ ] Scheduler 60 phút cho list scan.
-- [ ] Deep fetch scheduler riêng (6h/12h/24h).
-- [ ] Advisory lock / Redis lock.
-- [ ] API `/collector/status`.
-- [ ] API `/collector/run-scan` (admin).
-- [ ] API `/collector/run-deep` (admin).
-- [ ] UI Data Health theo tier.
-- [ ] Kill switch qua config.
+- [x] JSONL archive append-only; nén sau 7 ngày. → Bằng chứng: `storage/raw.py` `compress_older_than/purge_older_than`; 2 unit test pass; live 372 file / 144 MB.
+- [x] Parser detail/performance/position/trade/transfer → DB. → Bằng chứng: `collector/parsers.py`; bảng positions/trades/transfers/performance_metrics đã có dữ liệu live.
+- [x] Hash trade/transfer chống trùng. → Bằng chứng: unique `(lead, trade_hash)` / `(lead, transfer_hash)`; 10.367 bản ghi trùng bị loại khi chạy full trades.
+- [x] `collection_logs` theo từng tầng. → Bằng chứng: log L0/L2/L3/L4 với pages/requests/items_ok/error_count/detail.
+- [x] `data_quality_flags`. → Bằng chứng: migration `0007`; ghi `missing_sharpe`, `missing_mdd`, `low_sample` từ L2.
+- [x] Scheduler 60 phút cho list scan. → Bằng chứng: `worker` service, `app/worker/scheduler.py`; test `due_jobs` pass.
+- [x] Deep fetch scheduler riêng (6h/12h/24h). → Bằng chứng: `DEEP_INTERVAL_HOURS_WATCH/QUALIFIED/HIGH`; `intervals()`.
+- [x] Advisory lock / Redis lock. → Bằng chứng: Redis lock + fallback advisory; job thật bị `skipped` khi worker đang giữ khóa.
+- [x] API `/collector/status`. → Bằng chứng: trả tiers, latest_runs, jobs, raw_archive, enabled.
+- [x] API `/collector/run-scan` (admin). → Bằng chứng: 202 + job; job success, scan 11.129 trader, watch 511.
+- [x] API `/collector/run-deep` (admin). → Bằng chứng: 202 route; viewer 403; kill switch → 409 `COLLECTOR_DISABLED`.
+- [x] UI Data Health theo tier. → Bằng chứng: `/data-health`; E2E thấy tier cards + bảng lần chạy.
+- [x] Kill switch qua config. → Bằng chứng: env `COLLECTOR_KILL_SWITCH` + `POST /collector/kill-switch`; 409 khi tắt.
 
 ### Bước 2.8 — QA & gate Phase 2
 

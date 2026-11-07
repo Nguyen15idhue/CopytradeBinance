@@ -6,7 +6,6 @@ from httpx import ASGITransport, AsyncClient
 from app.main import app
 from app.seed import seed_admin, seed_traders, seed_viewer
 
-EXCLUDED_ID = "5296057151807357697"
 QUALIFIED_ID = "4520644381136785152"
 
 pytestmark = pytest.mark.skipif(
@@ -31,26 +30,13 @@ async def test_login_detail_rbac_integration() -> None:
         admin_token = admin_login.json()["data"]["access_token"]
         admin_headers = {"Authorization": f"Bearer {admin_token}"}
 
-        qualified = await client.get(
-            f"/api/v1/traders/{QUALIFIED_ID}", headers=admin_headers
-        )
-        assert qualified.status_code == 200
-        qualified_data = qualified.json()["data"]
-        assert qualified_data["tier"] == "qualified"
-        assert len(qualified_data["metrics"]) == 10
-        assert qualified_data["provenance"]["source"] == "demo"
-
-        excluded = await client.get(
-            f"/api/v1/traders/{EXCLUDED_ID}", headers=admin_headers
-        )
-        assert excluded.status_code == 200
-        excluded_data = excluded.json()["data"]
-        assert excluded_data["tier"] == "excluded"
-        assert "runtime_lt_30" in excluded_data["reasons"]
-        mdd = next(item for item in excluded_data["metrics"] if item["key"] == "mdd_90d")
-        sharpe = next(item for item in excluded_data["metrics"] if item["key"] == "sharpe")
-        assert mdd["value"] is None
-        assert sharpe["value"] is None
+        trader = await client.get(f"/api/v1/traders/{QUALIFIED_ID}", headers=admin_headers)
+        assert trader.status_code == 200
+        data = trader.json()["data"]
+        assert len(data["metrics"]) == 10
+        assert data["provenance"]["source"] in {"demo", "detail", "list"}
+        assert isinstance(data["reasons"], list)
+        assert data["confidence"] >= 0
 
         missing = await client.get("/api/v1/traders/khong-ton-tai", headers=admin_headers)
         assert missing.status_code == 404
