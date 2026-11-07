@@ -659,3 +659,22 @@ Nguồn: `docs/0/04-ke-hoach-screener-da-khung.md`. Khảo sát xác nhận V1�
   alembic head `0018_metric_windows`, check_refs 174/0, check_tech_docs 20/20,
   secret scan 0. Kế hoạch 04 hoàn tất; bảng commit + đóng V1–V4 ghi ở
   `docs/0/04-ke-hoach-screener-da-khung.md §10`.
+
+## 19. Kiểm tra sai lệch số 7D (08/11/2026) — không phải lỗi dấu
+
+Người dùng báo AI trả 7D `+3.85% / +21.06 / copier +1,528.11` trong khi Binance hiển thị
+`−3.56% / −19.45 / copier −1,394.22` cho trader `5076854789130646529` (Leo-Hamsters).
+
+Kết luận: **không phải lỗi parse hay đảo dấu**.
+- `performance_metrics.raw` (04:00 UTC) lưu đúng `roi=3.85481245`, `pnl=21.06027554`,
+  `copierPnl=1528.1128041` — giống hệt cột DB.
+- Gọi BAPI live cùng endpoint: `roi=-3.56976642`, `pnl=-19.45312388`,
+  `copierPnl=-1394.22189885` → khớp chính xác Binance UI; MDD 8.13% và 5/6 lệnh khớp cả hai.
+- Nguyên nhân: dữ liệu cũ **749 phút** (0/4138 dòng mới hơn 6h); `freshness_minutes=765.96`;
+  `performance_at=04:00` trong khi bây giờ `17:27 UTC`. Cửa sổ 7D cuộn trên vị thế mở 16x
+  nên ROI/PnL đổi dấu trong vài giờ (PnL −40,5 USDT trên margin ~527 ≈ −7,7pp, khớp mức đổi).
+- Worker restart 13:57 UTC khởi tạo `last_run = now` → perf bị đẩy tới 19:57 (đã ghi ở plan 05 V3).
+
+Ba lỗi phụ đã đưa vào kế hoạch 05: V7 (không cảnh báo dữ liệu cũ), V8 (`as_of` lấy
+`computed_at` thay vì `performance_at`), V9 (`risk_score` trống 531/531).
+Đã chạy refresh dữ liệu thủ công sau khi cập nhật kế hoạch.

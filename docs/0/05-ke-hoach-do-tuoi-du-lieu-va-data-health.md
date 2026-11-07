@@ -1,11 +1,14 @@
 # 05 — Kế hoạch: vòng đời raw archive, độ tươi dữ liệu và Data Health
 
 > Trạng thái: **kế hoạch**, chưa triển khai.
-> Phạm vi: `RawArchive`, scheduler collector, API `/collector/status`, job thủ công, UI `/data-health`.
+> Phạm vi: `RawArchive`, scheduler collector, API `/collector/status`, job thủ công, UI `/data-health`,
+> độ tươi dữ liệu (agent + trader detail), `as_of` của published metrics, backfill `risk_score`.
 > Nguồn khảo sát: đọc code + query PostgreSQL + đo trực tiếp trong container ngày 2026-11-07/08.
 > Liên quan: `backend/app/services/storage/raw.py`, `backend/app/worker/scheduler.py`,
 > `backend/app/api/v1/collector.py`, `backend/app/services/jobs.py`,
-> `frontend/src/pages/DataHealthPage.tsx`, `docs/ky-thuat/11-data-health-collector.md`.
+> `frontend/src/pages/DataHealthPage.tsx`, `frontend/src/pages/TraderDetailPage.tsx`,
+> `frontend/src/pages/ScreenerPage.tsx`, `backend/app/services/agent/`,
+> `docs/ky-thuat/11-data-health-collector.md`, `docs/ky-thuat/12-ai.md`.
 
 ---
 
@@ -84,6 +87,41 @@ Trong lúc khảo sát, một process PowerShell bên ngoài chạy lặp
 Việc này không phải lỗi code nhưng làm job thủ công biến mất và có thể gây lỗi kết nối.
 Khi triển khai/QA phải đảm bảo chỉ có một tiến trình compose đang chạy.
 
+### V7 — Hệ thống biết dữ liệu cũ nhưng không cảnh báo ai
+
+| Bằng chứng | Chi tiết |
+|---|---|
+| `trader_metrics.metrics.freshness_minutes` | Trader `5076854789130646529` = **765,96 phút** (~12,8h) |
+| `metrics.provenance.performance_at` | `2026-11-07T04:00:00+00:00` trong khi bây giờ `17:27 UTC` |
+| Kế hoạch 03 §8 | Yêu cầu “dữ liệu cũ > 150 phút → cảnh báo” — **chưa implement** |
+| `services/agent/` | Không đọc `freshness_minutes`; `grep freshness` chỉ thấy mô tả tool |
+| `TraderDetailPage.tsx` / `ScreenerPage.tsx` | Không hiển thị mốc dữ liệu hay badge “cũ” |
+| Hệ quả thực tế | AI trình bày 7D `+3.85%` (dữ liệu 04:00) như số hiện tại; Binance lúc kiểm tra là `−3.57%` |
+
+Đây là lỗi trung thực dữ liệu: cùng một con số nhưng người dùng không biết nó cũ 12,8 giờ,
+trong khi cửa sổ 7D cuộn và vị thế mở có thể đổi dấu trong vài giờ.
+
+### V8 — `as_of` của published metrics lấy sai mốc
+
+| Bằng chứng | Chi tiết |
+|---|---|
+| `agent/db_tools.py` | `as_of = metric.computed_at.isoformat()` |
+| Thực tế trader trên | `computed_at = 16:45 UTC` (vừa rebuild) nhưng nguồn published là `04:00 UTC` |
+| `metrics.provenance.performance_at` | Đã lưu đúng mốc nguồn nhưng không được dùng |
+| Hệ quả | UI/AI ghi “as_of 2026-11-07” như thể dữ liệu mới, che mất độ trễ 12,8h |
+
+`computed_at` là lúc **tính lại**, không phải lúc **thu thập**. Dùng nó làm `as_of` cho số
+published là sai ngữ nghĩa.
+
+### V9 — `risk_score` trống toàn bộ, filter và hiển thị vô dụng
+
+| Bằng chứng | Chi tiết |
+|---|---|
+| `trader_metrics` | `risk_score` not null: **0/531** |
+| `risk_level` | Vẫn có (trader trên = `high`) |
+| Nguyên nhân | Risk V2 mới ở mức code + migration `0014`; chưa chạy backfill `collector_cli risk` |
+| Hệ quả | Filter `max_risk_score` (kế hoạch 04) luôn trả rỗng; cột “Điểm rủi ro” và `veto` trống; AI không nêu được điểm rủi ro |
+
 ---
 
 ## 2. Mục tiêu
@@ -95,6 +133,12 @@ Khi triển khai/QA phải đảm bảo chỉ có một tiến trình compose đ
 5. UI Data Health không còn màn hình trắng/treo: skeleton từng phần, thời gian đã tải,
    trạng thái đang cập nhật, lần cập nhật cuối, nút thử lại.
 6. Không dùng phần trăm tiến trình giả; nếu muốn tiến trình thật thì phải có tín hiệu từ server.
+7. Mọi màn hình/AI hiển thị số liệu published phải kèm **mốc dữ liệu thật** và cảnh báo
+   khi `freshness_minutes > 150`; không được trình bày số cũ như số hiện tại.
+8. `as_of` của published metrics lấy từ `provenance.performance_at` (mốc thu thập), không
+   dùng `computed_at` (mốc tính lại).
+9. `risk_score`/`risk_veto` phải được backfill cho toàn bộ trader trước khi filter
+   `max_risk_score` được coi là dùng được.
 
 ---
 
@@ -112,6 +156,9 @@ Khi triển khai/QA phải đảm bảo chỉ có một tiến trình compose đ
 | D8 | Retention chạy hằng ngày; có CLI dry-run | Kiểm soát dung lượng, không xoá nhầm |
 | D9 | Không sửa migration cũ; migration mới đánh số tiếp từ `0019` | AGENTS.md §3 |
 | D10 | Giữ phạm vi raw archive ở L0 list; L2–L4 raw vẫn nằm trong DB JSONB | Không mở rộng phạm vi, tránh tăng dung lượng đột biến |
+| D11 | Ngưỡng cảnh báo dữ liệu cũ **150 phút** (hằng số dùng chung backend + UI), có 3 mức: `ok ≤150`, `stale ≤1440`, `very_stale >1440` | Một nguồn sự thật, tránh mỗi nơi một ngưỡng |
+| D12 | `as_of` published = `provenance.performance_at`; `computed_at` trả riêng là `computed_at` | Đúng ngữ nghĩa thu thập vs tính lại |
+| D13 | `risk_score` backfill bằng `collector_cli risk` + kiểm tra `count(risk_score) = count(*)`; nếu thiếu thì filter `max_risk_score` trả `meta.risk_score_missing` | Không âm thầm trả rỗng |
 
 ---
 
@@ -382,6 +429,24 @@ useQuery({
 - Số dùng `toLocaleString("vi-VN")`; ngày dùng `toLocaleString("vi-VN")`.
 - Không hiển thị `undefined`, `NaN`, `null`; null → `—` hoặc `N/A`.
 
+### 4.8. Độ tươi dữ liệu hiển thị cho người dùng
+
+Nguồn: `trader_metrics.metrics.freshness_minutes` + `metrics.provenance.performance_at`.
+
+Phân mức dùng chung (backend `services/freshness.py`, frontend `lib/freshness.ts`):
+
+| Mức | Điều kiện | UI | AI |
+|---|---|---|---|
+| `ok` | `≤ 150` phút | chip xanh “Dữ liệu 12 phút trước” | không cảnh báo |
+| `stale` | `151–1440` phút | chip vàng “Dữ liệu cũ 2 giờ” | `warning` + nêu mốc as_of |
+| `very_stale` | `> 1440` phút | banner đỏ “Dữ liệu cũ hơn 1 ngày” | `warning` + từ chối kết luận xu hướng ngắn hạn |
+| `unknown` | thiếu `freshness_minutes` | chip xám “Chưa rõ độ mới” | nêu `missing_data` |
+
+Quy tắc:
+- Không đổi giá trị số; chỉ thêm cảnh báo.
+- Với `very_stale`, AI vẫn được nêu số nhưng phải ghi “số liệu tại `<as_of>`, có thể đã thay đổi”.
+- Không tự động refresh khi người dùng đang xem (tránh nhảy số).
+
 ---
 
 ## 5. Các bước triển khai
@@ -451,7 +516,34 @@ useQuery({
   - Lỗi 500: banner lỗi + nút thử lại.
   - Không có `undefined/NaN`.
 
-### Bước 5.0.8 — QA + docs (0,5 ngày)
+### Bước 5.0.8 — Freshness hiển thị + cảnh báo AI (1 ngày)
+
+- Backend `services/freshness.py`: `level(freshness_minutes)` → `ok|stale|very_stale|unknown`,
+  hằng số `STALE_MINUTES = 150`, `VERY_STALE_MINUTES = 1440`.
+- API `/traders`, `/traders/{id}`, `/traders/{id}/performance` trả thêm
+  `freshness: {minutes, level, as_of}`.
+- `agent` thêm `warning` khi `stale`/`very_stale`, và `missing_data: ["freshness_unknown"]`.
+- Frontend `lib/freshness.ts` + chip/banner ở Screener, Trader Detail, Agent panel.
+- Test: unit 4 mức; integration API trả đúng mức; E2E chip hiện với trader có
+  `freshness_minutes` lớn (mock response).
+
+### Bước 5.0.9 — `as_of` đúng mốc thu thập (0,5 ngày)
+
+- `agent/db_tools.get_trader_profile` và `search_traders`: `as_of` = `provenance.performance_at`;
+  trả thêm `computed_at` riêng.
+- `api/v1/trader_detail` và `screener.serialize_row`: thêm `as_of` (nguồn) + giữ `computed_at`.
+- Test: trader có `computed_at` mới hơn `performance_at` → response có hai mốc khác nhau,
+  `as_of` khớp `performance_at`.
+
+### Bước 5.0.10 — Backfill `risk_score` + chống rỗng âm thầm (0,5 ngày)
+
+- Chạy `python -m app.collector_cli risk` rồi `rank`; kiểm tra `count(risk_score) = count(*)`.
+- `screener.list_traders`: nếu `max_risk_score` được dùng mà cột toàn null →
+  `meta.risk_score_missing = true` (không trả rỗng im lặng).
+- UI: cột “Điểm rủi ro” hiện `N/A` + chú thích khi thiếu; ẩn filter cho tới khi có dữ liệu.
+- Test: backfill 531/531; filter `max_risk_score` trả đúng; case thiếu → meta flag.
+
+### Bước 5.0.11 — QA + docs (0,5 ngày)
 
 - `ruff`, `pytest` full, `npm run build`, Playwright.
 - `scripts/check_refs.py` 0 lỗi.
@@ -492,6 +584,18 @@ useQuery({
 - [ ] Manual scan thành công cập nhật `last_success`.
 - [ ] Không chạy 2 deep job song song.
 
+### Độ tươi dữ liệu & as_of
+
+- [ ] `freshness_minutes` 4 mức trả đúng `ok/stale/very_stale/unknown`.
+- [ ] Trader có `freshness_minutes = 766` → API trả `level=stale`, UI hiện chip vàng.
+- [ ] Agent trả lời câu hỏi 7D khi dữ liệu `stale` → có `warning` nêu mốc `as_of`;
+  khi `very_stale` → không kết luận xu hướng ngắn hạn.
+- [ ] `as_of` của published = `provenance.performance_at`, khác `computed_at` khi rebuild.
+- [ ] Không còn trường hợp AI ghi `as_of` là thời điểm tính lại.
+- [ ] `risk_score` backfill đủ `531/531`; `count(risk_score) = count(*)`.
+- [ ] Filter `max_risk_score` trả đúng; nếu cột null → `meta.risk_score_missing = true`.
+- [ ] Cột “Điểm rủi ro” hiện số, không `N/A` sau backfill.
+
 ### Job thủ công
 
 - [ ] Backend restart giữa lúc job chạy: DB có trạng thái `running`/`failed`, không mất row.
@@ -528,6 +632,9 @@ useQuery({
 - [ ] Không có % tiến trình giả.
 - [ ] Docs + `TASKS.md` + `SESSION.md` cập nhật; `check_refs` 0 lỗi.
 - [ ] Không commit secret, `.env`, `data/`, `dist`, `graphify-out/`, token tạm.
+- [ ] Mọi màn hình/AI hiển thị số published đều có mốc dữ liệu và cảnh báo khi > 150 phút.
+- [ ] `as_of` là mốc thu thập (`performance_at`), không phải `computed_at`.
+- [ ] `risk_score` đủ 531/531; filter `max_risk_score` dùng được, thiếu thì có meta flag.
 
 ---
 
@@ -542,6 +649,9 @@ useQuery({
 | Job thủ công bị treo | Timeout + trạng thái `failed` + retry có giới hạn |
 | UI progress gây hiểu nhầm | Không hiện %; chỉ elapsed/stage thật |
 | Retention làm mất dữ liệu audit | Mặc định `latest_previous`; audit phải bật rõ; dry-run trước |
+| Cảnh báo cũ gây nhiễu | Ngưỡng 150 phút dùng chung; chỉ cảnh báo, không đổi số |
+| `as_of` vẫn bị lấy sai ở nơi khác | Grep `computed_at` trong agent/API; test so sánh hai mốc |
+| Backfill `risk_score` sai hàng loạt | Chạy dry-run/đếm trước–sau; giữ `risk_level` cũ nếu lỗi |
 | `portfolio_snapshots` vẫn tăng ~11k dòng/giờ | Theo dõi riêng; plan partition/retention ở giai đoạn sau |
 
 ---

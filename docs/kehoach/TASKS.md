@@ -914,3 +914,21 @@ Tóm tắt: không auto-trading, không realtime WebSocket, không Paper Copy tr
 - [x] B4.0.8 Orchestrator JSON compact. → Bằng chứng: `compact_observation` + test 3 pass; tokens 4000.
 - [x] B4.0.9 Eval agent đa use case (15 case phân tích/đánh giá). → Bằng chứng: 15/15 pass; scorecard trong plan 04.
 - [x] B4.0.10 QA cuối kế hoạch 04. → Bằng chứng: 249 pass, ruff/build/E2E 20 checkpoint, head `0018`, check_refs 174/0, check_tech_docs 20/20.
+
+---
+
+## Phase 6d — Độ tươi dữ liệu & Data Health (docs/0/05-ke-hoach-do-tuoi-du-lieu-va-data-health.md)
+
+> Bổ sung V7–V9 ngày 08/11/2026 sau khi kiểm tra sai lệch số 7D của trader `5076854789130646529`.
+
+- [ ] B5.0.1 Chốt spec + migration manifest.
+- [ ] B5.0.2 Refactor RawArchive (`latest_previous`, gzip, atomic).
+- [ ] B5.0.3 Retention + CLI dry-run.
+- [ ] B5.0.4 API status nhanh + archive-stats.
+- [ ] B5.0.5 Scheduler freshness (last_success từ DB, không `last_run = now`).
+- [ ] B5.0.6 Job thủ công lưu DB.
+- [ ] B5.0.7 UI loading/progress.
+- [ ] B5.0.8 Freshness hiển thị + cảnh báo AI (V7): ngưỡng 150/1440 phút, chip/banner, `warning` agent.
+- [ ] B5.0.9 `as_of` = `provenance.performance_at`, tách khỏi `computed_at` (V8).
+- [ ] B5.0.10 Backfill `risk_score` 531/531 + `meta.risk_score_missing` khi thiếu (V9).
+- [ ] B5.0.11 QA + docs.
