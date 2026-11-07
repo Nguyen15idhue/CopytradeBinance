@@ -73,7 +73,7 @@ docker compose exec backend python -m app.collector_cli audit
 ```
 
 UI: `/screener`, `/traders/:id`, `/compare?ids=a,b`, `/risk`, `/ranking`, `/settings`,
-`/data-health`, `/help` (hướng dẫn người mới).
+`/data-health`, `/help` (hướng dẫn người mới), `/technical` (tài liệu kỹ thuật).
 
 ## AI Report (Phase 5)
 

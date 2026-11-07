@@ -16,6 +16,7 @@ const navItems: NavItem[] = [
   { to: "/risk", label: NAV_LABELS.risk },
   { to: "/settings", label: NAV_LABELS.settings },
   { to: "/help", label: NAV_LABELS.help },
+  { to: "/technical", label: NAV_LABELS.technical },
 ];
 
 function NavList({ onNavigate }: { onNavigate?: () => void }) {

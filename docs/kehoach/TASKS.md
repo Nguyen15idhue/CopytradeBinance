@@ -671,6 +671,18 @@ hoàn thiện trang Ranking và trang hướng dẫn cho người mới.
 
 **Gate:** không còn chuỗi UI tiếng Anh ngoài allowlist; không lọt mã enum; AI trả tiếng Việt và có số liệu.
 
+### Bước 5.8 — Trang Tài liệu kỹ thuật
+
+**Mục tiêu:** trang `/technical` có mục lục 20 mục, nội dung kỹ thuật đầy đủ, tách file docs và section TSX.
+
+- [x] Tách `docs/ky-thuat/` thành 20 file + README. → Bằng chứng: `scripts/check_tech_docs.py` báo 20/20.
+- [x] Tạo `manifest.ts`, 20 section TSX, index. → Bằng chứng: build pass.
+- [x] Trang `/technical`: TOC 2 cấp, search, anchor, active, progress, mobile drawer, print. → Bằng chứng: E2E technical docs.
+- [x] 3 hình SVG: kiến trúc, pipeline dữ liệu, scoring. → Bằng chứng: `TechIllustrations.tsx`.
+- [x] Route + menu `Tài liệu kỹ thuật` + link từ Help. → Bằng chứng: E2E.
+- [x] Lazy-load route để không làm nặng bundle chính. → Bằng chứng: chunk `TechnicalDocsPage` riêng.
+- [x] QA: build pass, E2E 14 checkpoint, check_tech_docs 20/20. → Bằng chứng: log 07/11/2026.
+
 ---
 
 ## Phase 6 — Testing + Deploy + Beta

@@ -71,4 +71,11 @@ button {
     border-color: #cbd5e1 !important;
     break-inside: avoid;
   }
+  .tech-article,
+  .tech-section {
+    break-inside: auto;
+  }
+  .tech-section h2 {
+    break-after: avoid;
+  }
 }

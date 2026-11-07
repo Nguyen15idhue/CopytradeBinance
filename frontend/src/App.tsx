@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import Layout from "./components/Layout";
@@ -12,6 +13,8 @@ import RiskMonitorPage from "./pages/RiskMonitorPage";
 import SettingsPage from "./pages/SettingsPage";
 import ScreenerPage from "./pages/ScreenerPage";
 import TraderDetailPage from "./pages/TraderDetailPage";
+
+const TechnicalDocsPage = lazy(() => import("./pages/TechnicalDocsPage"));
 
 export default function App() {
   return (
@@ -31,6 +34,16 @@ export default function App() {
         <Route path="/risk" element={<RiskMonitorPage />} />
         <Route path="/ranking" element={<RankingPage />} />
         <Route path="/help" element={<HelpPage />} />
+        <Route
+          path="/technical"
+          element={
+            <Suspense
+              fallback={<div className="h-64 animate-pulse rounded-2xl bg-panel" />}
+            >
+              <TechnicalDocsPage />
+            </Suspense>
+          }
+        />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/traders/:id" element={<TraderDetailPage />} />
       </Route>

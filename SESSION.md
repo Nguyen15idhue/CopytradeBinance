@@ -571,3 +571,12 @@ Lưu ý: ranking/help cases (K/H) chỉ chạy được sau khi hoàn thành bư
   không có lời khuyên đầu tư; primary vẫn có lúc thiếu field → fallback.
 - Test: backend **117 passed**; ruff pass; E2E 13 checkpoint; check_refs 174/0.
 - Chưa push.
+
+### 15.8. Trang Tài liệu kỹ thuật 5.8
+
+- Route `/technical`, menu `Tài liệu kỹ thuật`, lazy-load để tách chunk khỏi bundle chính.
+- Nội dung tách 20 file `docs/ky-thuat/*.md` + 20 section TSX; `manifest.ts` là nguồn cấu trúc.
+- `scripts/check_tech_docs.py` kiểm tra 20 ID/thứ tự/title/group khớp docs và đủ section TSX.
+- TOC 2 cấp tự sinh từ heading, search, group filter, anchor, active, progress, mobile drawer, print.
+- 3 SVG kỹ thuật: kiến trúc, pipeline dữ liệu, scoring.
+- E2E: technical docs render, TOC ≥ 20, anchor `#tier`, search, mobile drawer, không overflow ngang.

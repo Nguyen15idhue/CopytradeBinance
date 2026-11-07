@@ -16,6 +16,7 @@ export const NAV_LABELS = {
   risk: "Cảnh báo rủi ro",
   settings: "Cài đặt",
   help: "Hướng dẫn",
+  technical: "Tài liệu kỹ thuật",
 } as const;
 
 export const TIER_LABELS: Record<string, string> = {

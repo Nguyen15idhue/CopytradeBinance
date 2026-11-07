@@ -290,6 +290,9 @@ export default function HelpPage() {
           <Link to="/screener" className="rounded-lg border border-line px-3 py-2 text-sm text-body">
             Mở Bộ lọc trader
           </Link>
+          <Link to="/technical" className="rounded-lg border border-line px-3 py-2 text-sm text-body">
+            Tài liệu kỹ thuật
+          </Link>
           <button
             type="button"
             onClick={() => window.print()}

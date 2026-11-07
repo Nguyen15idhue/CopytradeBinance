@@ -107,6 +107,42 @@ try {
   await page.getByPlaceholder("Tìm trong hướng dẫn...").fill("");
   console.log("Help render/search: OK");
 
+  await page.locator('a[href="/technical"]').first().click();
+  await page.getByRole("heading", { name: "CopytradeBinance" }).waitFor();
+  const techHeadings = await page.getByRole("heading", { level: 2 }).count();
+  assert(techHeadings >= 20, `Technical docs thiếu mục (${techHeadings})`);
+  const techTocLinks = await page
+    .getByRole("navigation", { name: "Mục lục tài liệu kỹ thuật" })
+    .getByRole("link")
+    .count();
+  assert(techTocLinks >= 20, `Technical TOC thiếu mục (${techTocLinks})`);
+  await page
+    .getByRole("navigation", { name: "Mục lục tài liệu kỹ thuật" })
+    .getByRole("link", { name: /Phễu sàng lọc và Tier/ })
+    .first()
+    .click();
+  await page.waitForTimeout(300);
+  assert(page.url().endsWith("#tier"), "Technical anchor không đổi URL");
+  await page.getByPlaceholder("Tìm trong tài liệu...").fill("tier");
+  await page.waitForTimeout(300);
+  const techFiltered = await page.getByRole("heading", { level: 2 }).count();
+  assert(techFiltered >= 1 && techFiltered < techHeadings, "Search technical không lọc");
+  await page.getByPlaceholder("Tìm trong tài liệu...").fill("");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole("button", { name: "Mục lục" }).click();
+  await page
+    .getByRole("navigation", { name: "Mục lục tài liệu kỹ thuật" })
+    .waitFor();
+  await page.getByRole("button", { name: "Ẩn mục lục" }).click();
+  const techOverflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - window.innerWidth,
+  );
+  assert(techOverflow <= 4, `Technical docs vỡ layout ngang (${techOverflow}px)`);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const techBody = await page.locator("body").innerText();
+  assert(!techBody.includes("undefined") && !techBody.includes("NaN"), "Technical docs có undefined/NaN");
+  console.log("Technical docs render/TOC/search: OK");
+
   await page.getByRole("link", { name: "Sức khỏe dữ liệu" }).click();
   await page.getByRole("heading", { name: "Sức khỏe dữ liệu" }).waitFor();
   await page.getByRole("heading", { name: "Universe theo nhóm" }).waitFor();
