@@ -113,6 +113,14 @@ async def cmd_audit() -> int:
     return 0
 
 
+async def cmd_risk() -> int:
+    from app.services.risk_service import rebuild_risk_events
+
+    async with SessionLocal() as db:
+        print(json.dumps(await rebuild_risk_events(db), ensure_ascii=False))
+    return 0
+
+
 async def cmd_deep() -> int:
     from app.services.deep_fetch import run_deep_fetch
 
@@ -134,7 +142,10 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="CLI collector Phase 2")
     parser.add_argument(
         "command",
-        choices=["scan", "recompute", "perf", "detail", "trades", "metrics", "audit", "deep"],
+        choices=[
+            "scan", "recompute", "perf", "detail", "trades", "metrics", "audit",
+            "risk", "deep",
+        ],
     )
     args = parser.parse_args()
     if args.command == "scan":
@@ -151,6 +162,8 @@ def main() -> int:
         return asyncio.run(cmd_metrics())
     if args.command == "audit":
         return asyncio.run(cmd_audit())
+    if args.command == "risk":
+        return asyncio.run(cmd_risk())
     return asyncio.run(cmd_deep())
 
 

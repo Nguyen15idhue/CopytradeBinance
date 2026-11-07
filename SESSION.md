@@ -324,3 +324,11 @@ cd frontend; npm run build
   (ACTIVE, không paused, runtime ≥ 30, ROI/PnL > 0, WR ≥ 40, MDD ≤ 40, AUM ≥ 5k, totalOrder ≥ 20, còn slot, trade 7D).
 - Kết quả live: 50/50 đánh giá, **0 false negative (0%)**, 0 lỗi; lưu `collection_logs.layer='A1'`.
 - Q01/Q02 giữ nguyên: mdd null + `missing_mdd`; pre_score cohort `all`.
+
+### 10.3. Risk rules 3.3
+
+- `services/risk_rules.py` (R01–R11) + `risk_service.py` ghi `risk_events` và `trader_metrics.risk_level`.
+- Mỗi event có evidence JSON `{field, value, threshold, rule}`; thiếu dữ liệu → `unknown`, không tạo event sai.
+- Live: 511 trader → 1.100 event; critical 280, high 501, medium 219, low_sample 91, penalty 9.
+- Risk level: critical 214, high 164, medium 55, low 13, none 38, unknown 27.
+- Lệnh: `docker compose exec backend python -m app.collector_cli risk`.

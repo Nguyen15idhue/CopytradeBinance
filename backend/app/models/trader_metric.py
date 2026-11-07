@@ -36,6 +36,7 @@ class TraderMetric(Base):
     profit_factor: Mapped[float | None] = mapped_column(Numeric(12, 4))
     fee_drag_pct: Mapped[float | None] = mapped_column(Numeric(12, 4))
     confidence: Mapped[float | None] = mapped_column(Numeric(5, 4))
+    risk_level: Mapped[str | None] = mapped_column(String(24))
     low_sample: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     metrics: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
     computed_at: Mapped[datetime] = mapped_column(

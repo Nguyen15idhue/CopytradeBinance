@@ -4,6 +4,7 @@ from app.models.collection_log import CollectionLog
 from app.models.data_quality_flag import DataQualityFlag
 from app.models.performance import PerformanceMetric
 from app.models.position import Position
+from app.models.risk_event import RiskEvent
 from app.models.session import UserSession
 from app.models.snapshot import PortfolioSnapshot
 from app.models.tier_history import TierHistory
@@ -22,6 +23,7 @@ __all__ = [
     "PerformanceMetric",
     "PortfolioSnapshot",
     "Position",
+    "RiskEvent",
     "TierHistory",
     "Trade",
     "Trader",

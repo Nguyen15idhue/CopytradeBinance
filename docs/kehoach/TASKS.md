@@ -392,10 +392,10 @@
 **Tham chiếu:** §9.7 Risk rules (1545–1572) · §8.5 T2 Derived metrics (1263–1300)  
 **→ đọc khi:** viết R01–R11, severity, evidence.
 
-- [ ] R01–R11.
-- [ ] Evidence JSON.
-- [ ] Risk level mapping.
-- [ ] Không tạo risk event khi thiếu dữ liệu (dùng `unknown`).
+- [x] R01–R11. → Bằng chứng: `services/risk_rules.py`; live 511 trader → 1.100 event (critical 280, high 501, medium 219, low_sample 91, penalty 9).
+- [x] Evidence JSON. → Bằng chứng: mỗi event có `{field, value, threshold, rule}` trong `risk_events.evidence`.
+- [x] Risk level mapping. → Bằng chứng: critical/high/medium/low/none/unknown; live: critical 214, high 164, medium 55, low 13, none 38, unknown 27.
+- [x] Không tạo risk event khi thiếu dữ liệu (dùng `unknown`). → Bằng chứng: `evaluate_rules` trả `unknown[]`; 691 field thiếu, không sinh event sai.
 
 ### Bước 3.4 — Scoring & versioning
 
