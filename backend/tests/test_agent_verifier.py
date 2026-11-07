@@ -38,6 +38,16 @@ def test_unit_mismatch_warning() -> None:
     assert not check_units("ROI 19.19% rất cao.", facts)
 
 
+def test_datetime_not_flagged_as_unverified() -> None:
+    facts = [{"id": "roi_90d", "value": 38.49, "unit": "%"}]
+    result = verify_answer(
+        "Top 10 (snapshot lúc 2026-11-07 15:06 UTC): ROI 38.49%.",
+        facts,
+        row_ids=[],
+    )
+    assert result["unverified_numbers"] == []
+
+
 def test_advice_gets_disclaimer() -> None:
     result = verify_answer("Bạn nên copy trader này ngay.", [], row_ids=[])
     assert "không phải lời khuyên đầu tư" in result["answer"]

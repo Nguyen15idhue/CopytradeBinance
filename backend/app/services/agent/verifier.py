@@ -39,6 +39,10 @@ def extract_trader_ids(text: str) -> list[str]:
     return TRADER_ID_RE.findall(text or "")
 
 
+DATETIME_MASK_RE = re.compile(r"\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(:\d{2})?)?")
+YEAR_RE = re.compile(r"^-?(19\d{2}|20\d{2})(%)?$")
+
+
 def verify_answer(
     answer: str,
     facts: list[dict],
@@ -47,12 +51,18 @@ def verify_answer(
     """Trả {answer, warnings, blocked, unverified_numbers, unknown_ids}."""
     warnings: list[str] = []
     text = answer or ""
+    masked = DATETIME_MASK_RE.sub(" ", text)
     fact_values = {_norm_number(str(f.get("value", ""))) for f in facts}
     fact_blob = _norm_number(" ".join(str(f.get("value", "")) for f in facts))
     unverified: list[str] = []
-    for num in extract_numbers(text):
+    for num in extract_numbers(masked):
         norm = _norm_number(num)
+        if YEAR_RE.match(norm):
+            continue
         bare = re.sub(r"(%|usdt|x)$", "", norm)
+        if bare == norm and re.fullmatch(r"\d{1,2}", bare):
+            # Số đếm/thứ hạng không đơn vị (Top 10, 2–4 trader) — bỏ qua để đỡ nhiễu.
+            continue
         if norm in fact_values or bare in fact_values or bare in fact_blob:
             continue
         unverified.append(num)

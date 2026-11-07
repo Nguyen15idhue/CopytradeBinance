@@ -58,7 +58,11 @@ async def chat(
         async for event in run_chat(db, user.id, body.message, body.session_id):
             yield event.encode()
 
-    return StreamingResponse(stream(), media_type="text/event-stream")
+    return StreamingResponse(
+        stream(),
+        media_type="text/event-stream",
+        headers={"X-Accel-Buffering": "no", "Cache-Control": "no-cache"},
+    )
 
 
 @router.get("/sessions")

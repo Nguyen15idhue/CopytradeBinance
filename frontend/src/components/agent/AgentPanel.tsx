@@ -132,6 +132,7 @@ export default function AgentPanel({ onClose }: { onClose: () => void }) {
   const [input, setInput] = useState("");
   const [status, setStatus] = useState<AgentStatus>("idle");
   const [error, setError] = useState<string | null>(null);
+  const [elapsed, setElapsed] = useState(0);
   const abortRef = useRef<AbortController | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
@@ -149,6 +150,16 @@ export default function AgentPanel({ onClose }: { onClose: () => void }) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
+
+  useEffect(() => {
+    if (status !== "streaming") {
+      setElapsed(0);
+      return;
+    }
+    const started = Date.now();
+    const timer = setInterval(() => setElapsed(Math.floor((Date.now() - started) / 1000)), 1000);
+    return () => clearInterval(timer);
+  }, [status]);
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
@@ -282,7 +293,7 @@ export default function AgentPanel({ onClose }: { onClose: () => void }) {
         <div>
           <p className="font-semibold text-strong">Trợ lý AI</p>
           <p className="text-xs text-muted">
-            {status === "streaming" ? "Đang trả lời…" : "Hỏi đáp copy trading, hệ thống, mã nguồn"}
+            {status === "streaming" ? `Đang trả lời… (${elapsed}s)` : "Hỏi đáp copy trading, hệ thống, mã nguồn"}
           </p>
         </div>
         <div className="flex items-center gap-2">
