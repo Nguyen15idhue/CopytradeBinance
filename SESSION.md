@@ -608,3 +608,12 @@ Lưu ý: ranking/help cases (K/H) chỉ chạy được sau khi hoàn thành bư
 - Fix sau B14 (vận hành thật): nginx `proxy_read_timeout/send 180s` + `proxy_buffering off` cho `/api/` (SSE stream tiến trình, không bị cắt ở 60s) + header `X-Accel-Buffering: no`; panel hiện elapsed `(Ns)`; verifier bỏ qua ngày/năm/số đếm nhỏ không đơn vị.
 - Nới tool theo yêu cầu (một người dùng): `sql_query` mở `pg_catalog`/`information_schema` (vẫn chặn `users/sessions/app_settings` + mọi ghi); `get_trader_profile`/`search_traders` thêm `current_copiers/copy_aum/copier_pnl_90d` + evidence; panel chat có nút phóng to toàn màn hình + render markdown an toàn (bold/table/list/code).
 - Fix mất phiên chat: frontend nhận `session_id` từ event `done` (trước đây mỗi câu tạo phiên mới); backend nạp 10 lượt gần nhất vào history (multi-turn có ngữ cảnh), đặt title từ câu đầu, bump `updated_at`; test multi-turn pass.
+
+## 18. Phase 6c — Kế hoạch 04: Screener đa khung (08/11/2026)
+
+Nguồn: `docs/0/04-ke-hoach-screener-da-khung.md`. Khảo sát xác nhận V1–V4.
+
+- B4.0.1: `frontend/src/lib/screenerQuery.ts` (parse/serialize URL + `ct_screener_query` trong sessionStorage);
+  `ScreenerPage` đồng bộ mọi filter + sort + page lên URL bằng `setSearchParams(..., {replace:true})`;
+  `TraderDetailPage` quay lại bằng `navigate(-1)`, fallback `/screener?<query đã lưu>`.
+  E2E checkpoint "Screener giữ trạng thái" (lọc MDD → mở trader → back → F5) PASS; build pass.

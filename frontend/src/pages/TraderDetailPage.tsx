@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link, useParams } from "react-router-dom";
+import type { MouseEvent } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   Area,
   AreaChart,
@@ -40,6 +41,7 @@ import {
   TRANSFER_TYPE_LABELS,
   label,
 } from "../i18n/vi";
+import { screenerFallbackPath } from "../lib/screenerQuery";
 import type { Metric, PositionRow } from "../types/trader";
 
 const TIER_STYLES: Record<string, string> = {
@@ -142,7 +144,21 @@ function pnlHistogram(positions: PositionRow[]) {
 
 export default function TraderDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const enabled = Boolean(id);
+
+  function goBackToScreener(event: MouseEvent<HTMLAnchorElement>) {
+    event.preventDefault();
+    const hasInternalHistory =
+      typeof window !== "undefined" &&
+      window.history.length > 1 &&
+      document.referrer.includes(window.location.origin);
+    if (hasInternalHistory) {
+      navigate(-1);
+      return;
+    }
+    navigate(screenerFallbackPath());
+  }
 
   const trader = useQuery({ queryKey: ["trader", id], queryFn: () => getTrader(id!), enabled, retry: 0 });
   const performance = useQuery({ queryKey: ["perf", id], queryFn: () => getPerformance(id!), enabled });
@@ -172,7 +188,11 @@ export default function TraderDetailPage() {
         <p className="mt-2 text-sm text-muted">
           {trader.error instanceof Error ? trader.error.message : "Lỗi không xác định"}
         </p>
-        <Link to="/screener" className="mt-4 inline-block text-sm text-accent">
+        <Link
+          to={screenerFallbackPath()}
+          onClick={goBackToScreener}
+          className="mt-4 inline-block text-sm text-accent"
+        >
           ← Về Bộ lọc trader
         </Link>
       </div>
@@ -193,7 +213,11 @@ export default function TraderDetailPage() {
 
   return (
     <div className="space-y-6">
-      <Link to="/screener" className="text-sm text-muted hover:text-strong">
+      <Link
+        to={screenerFallbackPath()}
+        onClick={goBackToScreener}
+        className="text-sm text-muted hover:text-strong"
+      >
         ← Bộ lọc trader
       </Link>
 

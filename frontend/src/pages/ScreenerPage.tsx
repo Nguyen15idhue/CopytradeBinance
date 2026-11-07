@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 
 import OnboardingBanner from "../components/OnboardingBanner";
 import {
@@ -23,6 +23,12 @@ import {
   saveView,
   toQuery,
 } from "../lib/api";
+import {
+  SCREENER_DEFAULTS,
+  parseScreenerQuery,
+  serializeScreenerParams,
+  storeScreenerQuery,
+} from "../lib/screenerQuery";
 import type { ScreenerItem } from "../types/trader";
 
 const TIER_STYLES: Record<string, string> = {
@@ -69,29 +75,71 @@ function confidencePct(value: number | null): string {
 }
 
 export default function ScreenerPage() {
-  const [search, setSearch] = useState("");
-  const [tier, setTier] = useState("high_upper");
-  const [includeExcluded, setIncludeExcluded] = useState(false);
-  const [roiMin, setRoiMin] = useState("");
-  const [mddMax, setMddMax] = useState("");
-  const [sharpeMin, setSharpeMin] = useState("");
-  const [winRateMin, setWinRateMin] = useState("");
-  const [runtimeMin, setRuntimeMin] = useState("");
-  const [ordersMin, setOrdersMin] = useState("");
-  const [leverageMax, setLeverageMax] = useState("");
-  const [risk, setRisk] = useState("");
-  const [minCopyMax, setMinCopyMax] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [initial] = useState(() => parseScreenerQuery(searchParams));
+  const [search, setSearch] = useState(initial.q);
+  const [tier, setTier] = useState(initial.tier);
+  const [includeExcluded, setIncludeExcluded] = useState(initial.include === "1");
+  const [roiMin, setRoiMin] = useState(initial.roi_min);
+  const [mddMax, setMddMax] = useState(initial.mdd_max);
+  const [sharpeMin, setSharpeMin] = useState(initial.sharpe_min);
+  const [winRateMin, setWinRateMin] = useState(initial.win_min);
+  const [runtimeMin, setRuntimeMin] = useState(initial.runtime_min);
+  const [ordersMin, setOrdersMin] = useState(initial.orders_min);
+  const [leverageMax, setLeverageMax] = useState(initial.lev_max);
+  const [risk, setRisk] = useState(initial.risk);
+  const [minCopyMax, setMinCopyMax] = useState(initial.min_copy_max);
   const [nlText, setNlText] = useState("");
   const [nlChips, setNlChips] = useState<string[]>([]);
   const [nlAssumptions, setNlAssumptions] = useState<string[]>([]);
   const [nlPending, setNlPending] = useState<Record<string, unknown> | null>(null);
   const [nlError, setNlError] = useState<string | null>(null);
   const [nlBusy, setNlBusy] = useState(false);
-  const [sortBy, setSortBy] = useState("score");
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
-  const [page, setPage] = useState(1);
+  const [sortBy, setSortBy] = useState(initial.sort);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">(initial.dir as "asc" | "desc");
+  const [page, setPage] = useState(Number(initial.page));
   const [drawer, setDrawer] = useState<ScreenerItem | null>(null);
   const [viewName, setViewName] = useState("");
+
+  useEffect(() => {
+    const params = serializeScreenerParams({
+      ...SCREENER_DEFAULTS,
+      q: search,
+      tier,
+      include: includeExcluded ? "1" : "",
+      risk,
+      roi_min: roiMin,
+      mdd_max: mddMax,
+      sharpe_min: sharpeMin,
+      win_min: winRateMin,
+      runtime_min: runtimeMin,
+      orders_min: ordersMin,
+      lev_max: leverageMax,
+      min_copy_max: minCopyMax,
+      sort: sortBy,
+      dir: sortDir,
+      page: String(page),
+    });
+    storeScreenerQuery(params.toString());
+    setSearchParams(params, { replace: true });
+  }, [
+    search,
+    tier,
+    includeExcluded,
+    risk,
+    roiMin,
+    mddMax,
+    sharpeMin,
+    winRateMin,
+    runtimeMin,
+    ordersMin,
+    leverageMax,
+    minCopyMax,
+    sortBy,
+    sortDir,
+    page,
+    setSearchParams,
+  ]);
 
   const filters = useMemo(
     () => ({

@@ -326,3 +326,10 @@ ngắn/dài hạn, và hiển thị `unknown` khi khung thiếu dữ liệu.
 - Detail hiển thị đủ 4 khung.
 - AI nhận đủ ~110 chỉ số (theo `detail`), trả lời có nguồn, không bịa số.
 - Backend + frontend + E2E pass; docs cập nhật (`api.md`, `12-ai.md`, `TASKS.md`, `SESSION.md`).
+
+## 9. Tiến độ triển khai
+
+- [x] B4.0.1 URL state Screener — `frontend/src/lib/screenerQuery.ts` (parse/serialize + sessionStorage),
+  `ScreenerPage` dùng `useSearchParams` (replace), `TraderDetailPage` back bằng `navigate(-1)` + fallback
+  query đã lưu; E2E checkpoint "Screener giữ trạng thái" PASS.
+  → Bằng chứng: `npm run build` pass; `npm run test:e2e` PASS; commit `4.0.1`.

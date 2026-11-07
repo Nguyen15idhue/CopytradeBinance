@@ -899,3 +899,17 @@ Tóm tắt: không auto-trading, không realtime WebSocket, không Paper Copy tr
 - [x] B12. QA Phase 3. → Bằng chứng: full backend 166 pass, ruff/build/E2E/check_refs pass; fix regression `min_confidence` trong search_traders.
 - [x] B13. Eval + security + cost + retention. → Bằng chứng: eval 50 câu pass, retention + template fallback + feedback UI test pass, E2E feedback PASS.
 - [x] B14. Final QA + báo cáo. → Bằng chứng: full 218 pass, E2E PASS, head `0017_knowledge_chunks`, check_refs 174/0, check_tech_docs 20/20, commit hash đủ B1–B13.
+
+---
+
+## Phase 6c — Screener đa khung + giữ trạng thái (docs/0/04-ke-hoach-screener-da-khung.md)
+
+- [x] B4.0.1 URL state Screener + giữ vị trí. → Bằng chứng: `lib/screenerQuery.ts`; E2E "Screener giữ trạng thái" PASS.
+- [ ] B4.0.2 Migration `0018_metric_windows`.
+- [ ] B4.0.3 Builder ghi đa khung.
+- [ ] B4.0.4 Screener API đa khung + filter mở rộng.
+- [ ] B4.0.5 UI Screener đa khung.
+- [ ] B4.0.6 Detail hiển thị 4 khung.
+- [ ] B4.0.7 Agent trả đủ dữ liệu trader.
+- [ ] B4.0.8 Orchestrator JSON compact.
+- [ ] B4.0.9 QA cuối kế hoạch 04.

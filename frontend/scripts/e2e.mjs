@@ -167,6 +167,33 @@ try {
   }
   console.log("Screener render: OK");
 
+  // 4.0.1 — Screener giữ trạng thái qua điều hướng, F5 và URL
+  await page.getByLabel("MDD ≤").fill("20");
+  await page.waitForResponse((response) => response.url().includes("max_mdd_90d=20"));
+  const firstTraderHref = await page
+    .locator('a[href^="/traders/"]')
+    .first()
+    .getAttribute("href");
+  assert(Boolean(firstTraderHref), "Không có link trader để kiểm tra giữ trạng thái");
+  await page.locator('a[href^="/traders/"]').first().click();
+  await page.getByRole("heading", { name: "10 chỉ số cốt lõi" }).waitFor();
+  await page.getByRole("link", { name: /^← Bộ lọc trader$/ }).click();
+  await page.getByRole("heading", { name: "Bộ lọc trader" }).waitFor();
+  assert(
+    (await page.getByLabel("MDD ≤").inputValue()) === "20",
+    "Quay lại Screener bị mất bộ lọc MDD",
+  );
+  assert(page.url().includes("mdd_max=20"), "URL không giữ mdd_max sau khi quay lại");
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.getByRole("heading", { name: "Bộ lọc trader" }).waitFor();
+  assert(
+    (await page.getByLabel("MDD ≤").inputValue()) === "20",
+    "F5 làm mất bộ lọc MDD",
+  );
+  await page.getByRole("button", { name: "Đặt lại" }).click();
+  await page.getByRole("heading", { name: "Bộ lọc trader" }).waitFor();
+  console.log("Screener giữ trạng thái: OK");
+
   await page.getByLabel("Mô tả trader bạn muốn tìm").fill("trader an toàn, còn slot, vốn dưới 100$");
   await page.getByRole("button", { name: "Diễn giải" }).click();
   await page.getByText("Còn slot").waitFor();
