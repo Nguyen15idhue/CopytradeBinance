@@ -588,3 +588,7 @@ Lưu ý: ranking/help cases (K/H) chỉ chạy được sau khi hoàn thành bư
 - Artifact: `docs/0/02-ke-hoach-risk-v2.md`, `docs/kehoach/RISK-V2-SPEC.md`; `TASKS.md` bổ sung mục Risk V2.
 - Đã implement 07/11/2026: `risk_rules.py` R01–R19 + `risk_score/veto/low_risk_eligible`; migration `0014_risk_v2` (`risk_score`, `risk_veto`); `risk_service` lưu score/veto; `ranking.low_risk` cấm Sharpe âm/null (ngoại lệ Sharpe 0–0.5 chỉ khi mdd≤15+lev≤3+runtime≥180); `trader_detail/risk` trả score/veto; `vi.ts` + Settings R12–R19; test `test_risk_v2` 9 pass, full backend 94 pass, frontend build OK.
 - Chưa chạy backfill live; cần `alembic upgrade head` + `collector_cli risk/rank` ở bước vận hành.
+
+## 17. Phase 6b — AI Agent chat (07/11/2026, docs/0/03-ke-hoach-ai-agent.md)
+
+- B1: schema agent 5 bảng (`agent_sessions/messages/tool_calls/citations/feedback`) + `ai_usage.feature` default `report`; migration `0015_agent_tables` up/down OK trên DB thật; `test_agent_schema` 4 pass; ruff pass.

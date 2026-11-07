@@ -878,3 +878,24 @@ Tóm tắt: không auto-trading, không realtime WebSocket, không Paper Copy tr
 - [x] T3. Chốt công thức risk_score + map level + 3 ví dụ (90 điểm Sharpe âm → high). → Bằng chứng: `RISK-V2-SPEC.md §3`.
 - [x] T4. Chốt tương thích enum + rollout + gate spec. → Bằng chứng: `RISK-V2-SPEC.md §4`; `docs/0/02-ke-hoach-risk-v2.md`.
 - [x] T5. Implement Risk V2. → Bằng chứng: `risk_rules.py` R01–R19 + score/veto; migration `0014_risk_v2`; `risk_service/ranking/trader_detail/vi.ts` cập nhật; pytest 94 pass + build OK.
+
+---
+
+## Phase 6b — AI Agent chat (07/11/2026, docs/0/03-ke-hoach-ai-agent.md)
+
+> Chỉ admin. Icon chat nổi góc phải dưới. Tool DB + SQL read-only + Tavily + code/docs RAG. Citation + verifier.
+
+- [x] B1. Schema agent + migration 0015. → Bằng chứng: `backend/app/models/agent.py` (5 bảng), migration `0015_agent_tables` (+`ai_usage.feature`); `test_agent_schema.py` 4 pass; alembic downgrade -1/upgrade head OK.
+- [ ] B2. Agent core + model + SSE skeleton.
+- [ ] B3. DB tools (search/profile/compare/ranking/risk/health).
+- [ ] B4. Read-only SQL + views.
+- [ ] B5. Floating chat UI.
+- [ ] B6. QA Phase 1 agent.
+- [ ] B7. Tavily web search + cache.
+- [ ] B8. Knowledge index code/docs.
+- [ ] B9. Citation + verifier hardening.
+- [ ] B10. Portfolio fit + vốn 100$.
+- [ ] B11. Search tự nhiên trong Screener.
+- [ ] B12. QA Phase 3.
+- [ ] B13. Eval + security + cost + retention.
+- [ ] B14. Final QA + báo cáo.

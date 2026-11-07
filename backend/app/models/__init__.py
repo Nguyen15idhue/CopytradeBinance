@@ -1,3 +1,10 @@
+from app.models.agent import (
+    AgentCitation,
+    AgentFeedback,
+    AgentMessage,
+    AgentSession,
+    AgentToolCall,
+)
 from app.models.ai_report import AIReport, AIUsage
 from app.models.app_setting import AppSetting
 from app.models.audit_log import AuditLog
@@ -24,6 +31,11 @@ from app.models.user import User
 __all__ = [
     "AIReport",
     "AIUsage",
+    "AgentCitation",
+    "AgentFeedback",
+    "AgentMessage",
+    "AgentSession",
+    "AgentToolCall",
     "AppSetting",
     "AuditLog",
     "Base",
