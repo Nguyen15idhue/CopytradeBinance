@@ -37,6 +37,30 @@ Base: `/api/v1`
 - Login rate limit 5/phút/IP.
 - Gửi header `Authorization: Bearer <access_token>` cho endpoint bảo vệ.
 
+## Universe
+
+### GET `/universe/summary`
+
+Số lượng theo tier + lần scan L0 gần nhất.
+
+```json
+{ "data": { "counts": { "watch": 398, "qualified_upper": 97, "high_upper": 14, "excluded": 10621 },
+            "total": 11130, "watch_total": 509, "qualified_total": 111, "high_total": 14,
+            "cohort": "all", "last_scan": { "status": "success" } } }
+```
+
+### GET `/universe/traders`
+
+Query: `tier` (nhận cả alias `qualified`/`high`), `reason`, `min_pre_score`, `q`, `page`, `page_size` (≤100).
+Sắp xếp mặc định theo `pre_score` giảm dần.
+
+### POST `/universe/recompute` (admin)
+
+Tính lại tier/pre_score từ list snapshot mới nhất. Trả `counts`, `changed`, `watch_total`, `duration_seconds`.
+
+- `potential_tier`: `excluded | watch | qualified_upper | high_upper` (B/A là upper bound ở tầng list).
+- `pre_score`: percentile cohort chung PUBLIC+SIGNAL, chỉ để xếp thứ tự deep fetch.
+
 ## Trader
 
 ### GET `/traders/{id}`

@@ -8,7 +8,7 @@ from app.core.config import get_settings
 from app.core.database import SessionLocal
 from app.services.collector.binance import BinanceBapiAdapter
 from app.services.collector.lock import CollectorLock, LockUnavailable
-from app.services.universe import scan_universe
+from app.services.universe import recompute_universe, scan_universe
 
 
 async def cmd_scan() -> int:
@@ -27,6 +27,12 @@ async def cmd_scan() -> int:
         return 2
     finally:
         await adapter.aclose()
+    return 0
+
+
+async def cmd_recompute() -> int:
+    async with SessionLocal() as db:
+        print(json.dumps(await recompute_universe(db), ensure_ascii=False))
     return 0
 
 
@@ -49,10 +55,12 @@ async def cmd_deep() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="CLI collector Phase 2")
-    parser.add_argument("command", choices=["scan", "deep"])
+    parser.add_argument("command", choices=["scan", "recompute", "deep"])
     args = parser.parse_args()
     if args.command == "scan":
         return asyncio.run(cmd_scan())
+    if args.command == "recompute":
+        return asyncio.run(cmd_recompute())
     return asyncio.run(cmd_deep())
 
 

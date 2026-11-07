@@ -6,14 +6,17 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
 from app.models.collection_log import CollectionLog
 from app.models.snapshot import PortfolioSnapshot
+from app.models.tier_history import TierHistory
 from app.models.trader import Trader
+from app.models.universe import TraderUniverse
+from app.services.funnel import TIER_RANK, annotate_pre_score, evaluate_item
 from app.services.storage.raw import RawArchive
 
 logger = logging.getLogger(__name__)
@@ -226,3 +229,105 @@ async def latest_scan_log(db: AsyncSession) -> CollectionLog | None:
         select(CollectionLog).where(CollectionLog.layer == LAYER).order_by(CollectionLog.id.desc())
     )
     return result.scalars().first()
+
+
+async def recompute_universe(db: AsyncSession, aum_min: int | None = None) -> dict[str, Any]:
+    """Tính lại tier/pre_score từ list snapshot mới nhất. Idempotent."""
+    settings = get_settings()
+    started = time.monotonic()
+    now = datetime.now(UTC)
+    now_ms = int(now.timestamp() * 1000)
+    threshold = aum_min or settings.aum_preset
+
+    latest = (
+        select(
+            PortfolioSnapshot.lead_portfolio_id.label("portfolio_id"),
+            func.max(PortfolioSnapshot.collected_at).label("collected_at"),
+        )
+        .where(PortfolioSnapshot.source == "list")
+        .group_by(PortfolioSnapshot.lead_portfolio_id)
+        .subquery()
+    )
+    snapshots = (
+        await db.execute(
+            select(PortfolioSnapshot).join(
+                latest,
+                (PortfolioSnapshot.lead_portfolio_id == latest.c.portfolio_id)
+                & (PortfolioSnapshot.collected_at == latest.c.collected_at),
+            )
+        )
+    ).scalars().all()
+
+    items: list[dict[str, Any]] = []
+    for snapshot in snapshots:
+        item = dict(snapshot.raw or {})
+        item.setdefault("leadPortfolioId", snapshot.lead_portfolio_id)
+        items.append(item)
+    annotate_pre_score(items, now_ms)
+
+    existing = dict(
+        (
+            await db.execute(
+                select(TraderUniverse.lead_portfolio_id, TraderUniverse.potential_tier)
+            )
+        ).all()
+    )
+
+    counts: dict[str, int] = {}
+    rows: list[dict[str, Any]] = []
+    history: list[dict[str, Any]] = []
+    for item in items:
+        evaluated = evaluate_item(item, now_ms, aum_min=float(threshold))
+        tier = evaluated["tier"]
+        counts[tier] = counts.get(tier, 0) + 1
+        portfolio_id = item["leadPortfolioId"]
+        rows.append(
+            {
+                "lead_portfolio_id": portfolio_id,
+                "potential_tier": tier,
+                "pre_score": item["pre_score"],
+                "filter_reasons": evaluated["reasons"],
+                "deep_fetch_status": "skipped" if tier == "excluded" else "pending",
+            }
+        )
+        old_tier = existing.get(portfolio_id)
+        if old_tier != tier:
+            history.append(
+                {
+                    "lead_portfolio_id": portfolio_id,
+                    "old_tier": old_tier,
+                    "new_tier": tier,
+                    "pre_score": item["pre_score"],
+                    "reasons": evaluated["reasons"],
+                }
+            )
+
+    for start in range(0, len(rows), 2000):
+        statement = pg_insert(TraderUniverse).values(rows[start : start + 2000])
+        statement = statement.on_conflict_do_update(
+            index_elements=[TraderUniverse.lead_portfolio_id],
+            set_={
+                "potential_tier": statement.excluded.potential_tier,
+                "pre_score": statement.excluded.pre_score,
+                "filter_reasons": statement.excluded.filter_reasons,
+                "updated_at": func.now(),
+            },
+        )
+        await db.execute(statement)
+
+    if history:
+        for start in range(0, len(history), 1000):
+            await db.execute(pg_insert(TierHistory).values(history[start : start + 1000]))
+    await db.commit()
+
+    watch_total = sum(counts.get(name, 0) for name in ("watch", "qualified_upper", "high_upper"))
+    return {
+        "total": len(items),
+        "watch_total": watch_total,
+        "counts": counts,
+        "changed": len(history),
+        "aum_min": threshold,
+        "cohort": "all",
+        "duration_seconds": round(time.monotonic() - started, 2),
+        "tier_rank": TIER_RANK,
+    }

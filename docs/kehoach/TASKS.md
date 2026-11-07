@@ -265,14 +265,14 @@
 **Tham chiếu:** §7.3 Các stage (995–1006) · §7.4 Tiêu chí tier (1007–1021) · §7.5 Mapping tier (1022–1032) · §7.6 Reason codes (1033–1047) · §7.7 Pre-score (1048–1068) · §7.12 Edge cases (1172–1186) · §12.7 Deep fetch selection (2182–2205)  
 **→ đọc khi:** viết/sửa logic tier, reason, thứ tự deep fetch.
 
-- [ ] Hàm `traded_last_7d`.
-- [ ] Hàm `potential_tier`.
-- [ ] Hàm `pre_score`.
-- [ ] Bảng `trader_universe` + `filter_reasons`.
-- [ ] Lưu lịch sử đổi tier (`tier_history`).
-- [ ] API `/universe/summary`.
-- [ ] API `/universe/traders`.
-- [ ] API `/universe/recompute` (admin).
+- [x] Hàm `traded_last_7d`. → Bằng chứng: `services/funnel.py`; proxy 8 điểm chartItems cuối.
+- [x] Hàm `potential_tier`. → Bằng chứng: `evaluate_item()`; live `watch=398, qualified_upper=97, high_upper=14, excluded=10621`.
+- [x] Hàm `pre_score`. → Bằng chứng: `annotate_pre_score()`; cohort chung `all` (Q02); live max 87.36.
+- [x] Bảng `trader_universe` + `filter_reasons`. → Bằng chứng: 11.130 dòng; excluded có reasons (không tái diễn bug Phase 0).
+- [x] Lưu lịch sử đổi tier (`tier_history`). → Bằng chứng: migration `0005`; test recompute lần 2 `changed=0`.
+- [x] API `/universe/summary`. → Bằng chứng: live `total=11130, watch_total=509, qualified_total=111, high_total=14`.
+- [x] API `/universe/traders`. → Bằng chứng: filter `tier=high` → 14; filter `reason=roi_le_0` → 6.989.
+- [x] API `/universe/recompute` (admin). → Bằng chứng: chạy `python -m app.collector_cli recompute` 3,54s; viewer bị 403 (deps admin).
 
 ### Bước 2.4 — Tầng 2: Performance 4 window
 
