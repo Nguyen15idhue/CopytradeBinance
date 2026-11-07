@@ -72,8 +72,16 @@ docker compose exec backend python -m app.collector_cli rank
 docker compose exec backend python -m app.collector_cli audit
 ```
 
-UI: `/screener`, `/traders/:id`, `/compare?ids=a,b`, `/risk`, `/data-health`.
-Phase 5 sẽ bổ sung `/ranking` và `/help` (hướng dẫn người mới).
+UI: `/screener`, `/traders/:id`, `/compare?ids=a,b`, `/risk`, `/ranking`, `/settings`,
+`/data-health`, `/help` (hướng dẫn người mới).
+
+## AI Report (Phase 5)
+
+- Cấu hình trong `.env`: `OPENROUTER_API_KEY`, `AI_MODEL_PRIMARY`, `AI_MODEL_FALLBACK`.
+- Fallback 1 lần nếu model chính lỗi/JSON invalid; cuối cùng dùng template tất định.
+- Budget ngày/tháng + cooldown 24h; API key lưu mã hoá, chỉ trả trạng thái masked.
+- Test model: `python scripts/test_ai_models.py`.
+- Báo cáo: `docs/kehoach/AI-MODEL-TEST.md`.
 
 ```bash
 # Chạy tay từng tầng

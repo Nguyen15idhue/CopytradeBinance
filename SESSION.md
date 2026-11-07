@@ -537,3 +537,21 @@ Lưu ý: ranking/help cases (K/H) chỉ chạy được sau khi hoàn thành bư
 - Banner “Mới bắt đầu?” trên Screener, dismiss lưu `ct_help_banner_dismissed` (E2E kiểm reload).
 - Mobile: thêm menu drawer cho toàn app (giải quyết gap G1); header gọn lại.
 - E2E: Help 8 mục, ≥4 figure, TOC ≥8 link, anchor `#glossary`, search, banner persist.
+
+### 15.6. QA & gate Phase 5
+
+| Kiểm tra | Kết quả |
+|---|---|
+| Backend container | **114 passed** |
+| ruff / build / check_refs | Pass / Pass / 174-0 |
+| E2E full | 13 checkpoint PASS |
+| AI live | 44,3s, fallback, cost 0, 15 evidence |
+| Settings versions / audit | 17 version · 34 audit rows |
+| Rate limit API | 429 đúng ngưỡng (test) |
+| Key at-rest | Fernet; không lộ trong response/DB |
+| Backup / restore | 65 MB · 11.185 trader |
+| Ranking / Help | 3 board · 8 mục + 5 SVG |
+| pip-audit / npm audit | 0 / 0 |
+| Báo cáo | `docs/kehoach/PHASE5-REPORT.md` |
+
+**Gate Phase 5: ĐẠT.**

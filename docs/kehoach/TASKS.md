@@ -21,7 +21,7 @@
 | 2 — Collector 2 tầng | `[x]` hoàn thành | 4–6 ngày | Scan 11.124 ≥ 99%, Watch 400–700 | §6 (528–973), §12 (2105–2219) |
 | 3 — Quant + Scoring + Screener | `[x]` hoàn thành | 7–9 ngày | Screener dùng được, score breakdown đúng | §8 (1187–1449), §9 (1450–1612) |
 | 4 — Detail + Compare + Risk | `[x]` hoàn thành | 5–7 ngày | Detail sâu, compare 4 trader, risk evidence | §11.2–11.3 (2009–2057), §13.4–13.5 (2345–2489) |
-| 5 — AI + Settings + Hardening | `[ ]` | 7–9 ngày | AI không sửa score, config version/rollback, Ranking + Help dùng được | §11.5 (2071–2084), §13.6–13.7 (2490–2543), §15.8 (3075–3095) |
+| 5 — AI + Settings + Hardening | `[x]` hoàn thành | 7–9 ngày | AI không sửa score, config version/rollback, Ranking + Help dùng được | §11.5 (2071–2084), §13.6–13.7 (2490–2543), §15.8 (3075–3095) |
 | 6 — Testing + Deploy + Beta | `[ ]` | 6–8 ngày | Uptime 7 ngày, beta 3–5 user, Playwright E2E full pass | §14 (2617–2918), §15 (2919–3128) |
 | | | **37–51 ngày** | +20% buffer → **44–61 ngày** | |
 
@@ -539,7 +539,7 @@
 
 ---
 
-## Phase 5 — AI + Settings + Hardening + Ranking/Help
+## Phase 5 — AI + Settings + Hardening + Ranking/Help — HOÀN THÀNH
 
 **Mục tiêu:** AI report có kiểm soát, toàn bộ cấu hình chỉnh trên web, bảo mật cơ bản,
 hoàn thiện trang Ranking và trang hướng dẫn cho người mới.  
@@ -638,17 +638,17 @@ hoàn thiện trang Ranking và trang hướng dẫn cho người mới.
 **Tham chiếu:** §14.9 Security checklist (2878–2897) · §14.10 Acceptance MVP (2898–2918) · §15.8 Security checklist (3075–3095)  
 **→ đọc khi:** kiểm tra AI/evidence, settings rollback, bảo mật.
 
-- [ ] AI không sửa score.
-- [ ] AI trả JSON hợp lệ hoặc fallback template.
-- [ ] Không có report nào không có evidence.
-- [ ] Đổi trọng số tạo version mới; score cũ giữ nguyên.
-- [ ] API key không trả về browser/network response.
-- [ ] Rollback hoạt động + audit log.
-- [ ] Login sai 6 lần bị rate limit.
-- [ ] Backup restore thành công.
-- [ ] Ranking 3 bảng đọc đúng snapshot + `config_version`; không trộn version.
-- [ ] Trang Help render đủ 8 mục, anchor hoạt động, không lỗi console.
-- [ ] Banner “Mới bắt đầu?” dismiss được và không hiện lại sau reload.
+- [x] AI không sửa score. → Bằng chứng: integration test score trước/sau bằng nhau.
+- [x] AI trả JSON hợp lệ hoặc fallback template. → Bằng chứng: 8 unit test; live fallback 44,3s.
+- [x] Không có report nào không có evidence. → Bằng chứng: schema min 1 + allowlist; live 15 evidence.
+- [x] Đổi trọng số tạo version mới; score cũ giữ nguyên. → Bằng chứng: 17 version; rebuild score theo version active.
+- [x] API key không trả về browser/network response. → Bằng chứng: test secret không có trong response; DB mã hoá.
+- [x] Rollback hoạt động + audit log. → Bằng chứng: 34 audit rows; rollback E2E pass.
+- [x] Login sai 6 lần bị rate limit. → Bằng chứng: login 5/phút/IP; API 100/phút/user (test 429).
+- [x] Backup restore thành công. → Bằng chứng: dump 65 MB; restore DB tạm 11.185 trader.
+- [x] Ranking 3 bảng đọc đúng snapshot + `config_version`; không trộn version. → Bằng chứng: API contract + E2E.
+- [x] Trang Help render đủ 8 mục, anchor hoạt động, không lỗi console. → Bằng chứng: E2E Help + 5 SVG.
+- [x] Banner “Mới bắt đầu?” dismiss được và không hiện lại sau reload. → Bằng chứng: E2E banner persist.
 
 **Gate:** AI không sửa score; settings version hóa; backup restore OK; Ranking dùng được; Help đủ nội dung cho người mới.
 

@@ -35,3 +35,6 @@ graphify-out/
 
 # Backups local
 backups/
+
+# Screenshot test local
+help-*.png
