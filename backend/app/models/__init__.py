@@ -1,5 +1,6 @@
 from app.models.ai_report import AIReport, AIUsage
 from app.models.app_setting import AppSetting
+from app.models.audit_log import AuditLog
 from app.models.base import Base
 from app.models.collection_log import CollectionLog
 from app.models.data_quality_flag import DataQualityFlag
@@ -24,6 +25,7 @@ __all__ = [
     "AIReport",
     "AIUsage",
     "AppSetting",
+    "AuditLog",
     "Base",
     "CollectionLog",
     "DataQualityFlag",

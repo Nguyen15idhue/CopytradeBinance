@@ -497,3 +497,13 @@ Lưu ý: ranking/help cases (K/H) chỉ chạy được sau khi hoàn thành bư
 - Live 1 call: 44,3s, primary fail schema → **fallback thành công**, cost 0, evidence đủ.
 - UI: panel AI trong Trader Detail (badge primary/fallback/template, cost, latency, evidence).
 - Test: 8 unit OpenRouter/schema/template + 2 integration API; E2E mock AI pass.
+
+### 15.2. Settings & versioning 5.2
+
+- `services/settings_service.py`: snapshot, tạo version scoring mới, preview impact, rollback, audit.
+- API: `GET/PUT /settings`, `POST /settings/preview`, `GET /settings/versions`, `POST /settings/rollback/{v}`.
+- Lưu AI override (model/budget/enabled) và chu kỳ collector vào `app_settings`; worker đọc lại mỗi vòng 60s.
+- `audit_logs` (migration 0013): 10 bản ghi từ test/E2E; before/after JSON.
+- UI `/settings`: 6 tab; admin sửa, viewer read-only; preview top thay đổi; versions + rollback.
+- Test: 2 unit validation + 2 integration (version/preview/rollback/audit/RBAC); E2E preview/save/rollback pass.
+- Bug đã sửa: preview thiếu key `metrics`; test giả định version tăng 1 (thực tế max+1).

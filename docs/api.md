@@ -59,6 +59,20 @@ Base: `/api/v1`
 - Trả `items`, `series` (chartItems), `correlation` (Pearson + `sample_days` + disclaimer “estimated”).
 - Correlation cần ≥ 30 điểm chung; thiếu → `null`, không bịa số.
 
+## Settings
+
+| Method | Endpoint | Quyền | Mô tả |
+|---|---|---|---|
+| GET | `/settings` | user | Snapshot scoring/ai/collector/system |
+| PUT | `/settings` | admin | Lưu cấu hình; đổi scoring tạo version mới |
+| POST | `/settings/preview` | admin | Preview impact trên metrics hiện có |
+| GET | `/settings/versions` | user | Lịch sử version scoring |
+| POST | `/settings/rollback/{version}` | admin | Kích hoạt lại version cũ |
+
+- Trọng số: 7 nhóm, 0–100, tổng > 0; sai → 422 `INVALID_WEIGHTS`.
+- AI trả `key_masked` + `key_configured`; không bao giờ trả key.
+- Mọi thay đổi/rollback ghi `audit_logs` (user, action, before/after).
+
 ## AI Report
 
 | Method | Endpoint | Quyền | Mô tả |

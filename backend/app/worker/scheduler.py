@@ -19,14 +19,33 @@ from app.services.universe import recompute_universe, scan_universe
 logger = logging.getLogger(__name__)
 
 
+def intervals_from(values: dict[str, int]) -> dict[str, timedelta]:
+    return {
+        "scan": timedelta(minutes=values["scan_interval_min"]),
+        "perf": timedelta(hours=values["deep_interval_hours_watch"]),
+        "detail": timedelta(hours=values["deep_interval_hours_qualified"]),
+        "trades": timedelta(hours=values["deep_interval_hours_high"]),
+    }
+
+
 def intervals() -> dict[str, timedelta]:
     settings = get_settings()
-    return {
-        "scan": timedelta(minutes=settings.scan_interval_min),
-        "perf": timedelta(hours=settings.deep_interval_hours_watch),
-        "detail": timedelta(hours=settings.deep_interval_hours_qualified),
-        "trades": timedelta(hours=settings.deep_interval_hours_high),
-    }
+    return intervals_from(
+        {
+            "scan_interval_min": settings.scan_interval_min,
+            "deep_interval_hours_watch": settings.deep_interval_hours_watch,
+            "deep_interval_hours_qualified": settings.deep_interval_hours_qualified,
+            "deep_interval_hours_high": settings.deep_interval_hours_high,
+        }
+    )
+
+
+async def load_intervals() -> dict[str, timedelta]:
+    from app.services.settings_service import get_collector_config
+
+    async with SessionLocal() as db:
+        config = await get_collector_config(db)
+    return intervals_from(config)
 
 
 def due_jobs(
@@ -72,12 +91,14 @@ async def run_stage(kind: str) -> None:
 async def main() -> None:
     logging.basicConfig(level=get_settings().log_level)
     now = datetime.now(UTC)
-    last_run = {kind: now for kind in intervals()}  # deep chờ đủ interval
+    current_intervals = await load_intervals()
+    last_run = {kind: now for kind in current_intervals}
     last_run.pop("scan", None)  # scan chạy ngay khi khởi động
-    logger.info("Scheduler khởi động, interval=%s", intervals())
+    logger.info("Scheduler khởi động, interval=%s", current_intervals)
     while True:
         current = datetime.now(UTC)
-        for kind in due_jobs(current, last_run):
+        current_intervals = await load_intervals()
+        for kind in due_jobs(current, last_run, current_intervals):
             last_run[kind] = current
             asyncio.create_task(run_stage(kind))
         await asyncio.sleep(60)

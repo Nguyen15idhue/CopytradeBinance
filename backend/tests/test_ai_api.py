@@ -48,7 +48,7 @@ async def test_analyze_admin_cached_and_score_unchanged(monkeypatch) -> None:
     await seed_viewer()
     trader_id = (await _ids(1))[0]
 
-    async def fake_generate(context, api_key, transport=None):
+    async def fake_generate(context, api_key, transport=None, **kwargs):
         result = AIResult(
             payload=template_report(context),
             role="primary",

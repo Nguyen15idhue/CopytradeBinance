@@ -311,6 +311,53 @@ export interface AIReportsResponse {
   total: number;
 }
 
+export interface SettingsSnapshot {
+  scoring: {
+    version: number;
+    weights: Record<string, number>;
+    hard_filters: Record<string, unknown>;
+    normalization: Record<string, unknown>;
+  };
+  ai: {
+    model_primary: string;
+    model_fallback: string;
+    monthly_budget_usd: number;
+    daily_budget_usd: number;
+    enabled: boolean;
+    key_configured: boolean;
+    key_masked: string;
+  };
+  collector: {
+    scan_interval_min: number;
+    deep_interval_hours_watch: number;
+    deep_interval_hours_qualified: number;
+    deep_interval_hours_high: number;
+  };
+  system: { app_env: string; app_name: string; api_v1_prefix: string };
+}
+
+export interface SettingsVersion {
+  version: number;
+  is_active: boolean;
+  weights: Record<string, number>;
+  hard_filters: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface PreviewImpact {
+  traders: number;
+  changed_band: number;
+  top_changes: Array<{
+    id: string;
+    old_score: number | null;
+    new_score: number | null;
+    old_band: string | null;
+    new_band: string | null;
+    delta: number;
+  }>;
+  weights: Record<string, number>;
+}
+
 export interface AuthUser {
   id: string;
   email: string;

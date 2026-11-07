@@ -104,6 +104,10 @@ async def generate_report(
     context: dict[str, Any],
     api_key: str,
     transport: httpx.AsyncBaseTransport | None = None,
+    primary_model: str | None = None,
+    fallback_model: str | None = None,
+    max_tokens: int | None = None,
+    timeout: int | None = None,
 ) -> tuple[AIResult, list[str]]:
     """Trả (result, lỗi từng lần thử). Fallback 1 lần, cuối cùng template."""
     settings = get_settings()
@@ -111,8 +115,8 @@ async def generate_report(
     errors: list[str] = []
     allowed = set(context.get("allowed_evidence_ids", []))
     for role, model in (
-        ("primary", settings.ai_model_primary),
-        ("fallback", settings.ai_model_fallback),
+        ("primary", primary_model or settings.ai_model_primary),
+        ("fallback", fallback_model or settings.ai_model_fallback),
     ):
         try:
             result = await call_model(
@@ -120,8 +124,8 @@ async def generate_report(
                 prompt,
                 api_key,
                 settings.openrouter_base_url,
-                settings.ai_timeout_seconds,
-                settings.ai_max_tokens,
+                timeout or settings.ai_timeout_seconds,
+                max_tokens or settings.ai_max_tokens,
                 transport=transport,
             )
             invalid = [item for item in result.payload.evidence_ids if item not in allowed]

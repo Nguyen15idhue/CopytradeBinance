@@ -575,14 +575,14 @@ hoàn thiện trang Ranking và trang hướng dẫn cho người mới.
 **Tham chiếu:** §9.6 Versioning (1537–1544) · §11.5 AI & settings API (2071–2084) · §13.6 Settings & Data Health (2490–2529)  
 **→ đọc khi:** làm form cấu hình, preview impact, rollback.
 
-- [ ] Data Collection tab.
-- [ ] Data Health tab.
-- [ ] Scoring tab + preview impact.
-- [ ] Risk Rules tab.
-- [ ] AI tab: OpenRouter key (masked), `AI_MODEL_PRIMARY`, `AI_MODEL_FALLBACK`, budget.
-- [ ] Ranking tab.
-- [ ] Version + audit + rollback.
-- [ ] Validation + confirm khi thay đổi ảnh hưởng ranking.
+- [x] Data Collection tab. → Bằng chứng: 4 chu kỳ lưu vào `app_settings`; worker đọc mỗi vòng 60s.
+- [x] Data Health tab. → Bằng chứng: hiển thị collector status + raw archive + lần chạy từng tầng.
+- [x] Scoring tab + preview impact. → Bằng chứng: sửa 7 trọng số, preview trả `traders/changed_band/top_changes`.
+- [x] Risk Rules tab. → Bằng chứng: tab hiển thị HF01–HF06 + hard_filters của version hiện tại.
+- [x] AI tab: OpenRouter key (masked), `AI_MODEL_PRIMARY`, `AI_MODEL_FALLBACK`, budget. → Bằng chứng: key masked `••••`, sửa model/budget/enabled, lưu `app_settings`.
+- [x] Ranking tab. → Bằng chứng: tab mô tả 3 bảng dùng chung scoring version.
+- [x] Version + audit + rollback. → Bằng chứng: PUT tạo version mới, rollback active, `audit_logs` ghi before/after (10 bản ghi).
+- [x] Validation + confirm khi thay đổi ảnh hưởng ranking. → Bằng chứng: 422 khi trọng số lỗi; preview trước khi lưu; E2E preview → save → rollback.
 
 ### Bước 5.3 — Hardening
 

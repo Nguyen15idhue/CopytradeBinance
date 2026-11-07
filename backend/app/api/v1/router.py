@@ -10,6 +10,7 @@ from app.api.v1.compare import router as compare_router
 from app.api.v1.risk import router as risk_router
 from app.api.v1.saved_views import router as saved_views_router
 from app.api.v1.screener import router as screener_router
+from app.api.v1.settings import router as settings_router
 from app.api.v1.trader_detail import router as trader_detail_router
 from app.api.v1.traders import router as traders_router
 from app.api.v1.universe import router as universe_router
@@ -25,6 +26,7 @@ router.include_router(compare_router)
 router.include_router(risk_router)
 router.include_router(screener_router)
 router.include_router(saved_views_router)
+router.include_router(settings_router)
 router.include_router(trader_detail_router)
 router.include_router(traders_router)
 router.include_router(universe_router)

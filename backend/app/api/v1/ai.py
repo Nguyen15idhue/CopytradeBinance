@@ -8,7 +8,7 @@ from app.core.errors import ApiError
 from app.models.ai_report import AIReport
 from app.models.user import User
 from app.services.ai.service import analyze_trader, list_reports
-from app.services.settings_service import get_ai_api_key
+from app.services.settings_service import get_ai_config
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 
@@ -43,13 +43,13 @@ async def analyze(
     user: User = Depends(require_admin),
 ) -> dict:
     report, cached, errors = await analyze_trader(db, portfolio_id)
-    api_key = await get_ai_api_key(db)
+    config = await get_ai_config(db)
     return ok(
         {
             "report": _serialize(report),
             "cached": cached,
             "errors": errors[:3],
-            "ai_configured": bool(api_key),
+            "ai_configured": config["key_configured"],
         },
         request,
     )

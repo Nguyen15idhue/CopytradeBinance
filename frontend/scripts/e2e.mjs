@@ -51,6 +51,31 @@ try {
   await page.getByRole("button", { name: /Hệ thống/ }).click();
   console.log("Theme light/dark/system: OK");
 
+  const originalVersion = await page.evaluate(async () => {
+    const token = localStorage.getItem("ct_access_token");
+    const response = await fetch("/api/v1/settings", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return (await response.json()).data.scoring.version;
+  });
+
+  await page.getByRole("link", { name: "Settings" }).click();
+  await page.getByRole("heading", { name: "Settings" }).waitFor();
+  await page.getByRole("button", { name: "Preview impact" }).click();
+  await page.getByRole("heading", { name: "Preview impact" }).waitFor();
+  const previewBody = await page.locator("body").innerText();
+  assert(previewBody.includes("đổi band"), "Preview không có thống kê band");
+  await page.getByRole("button", { name: "Lưu version mới" }).click();
+  await page.getByText("Đã tạo version mới").waitFor();
+  await page.evaluate(async (version) => {
+    const token = localStorage.getItem("ct_access_token");
+    await fetch(`/api/v1/settings/rollback/${version}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }, originalVersion);
+  console.log("Settings preview/save/rollback: OK");
+
   await page.getByRole("link", { name: "Data Health" }).click();
   await page.getByRole("heading", { name: "Data Health" }).waitFor();
   await page.getByRole("heading", { name: "Universe theo tier" }).waitFor();

@@ -81,8 +81,11 @@ def input_hash(context: dict[str, Any]) -> str:
     ).hexdigest()
 
 
-async def check_budget(db: AsyncSession) -> None:
+async def check_budget(db: AsyncSession, config: dict[str, Any] | None = None) -> None:
     settings = get_settings()
+    config = config or {}
+    monthly_budget = float(config.get("monthly_budget_usd", settings.ai_monthly_budget_usd))
+    daily_budget = float(config.get("daily_budget_usd", settings.ai_daily_budget_usd))
     today = datetime.now(UTC).date()
     month_start = today.replace(day=1)
     month_cost = await db.scalar(
@@ -91,9 +94,9 @@ async def check_budget(db: AsyncSession) -> None:
     day_cost = await db.scalar(
         select(func.coalesce(func.sum(AIUsage.cost_usd), 0)).where(AIUsage.day == today)
     )
-    if float(month_cost or 0) >= settings.ai_monthly_budget_usd:
+    if float(month_cost or 0) >= monthly_budget:
         raise ApiError(429, "AI_BUDGET_EXCEEDED", "Đã vượt budget AI tháng")
-    if float(day_cost or 0) >= settings.ai_daily_budget_usd:
+    if float(day_cost or 0) >= daily_budget:
         raise ApiError(429, "AI_BUDGET_EXCEEDED", "Đã vượt budget AI ngày")
 
 
@@ -110,7 +113,10 @@ async def latest_report(db: AsyncSession, portfolio_id: str) -> AIReport | None:
 
 async def analyze_trader(db: AsyncSession, portfolio_id: str) -> tuple[AIReport, bool, list[str]]:
     settings = get_settings()
-    if not settings.ai_enabled:
+    from app.services.settings_service import get_ai_api_key, get_ai_config
+
+    config = await get_ai_config(db)
+    if not config["enabled"]:
         raise ApiError(409, "AI_DISABLED", "AI đang bị tắt")
 
     context = await build_context(db, portfolio_id)
@@ -124,12 +130,15 @@ async def analyze_trader(db: AsyncSession, portfolio_id: str) -> tuple[AIReport,
         if age < timedelta(hours=settings.ai_cooldown_hours):
             return latest, True, ["cooldown"]
 
-    await check_budget(db)
-
-    from app.services.settings_service import get_ai_api_key
+    await check_budget(db, config)
 
     api_key = await get_ai_api_key(db)
-    result, errors = await generate_report(context, api_key)
+    result, errors = await generate_report(
+        context,
+        api_key,
+        primary_model=config["model_primary"],
+        fallback_model=config["model_fallback"],
+    )
 
     report = AIReport(
         lead_portfolio_id=portfolio_id,

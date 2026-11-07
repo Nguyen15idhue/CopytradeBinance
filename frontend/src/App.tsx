@@ -7,6 +7,7 @@ import DemoHomePage from "./pages/DemoHomePage";
 import DataHealthPage from "./pages/DataHealthPage";
 import LoginPage from "./pages/LoginPage";
 import RiskMonitorPage from "./pages/RiskMonitorPage";
+import SettingsPage from "./pages/SettingsPage";
 import ScreenerPage from "./pages/ScreenerPage";
 import TraderDetailPage from "./pages/TraderDetailPage";
 
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="/screener" element={<ScreenerPage />} />
         <Route path="/compare" element={<ComparePage />} />
         <Route path="/risk" element={<RiskMonitorPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
         <Route path="/traders/:id" element={<TraderDetailPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -15,6 +15,9 @@ import type {
   SavedView,
   ScoreResponse,
   ScreenerResponse,
+  SettingsSnapshot,
+  SettingsVersion,
+  PreviewImpact,
   TraderDetail,
   TradeRow,
   TransferRow,
@@ -183,4 +186,30 @@ export async function analyzeTrader(
     `/ai/analyze/${id(portfolioId)}`,
     { method: "POST" },
   );
+}
+
+export async function getSettings(): Promise<SettingsSnapshot> {
+  return request<SettingsSnapshot>("/settings");
+}
+
+export async function saveSettings(payload: Record<string, unknown>): Promise<SettingsSnapshot> {
+  return request<SettingsSnapshot>("/settings", {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function previewSettings(weights: Record<string, number>): Promise<PreviewImpact> {
+  return request<PreviewImpact>("/settings/preview", {
+    method: "POST",
+    body: JSON.stringify({ weights }),
+  });
+}
+
+export async function getSettingsVersions(): Promise<SettingsVersion[]> {
+  return request<SettingsVersion[]>("/settings/versions");
+}
+
+export async function rollbackSettings(version: number): Promise<SettingsSnapshot> {
+  return request<SettingsSnapshot>(`/settings/rollback/${version}`, { method: "POST" });
 }

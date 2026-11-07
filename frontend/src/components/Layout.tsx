@@ -10,7 +10,7 @@ const navItems = [
   { to: "/ranking", label: "Ranking", phase: "Phase 4" },
   { to: "/compare", label: "Compare" },
   { to: "/risk", label: "Risk" },
-  { to: "/settings", label: "Settings", phase: "Phase 5" },
+  { to: "/settings", label: "Settings" },
 ];
 
 export default function Layout() {
