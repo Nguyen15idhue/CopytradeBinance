@@ -37,6 +37,37 @@ Base: `/api/v1`
 - Login rate limit 5/phút/IP.
 - Gửi header `Authorization: Bearer <access_token>` cho endpoint bảo vệ.
 
+## Screener
+
+### GET `/traders`
+
+Filter/sort/pagination. Mặc định `include_excluded=false`, sort `score desc`, `page_size ≤ 100`.
+
+Query: `q, portfolio_type, status, potential_tier (lặp lại), include_excluded, min_pre_score,
+min_roi_90d, max_roi_90d, max_mdd_90d, min_sharpe, max_sharpe, min_win_rate, max_win_rate,
+min_runtime_days, min_total_orders, min_copiers, min_copy_aum, max_leverage, risk_level,
+has_sharpe, sort_by, sort_dir, page, page_size`.
+
+`potential_tier` nhận `excluded | watch | qualified | high` (alias) hoặc tên nội bộ.
+
+Mỗi item có score, band, confidence, breakdown, risk_level, tier, metrics chính và `filter_reasons`.
+
+### GET `/traders/funnel-summary`
+
+`{ universe, watch, qualified, high, excluded }`.
+
+### GET `/traders/export.csv`
+
+CSV theo filter hiện tại (tối đa 100 dòng), header tiếng Anh, UTF-8.
+
+### Saved views
+
+| Method | Endpoint | Mô tả |
+|---|---|---|
+| GET | `/saved-views` | Danh sách view của user |
+| POST | `/saved-views` | `{name, filters}`; trùng tên thì cập nhật |
+| DELETE | `/saved-views/{id}` | Xoá view của user |
+
 ## Collector & Data Health
 
 | Method | Endpoint | Quyền | Mô tả |

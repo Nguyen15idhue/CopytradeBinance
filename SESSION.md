@@ -351,3 +351,12 @@ cd frontend; npm run build
 - Snapshot `ranking_snapshots` theo `config_version`; live: overall 50, low_risk 38, consistency 50.
 - Test: loại not-rankable, loại leverage/MDD/runtime/confidence, consistency không phụ thuộc ROI.
 - Lệnh: `python -m app.collector_cli rank`.
+
+### 10.6. Screener API + UI 3.6
+
+- Backend `services/screener.py` + `api/v1/screener.py` + `saved_views.py`; bảng `saved_views` (migration 0011).
+- GET `/traders` đủ filter/sort/pagination, outer join để excluded vẫn hiện khi bật toggle.
+- `/traders/funnel-summary`, `/traders/export.csv`, CRUD `/saved-views`.
+- UI `/screener`: filter bar, funnel badge, count preview, bảng 13 cột, sort, phân trang,
+  breakdown drawer, saved views, CSV, empty state, toggle excluded.
+- Test: 4 integration test pass; E2E “Screener render: OK”.

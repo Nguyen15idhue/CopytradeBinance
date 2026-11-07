@@ -6,6 +6,7 @@ from app.models.performance import PerformanceMetric
 from app.models.position import Position
 from app.models.ranking_snapshot import RankingSnapshot
 from app.models.risk_event import RiskEvent
+from app.models.saved_view import SavedView
 from app.models.scoring_config import ScoringConfig
 from app.models.session import UserSession
 from app.models.snapshot import PortfolioSnapshot
@@ -28,6 +29,7 @@ __all__ = [
     "Position",
     "RankingSnapshot",
     "RiskEvent",
+    "SavedView",
     "ScoringConfig",
     "TierHistory",
     "Trade",

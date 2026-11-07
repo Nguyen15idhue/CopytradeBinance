@@ -49,6 +49,14 @@ try {
   assert(health.includes("L0 — Universe scan"), "Thiếu bảng lần chạy");
   console.log("Data Health render: OK");
 
+  await page.getByRole("link", { name: "Screener" }).click();
+  await page.getByRole("heading", { name: "Screener" }).waitFor();
+  await page.getByText(/trader khớp/).waitFor();
+  const screenerBody = await page.locator("body").innerText();
+  assert(screenerBody.includes("High"), "Screener thiếu tier High");
+  assert(screenerBody.includes("Score"), "Screener thiếu cột Score");
+  console.log("Screener render: OK");
+
   async function pickTrader(tier) {
     return page.evaluate(async (value) => {
       const token = localStorage.getItem("ct_access_token");

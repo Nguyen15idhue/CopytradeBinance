@@ -1,5 +1,12 @@
 import { clearSession, getAccessToken } from "./auth";
-import type { CollectorStatus, LoginResult, TraderDetail } from "../types/trader";
+import type {
+  CollectorStatus,
+  FunnelSummary,
+  LoginResult,
+  SavedView,
+  ScreenerResponse,
+  TraderDetail,
+} from "../types/trader";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "/api/v1";
 
@@ -65,4 +72,40 @@ export async function getTrader(id: string): Promise<TraderDetail> {
 
 export async function getCollectorStatus(): Promise<CollectorStatus> {
   return request<CollectorStatus>("/collector/status");
+}
+
+export function toQuery(filters: Record<string, unknown>): string {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(filters)) {
+    if (value === null || value === undefined || value === "") continue;
+    if (Array.isArray(value)) {
+      for (const item of value) params.append(key, String(item));
+    } else {
+      params.set(key, String(value));
+    }
+  }
+  return params.toString();
+}
+
+export async function getScreener(filters: Record<string, unknown>): Promise<ScreenerResponse> {
+  return request<ScreenerResponse>(`/traders?${toQuery(filters)}`);
+}
+
+export async function getFunnelSummary(): Promise<FunnelSummary> {
+  return request<FunnelSummary>("/traders/funnel-summary");
+}
+
+export async function getSavedViews(): Promise<SavedView[]> {
+  return request<SavedView[]>("/saved-views");
+}
+
+export async function saveView(name: string, filters: Record<string, unknown>): Promise<SavedView> {
+  return request<SavedView>("/saved-views", {
+    method: "POST",
+    body: JSON.stringify({ name, filters }),
+  });
+}
+
+export async function deleteView(id: string): Promise<{ deleted: boolean }> {
+  return request<{ deleted: boolean }>(`/saved-views/${id}`, { method: "DELETE" });
 }

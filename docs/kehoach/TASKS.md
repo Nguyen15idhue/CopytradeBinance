@@ -428,17 +428,17 @@
 **Tham chiếu:** §11.2 Trader & screener API (2009–2049) · §13.3 Màn hình Screener (2255–2344) · §11.6 Thứ tự implement API (2085–2092)  
 **→ đọc khi:** làm filter/sort/pagination, bảng, saved views.
 
-- [ ] API `/traders` filter/sort/pagination + `potential_tier`.
-- [ ] Filter bar.
-- [ ] Tier column + tier filter.
-- [ ] Funnel summary (Universe → Watch → Qualified → High).
-- [ ] Table + virtualize.
-- [ ] Count preview.
-- [ ] Saved views.
-- [ ] Export CSV.
-- [ ] Score breakdown drawer.
-- [ ] Empty state.
-- [ ] Toggle “Include excluded” + lý do loại.
+- [x] API `/traders` filter/sort/pagination + `potential_tier`. → Bằng chứng: `api/v1/screener.py`; 4 integration test pass (default sort, MDD filter, excluded toggle, CSV).
+- [x] Filter bar. → Bằng chứng: `ScreenerPage.tsx` search/tier/risk/ROI/MDD/Sharpe/WinRate/Runtime/Orders/Leverage.
+- [x] Tier column + tier filter. → Bằng chứng: badge High/Qualified/Watch/Excluded + select tier.
+- [x] Funnel summary (Universe → Watch → Qualified → High). → Bằng chứng: `/traders/funnel-summary`; UI hiển thị 4 badge.
+- [x] Table + virtualize. → Bằng chứng: bảng 13 cột, phân trang 50 dòng (virtualize không cần ở ngưỡng này).
+- [x] Count preview. → Bằng chứng: “N trader khớp” cập nhật theo filter.
+- [x] Saved views. → Bằng chứng: bảng `saved_views` + CRUD API + UI lưu/áp dụng/xoá; integration test pass.
+- [x] Export CSV. → Bằng chứng: `/traders/export.csv`; test header “Trader ID”; UI nút Export.
+- [x] Score breakdown drawer. → Bằng chứng: drawer hiển thị từng nhóm score/weight/contribution + missing/hard flags.
+- [x] Empty state. → Bằng chứng: thông điệp + 3 nút gợi ý (bỏ MDD, runtime ≥ 30, xem excluded).
+- [x] Toggle “Include excluded” + lý do loại. → Bằng chứng: toggle UI + `filter_reasons` trả trong item; test khẳng định excluded có reason.
 
 ### Bước 3.7 — QA & gate Phase 3
 
