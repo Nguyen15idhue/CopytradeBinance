@@ -150,7 +150,7 @@
 
 - [x] Khởi tạo repo cho ca ma nguon, khong duoc tao cac folder tung buoc nhu folder phase0, `.gitignore`, `.env.example`. → Bằng chứng: `backend/`, `frontend/`, `infra/`, `.gitignore`, `.env.example`; không tạo `phase1/`.
 - [x] `docker-compose.yml` với db/backend/frontend/nginx. → Bằng chứng: `docker compose config` OK; `docker compose up -d --build` OK.
-- [x] FastAPI app + `/health`. → Bằng chứng: `GET http://localhost:8000/health` → `{"status":"ok","database":"ok"}`.
+- [x] FastAPI app + `/health`. → Bằng chứng: `GET http://localhost:8010/health` → `{"status":"ok","database":"ok"}` (cổng host đổi từ 8000).
 - [x] Config bằng Pydantic Settings. → Bằng chứng: `backend/app/core/config.py`.
 - [x] SQLAlchemy async engine. → Bằng chứng: `backend/app/core/database.py`.
 - [x] Alembic init + migration đầu. → Bằng chứng: `backend/alembic.ini`, `backend/migrations/`; `alembic upgrade head` OK.

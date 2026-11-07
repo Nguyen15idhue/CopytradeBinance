@@ -5,7 +5,7 @@ chcp 65001 > $null
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $OutputEncoding = [System.Text.Encoding]::UTF8
 
-$base = "http://localhost:8000/api/v1"
+$base = "http://localhost:8010/api/v1"
 $body = @{ email = "admin@example.com"; password = "sai-mat-khau" } | ConvertTo-Json
 
 $lastStatus = 0

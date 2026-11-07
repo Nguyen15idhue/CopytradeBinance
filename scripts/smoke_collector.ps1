@@ -10,7 +10,7 @@ if ($env:RUN_LIVE -ne "1") {
     exit 0
 }
 
-$base = "http://localhost:8000/api/v1"
+$base = "http://localhost:8010/api/v1"
 $loginBody = @{ email = "admin@example.com"; password = "Admin123!ChangeMe" } | ConvertTo-Json
 $login = Invoke-RestMethod -Method Post -Uri "$base/auth/login" `
     -ContentType "application/json; charset=utf-8" -Body $loginBody

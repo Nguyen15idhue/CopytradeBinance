@@ -5,7 +5,7 @@ chcp 65001 > $null
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $OutputEncoding = [System.Text.Encoding]::UTF8
 
-$base = "http://localhost:8000/api/v1"
+$base = "http://localhost:8010/api/v1"
 
 function Login {
     param([string]$Email, [string]$Password)

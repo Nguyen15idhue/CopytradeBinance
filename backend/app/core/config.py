@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     admin_email: str = "admin@example.com"
     admin_initial_password: str = "Admin123!ChangeMe"
 
-    cors_origins: str = "http://localhost:8080,http://localhost:5173"
+    cors_origins: str = "http://localhost:8090,http://localhost:5173"
 
     # Collector (Phase 2)
     bapi_base_url: str = "https://www.binance.com"

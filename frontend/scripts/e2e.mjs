@@ -13,7 +13,7 @@ if (!executablePath) {
   throw new Error("Không tìm thấy Chrome/Edge. Đặt biến CHROME_PATH.");
 }
 
-const base = process.env.BASE_URL ?? "http://localhost:8080";
+const base = process.env.BASE_URL ?? "http://localhost:8090";
 const browser = await chromium.launch({ executablePath, headless: true });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 const consoleErrors = [];

@@ -17,10 +17,10 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-- Giao diện: http://localhost:8080
-- API: http://localhost:8080/api/v1
-- Health: http://localhost:8080/api/v1/health/db
-- Backend trực tiếp: http://localhost:8000/health
+- Giao diện: http://localhost:8090
+- API: http://localhost:8090/api/v1
+- Health: http://localhost:8090/api/v1/health/db
+- Backend trực tiếp: http://localhost:8010/health
 
 ## Cấu trúc
 
@@ -37,7 +37,7 @@ data/raw/       JSONL archive (không commit)
 
 - `worker` chạy scheduler: scan 60 phút; performance 6h; detail 12h; trades 24h.
 - API vận hành: `/api/v1/collector/status`, `run-scan`, `run-deep`, `kill-switch`.
-- UI: http://localhost:8080/data-health
+- UI: http://localhost:8090/data-health
 
 ## Quant, Scoring & Screener
 

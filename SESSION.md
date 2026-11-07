@@ -153,11 +153,13 @@ Scripts:
 
 ### 8.3. Lệnh kiểm tra 1.1
 
+> Cổng host đã đổi 07/11/2026: backend `8010`, web `8090` (tránh trùng dự án `cors-mvp` đang chạy). Cổng nội bộ container vẫn `8000/80`.
+
 ```powershell
 docker compose config
 docker compose up -d --build
-Invoke-WebRequest -UseBasicParsing http://localhost:8000/health
-Invoke-WebRequest -UseBasicParsing http://localhost:8080/api/v1/health/db
+Invoke-WebRequest -UseBasicParsing http://localhost:8010/health
+Invoke-WebRequest -UseBasicParsing http://localhost:8090/api/v1/health/db
 .\.venv\Scripts\ruff.exe check backend
 .\.venv\Scripts\pytest.exe backend\tests -q
 cd frontend; npm run build
