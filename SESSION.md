@@ -580,3 +580,11 @@ Lưu ý: ranking/help cases (K/H) chỉ chạy được sau khi hoàn thành bư
 - TOC 2 cấp tự sinh từ heading, search, group filter, anchor, active, progress, mobile drawer, print.
 - 3 SVG kỹ thuật: kiến trúc, pipeline dữ liệu, scoring.
 - E2E: technical docs render, TOC ≥ 20, anchor `#tier`, search, mobile drawer, không overflow ngang.
+
+## 16. Risk V2 spec-only (07/11/2026)
+
+- Vấn đề: scoring v1 không có `sharpe` trong components → 90 điểm + Sharpe âm vẫn `low_risk` được.
+- Quyết định: veto Sharpe âm → `>=high` + cấm `low_risk` + cap score `<=54`; giữ enum UI; `risk_score = 30*MDD+20*Lev+15*Sharpe+15*Conc+10*Qual+10*Copy`.
+- Artifact: `docs/0/02-ke-hoach-risk-v2.md`, `docs/kehoach/RISK-V2-SPEC.md`; `TASKS.md` bổ sung mục Risk V2.
+- Đã implement 07/11/2026: `risk_rules.py` R01–R19 + `risk_score/veto/low_risk_eligible`; migration `0014_risk_v2` (`risk_score`, `risk_veto`); `risk_service` lưu score/veto; `ranking.low_risk` cấm Sharpe âm/null (ngoại lệ Sharpe 0–0.5 chỉ khi mdd≤15+lev≤3+runtime≥180); `trader_detail/risk` trả score/veto; `vi.ts` + Settings R12–R19; test `test_risk_v2` 9 pass, full backend 94 pass, frontend build OK.
+- Chưa chạy backfill live; cần `alembic upgrade head` + `collector_cli risk/rank` ở bước vận hành.

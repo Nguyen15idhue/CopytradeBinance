@@ -267,8 +267,8 @@ export default function SettingsPage() {
       {tab === "risk" ? (
         <Card title="Quy tắc rủi ro">
           <p className="text-sm text-body">
-            Bộ lọc cứng thuộc phiên bản chấm điểm hiện tại. Cảnh báo rủi ro R01–R11 không tự loại
-            trader, chỉ tạo cảnh báo và ảnh hưởng độ tin cậy.
+            Bộ lọc cứng thuộc phiên bản chấm điểm hiện tại. Cảnh báo rủi ro R01–R19 không tự loại
+            trader, chỉ tạo cảnh báo và ảnh hưởng độ tin cậy. Sharpe âm cấm board rủi ro thấp.
           </p>
           <ul className="mt-3 space-y-1 text-sm text-muted">
             <li>HF01 — status khác ACTIVE: không xếp hạng</li>

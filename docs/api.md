@@ -107,7 +107,8 @@ Lỗi: 403 viewer, 404 trader/report, 409 `NO_METRICS`/`AI_DISABLED`, 429 `AI_BU
 | GET | `/risk/events` | Filter `severity`, `status`, `trader`; phân trang |
 | GET | `/traders/{id}/risk` | Event/flags của một trader |
 
-Mỗi event có `code` R01–R11, `severity`, `label`, `evidence` JSON và `status` (`open`).
+Mỗi event có `code` R01–R19, `severity`, `label`, `evidence` JSON và `status` (`open`).
+`GET /traders/{id}/risk` trả thêm `risk_score (0–100)` và `veto_reasons[]`; Sharpe âm veto `>=high` và cấm board `low_risk`.
 Không có dữ liệu open positions từ Binance; UI ghi rõ, không mô phỏng.
 
 ## Screener

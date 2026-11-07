@@ -57,6 +57,17 @@ def select_boards(candidates: list[dict[str, Any]], top_n: int = TOP_N) -> dict[
         and row["mdd_90d"] <= 20
         and (row["max_leverage"] is None or row["max_leverage"] <= 5)
         and (row["confidence"] or 0) >= 0.8
+        and row.get("sharpe") is not None
+        and float(row["sharpe"]) >= 0
+        and (
+            float(row["sharpe"]) >= 0.5
+            or (
+                (row["mdd_90d"] or 99) <= 15
+                and (row["max_leverage"] if row["max_leverage"] is not None else 99)
+                <= 3
+                and (row["runtime_days"] or 0) >= 180
+            )
+        )
     ]
     low_risk = sorted(low_risk, key=lambda row: row["score"], reverse=True)[:top_n]
 

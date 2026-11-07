@@ -5,6 +5,7 @@ def _metrics(**overrides):
     base = {
         "runtime_days": 120,
         "freshness_minutes": 30,
+        "confidence": {"value": 0.85},
         "published": {
             "90D": {
                 "mdd": 10.0,
@@ -18,6 +19,13 @@ def _metrics(**overrides):
             "max_leverage": 5.0,
             "worst_position_roi": -20.0,
             "copy_aum_ratio": 40.0,
+            "fee_drag_pct": 2.0,
+            "hhi": 0.15,
+            "top_symbol_share": 25.0,
+            "near_liquidation_count": 0,
+            "profit_factor": 1.5,
+            "positions_count": 20,
+            "calmar": 2.0,
         },
     }
     for key, value in overrides.items():

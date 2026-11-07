@@ -866,3 +866,15 @@ Tóm tắt: không auto-trading, không realtime WebSocket, không Paper Copy tr
 4. Task mới phát sinh → thêm vào đúng bước; nếu ảnh hưởng kiến trúc, cập nhật master trước.
 5. Khi master đổi số dòng → cập nhật lại cột tham chiếu; nếu không, dùng tên mục để tra.
 6. Cuối mỗi phase → cập nhật bảng tổng quan + gate + `SESSION.md`.
+
+---
+
+## Risk V2 — spec only (07/11/2026, ngoài MVP)
+
+> Kế hoạch: `docs/0/02-ke-hoach-risk-v2.md`. Spec: `docs/kehoach/RISK-V2-SPEC.md`. Đã implement code + migration.
+
+- [x] T1. Chốt spec Sharpe (âm/null/thang veto). → Bằng chứng: `RISK-V2-SPEC.md §1`.
+- [x] T2. Chốt ma trận R01–R17 + evidence. → Bằng chứng: `RISK-V2-SPEC.md §2`.
+- [x] T3. Chốt công thức risk_score + map level + 3 ví dụ (90 điểm Sharpe âm → high). → Bằng chứng: `RISK-V2-SPEC.md §3`.
+- [x] T4. Chốt tương thích enum + rollout + gate spec. → Bằng chứng: `RISK-V2-SPEC.md §4`; `docs/0/02-ke-hoach-risk-v2.md`.
+- [x] T5. Implement Risk V2. → Bằng chứng: `risk_rules.py` R01–R19 + score/veto; migration `0014_risk_v2`; `risk_service/ranking/trader_detail/vi.ts` cập nhật; pytest 94 pass + build OK.

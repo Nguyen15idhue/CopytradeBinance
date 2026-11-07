@@ -128,6 +128,14 @@ export const RISK_EVENT_LABELS: Record<string, string> = {
   R09: "Dữ liệu cũ > 150 phút",
   R10: "Copier PnL âm, lead dương",
   R11: "Copy AUM < 5% AUM",
+  R12: "Fee drag > 20%",
+  R13: "Tập trung cao (HHI/top)",
+  R14: "Gần cháy ≥ 1 vị thế",
+  R15: "Profit factor < 1",
+  R16: "Calmar < 0",
+  R17: "Confidence < 0,5",
+  R18: "Sharpe âm",
+  R19: "Sharpe thấp (< 0,5)",
 };
 
 export const GROUP_LABELS: Record<string, string> = {

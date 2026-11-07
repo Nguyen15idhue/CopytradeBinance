@@ -38,6 +38,8 @@ async def rebuild_risk_events(
         for event in result["events"]:
             events.append({"lead_portfolio_id": row.lead_portfolio_id, **event})
         row.risk_level = result["risk_level"]
+        row.risk_score = result.get("risk_score")
+        row.risk_veto = {"reasons": result.get("veto_reasons", [])}
 
     if events:
         await db.execute(pg_insert(RiskEvent).values(events))

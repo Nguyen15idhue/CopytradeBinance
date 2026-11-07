@@ -260,6 +260,12 @@ async def risk(
     return ok(
         {
             "risk_level": metric.risk_level if metric else None,
+            "risk_score": (
+                float(metric.risk_score)
+                if metric and metric.risk_score is not None
+                else None
+            ),
+            "veto_reasons": (metric.risk_veto or {}).get("reasons", []) if metric else [],
             "flags": (metric.metrics or {}).get("flags", []) if metric else [],
             "events": [
                 {
