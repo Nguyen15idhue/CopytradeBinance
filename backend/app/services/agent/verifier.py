@@ -40,7 +40,34 @@ def extract_trader_ids(text: str) -> list[str]:
 
 
 DATETIME_MASK_RE = re.compile(r"\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(:\d{2})?)?")
+WINDOW_MASK_RE = re.compile(r"\b(7|30|90|180)\s*[Dd]\b")
 YEAR_RE = re.compile(r"^-?(19\d{2}|20\d{2})(%)?$")
+
+
+def _fact_numbers(facts: list[dict]) -> list[float]:
+    numbers: list[float] = []
+    for fact in facts:
+        try:
+            numbers.append(float(str(fact.get("value", "")).replace(",", ".")))
+        except (TypeError, ValueError):
+            continue
+    return numbers
+
+
+def _rounding_match(candidate: str, fact_numbers: list[float]) -> bool:
+    """Chấp nhận số hiển thị đã làm tròn (1–2 chữ số) của một evidence thực."""
+    try:
+        value = float(candidate)
+    except (TypeError, ValueError):
+        return False
+    for fact in fact_numbers:
+        if abs(value - round(fact, 2)) < 1e-9:
+            return True
+        if abs(value - round(fact, 1)) < 1e-9:
+            return True
+        if abs(value - fact) <= 0.005 + abs(fact) * 1e-9:
+            return True
+    return False
 
 
 def verify_answer(
@@ -52,8 +79,10 @@ def verify_answer(
     warnings: list[str] = []
     text = answer or ""
     masked = DATETIME_MASK_RE.sub(" ", text)
+    masked = WINDOW_MASK_RE.sub(" ", masked)
     fact_values = {_norm_number(str(f.get("value", ""))) for f in facts}
     fact_blob = _norm_number(" ".join(str(f.get("value", "")) for f in facts))
+    fact_numbers = _fact_numbers(facts)
     unverified: list[str] = []
     for num in extract_numbers(masked):
         norm = _norm_number(num)
@@ -64,6 +93,8 @@ def verify_answer(
             # Số đếm/thứ hạng không đơn vị (Top 10, 2–4 trader) — bỏ qua để đỡ nhiễu.
             continue
         if norm in fact_values or bare in fact_values or bare in fact_blob:
+            continue
+        if _rounding_match(bare, fact_numbers):
             continue
         unverified.append(num)
     if unverified:

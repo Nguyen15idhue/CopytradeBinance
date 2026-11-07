@@ -145,6 +145,7 @@ async def analyze_portfolio_fit(db: AsyncSession, args: dict[str, Any]) -> ToolR
         "as_of": as_of_iso,
     }
     evidence = [
+        _ev(trader_id, "capital_usd", capital, "USDT", as_of_iso),
         _ev(trader_id, "min_copy_usd", fit["min_copy_usd"], "USDT", as_of_iso),
         _ev(trader_id, "mdd_90d", metrics["mdd_90d"], "%", as_of_iso),
         _ev(trader_id, "profit_sharing_rate", row.get("profit_sharing_rate"), "%", as_of_iso),

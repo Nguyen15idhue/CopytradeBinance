@@ -1,8 +1,22 @@
 """Contract dùng chung cho agent: tool result, answer, SSE event."""
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import date, datetime
+from decimal import Decimal
 from typing import Any
+
+
+def to_jsonable(value: Any) -> Any:
+    """Chuyển Decimal/date sang kiểu JSON-safe để lưu JSONB và serialize SSE."""
+    if isinstance(value, Decimal):
+        return float(value)
+    if isinstance(value, (datetime, date)):
+        return value.isoformat()
+    if isinstance(value, dict):
+        return {key: to_jsonable(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [to_jsonable(item) for item in value]
+    return value
 
 
 @dataclass
@@ -19,7 +33,7 @@ class EvidenceItem:
         return {
             "id": self.id,
             "label": self.label,
-            "value": self.value,
+            "value": to_jsonable(self.value),
             "unit": self.unit,
             "source": self.source,
             "as_of": self.as_of,
@@ -40,8 +54,8 @@ class ToolResult:
 
     def to_dict(self) -> dict[str, Any]:
         return {
-            "data": self.data,
-            "meta": self.meta,
+            "data": to_jsonable(self.data),
+            "meta": to_jsonable(self.meta),
             "evidence": [item.to_dict() for item in self.evidence],
             "error": self.error,
         }

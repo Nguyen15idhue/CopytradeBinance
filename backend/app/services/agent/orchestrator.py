@@ -16,7 +16,7 @@ from app.core.config import get_settings
 from app.core.errors import ApiError
 from app.models.agent import AgentCitation, AgentMessage, AgentSession, AgentToolCall
 from app.services.agent.model_client import call_agent_model
-from app.services.agent.schema import AgentAnswer, SseEvent, utcnow_iso
+from app.services.agent.schema import AgentAnswer, SseEvent, to_jsonable, utcnow_iso
 from app.services.agent.tools import check_agent_budget, record_agent_usage, run_tool, tool_specs
 from app.services.agent.verifier import build_answer_contract, check_units, verify_answer
 
@@ -248,7 +248,13 @@ async def run_chat(
                 if tool_result is not None and tool_result.ok:
                     for item in tool_result.evidence:
                         evidence.append(item.to_dict())
-                        facts.append({"id": item.id, "value": item.value, "unit": item.unit})
+                        facts.append(
+                            {
+                                "id": item.id,
+                                "value": to_jsonable(item.value),
+                                "unit": item.unit,
+                            }
+                        )
                         if item.row_id:
                             row_ids.append(item.row_id)
                     observation = compact_observation(

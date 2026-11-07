@@ -397,3 +397,11 @@ Commit: test(phase6): 4.0.9 eval agent da use case
   vượt `agent_observation_chars=8000` thì trả `{truncated, omitted_rows, hint, items|preview}`
   (không cắt giữa object); `ai_max_tokens` 2500 → 4000; prompt nhắc trả lời theo khung.
   → Bằng chứng: `test_agent_observation` 3 pass; `test_agent_core` + observation 13 pass.
+- [x] B4.0.9 Eval agent đa use case — 15 case (`test_agent_eval_analysis.py`) chạy orchestrator
+  thật + tool thật + DB thật, model script hoá; đối chiếu số với DB.
+  Scorecard: **15/15 case pass**, citation_coverage 100% ở các case có dữ liệu,
+  unknown đúng (không bịa số), injection không đổi hành vi, advice bị gắn disclaimer.
+  Fix kèm theo: verifier chấp nhận số đã làm tròn (dung sai 0.005) và bỏ qua nhãn khung
+  `7D/30D/90D/180D`; `analyze_portfolio_fit` thêm evidence `capital_usd`;
+  `EvidenceItem/ToolResult` chuẩn hoá Decimal/date sang JSON-safe (trước đó gây lỗi JSONB).
+  → Bằng chứng: `pytest tests/test_agent_eval_analysis.py` 15 pass; full backend 249 pass; ruff pass.

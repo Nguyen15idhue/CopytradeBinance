@@ -647,3 +647,11 @@ Nguồn: `docs/0/04-ke-hoach-screener-da-khung.md`. Khảo sát xác nhận V1�
   từng row kèm `truncated/omitted_rows/hint` (không cắt giữa object, không cắt giữa chuỗi);
   `ai_max_tokens` 2500→4000; prompt nhắc nêu rõ khung 7D/30D/90D/180D và unknown khi thiếu.
   Test `test_agent_observation` 3 pass.
+- B4.0.9: bộ eval 15 case phân tích/đánh giá (`test_agent_eval_analysis.py`): chạy orchestrator +
+  tool + DB thật, model script hoá; đối chiếu số với DB.
+  Scorecard: 15/15 pass; citation đúng 100% ở case có dữ liệu; unknown không bịa số;
+  injection không đổi hành vi; advice bị disclaimer.
+  Fix kèm: verifier chấp nhận số làm tròn (dung sai 0.005) + bỏ qua nhãn `7D/30D/90D/180D`;
+  `analyze_portfolio_fit` thêm evidence `capital_usd`; `EvidenceItem/ToolResult` chuẩn hoá
+  Decimal/date sang JSON-safe (lỗi JSONB thật khi lưu facts).
+  Full backend 249 pass, ruff pass.
