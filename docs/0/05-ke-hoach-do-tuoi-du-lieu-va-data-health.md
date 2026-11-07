@@ -1,0 +1,569 @@
+# 05 — Kế hoạch: vòng đời raw archive, độ tươi dữ liệu và Data Health
+
+> Trạng thái: **kế hoạch**, chưa triển khai.
+> Phạm vi: `RawArchive`, scheduler collector, API `/collector/status`, job thủ công, UI `/data-health`.
+> Nguồn khảo sát: đọc code + query PostgreSQL + đo trực tiếp trong container ngày 2026-11-07/08.
+> Liên quan: `backend/app/services/storage/raw.py`, `backend/app/worker/scheduler.py`,
+> `backend/app/api/v1/collector.py`, `backend/app/services/jobs.py`,
+> `frontend/src/pages/DataHealthPage.tsx`, `docs/ky-thuat/11-data-health-collector.md`.
+
+---
+
+## 1. Vấn đề đã xác nhận (có bằng chứng)
+
+### V1 — Raw archive đang append vô hạn, không ghi đè
+
+| Bằng chứng | Chi tiết |
+|---|---|
+| `storage/raw.py:17-25` | Đường dẫn `data/raw/<ngày>/<giờ>/<endpoint>/<page>.jsonl` |
+| `storage/raw.py:39` | Mở file bằng `mode="a"` → append, không ghi đè |
+| `universe.py:184-196` | Mỗi page gọi `archive.append(...)`; một scan ghi 373 file |
+| Số đo live | 4.474 file / 1,76 GB trong `data/raw/2026-11-07` |
+| Một scan bình thường | 373 file / ~68,9 MB (giờ 16h) |
+| Cùng giờ có nhiều scan | Giờ 04h: 372 file nhưng **553,9 MB**; `04/list-public/page-0022.jsonl` có **9 dòng `_meta`** |
+| Retention | `compress_older_than()` / `purge_older_than()` có code nhưng **không có caller** |
+
+Hệ quả:
+
+- Mỗi giờ tạo thêm 373 file mới; 24 giờ ≈ **8.952 file/ngày**, ~**1,65 GB/ngày**.
+- Scan lặp trong cùng giờ append trùng vào cùng file, làm file phình và dữ liệu bị lặp.
+- Sau 90 ngày ước tính ~**805.000 file**; `stats()` hiện mất ~20 giây cho 4.474 file,
+  nên khi đó có thể mất hàng chục phút mỗi lần gọi.
+- Raw archive hiện **không được đọc ở đâu** ngoài `RawArchive().stats()` → đang là write-only.
+
+### V2 — `stats()` chặn toàn bộ event loop
+
+| Phép đo | Kết quả |
+|---|---|
+| `RawArchive().stats()` trong container | **20,04 giây** |
+| `GET /api/v1/collector/status` | **18,99 giây** |
+| `GET /health` gọi song song lúc status đang chạy | **18,95 giây** |
+| `GET /health` gọi một mình | **0,015 giây** |
+
+`stats()` là hàm đồng bộ, được gọi trực tiếp trong async endpoint
+(`api/v1/collector.py:68`), nên chặn event loop của toàn bộ backend.
+Trong lúc `/data-health` tải, các API khác cũng bị treo theo.
+
+### V3 — Deep fetch bị trễ sau mỗi lần worker restart
+
+| Bằng chứng | Chi tiết |
+|---|---|
+| `worker/scheduler.py:94-96` | `last_run = {kind: now ...}` rồi chỉ `pop("scan")` |
+| Hệ quả | `scan` chạy ngay; `perf` chờ 6h, `detail` chờ 12h, `trades` chờ 24h |
+| Worker hiện tại | Khởi động `13:57 UTC`; chưa có log `perf xong` / `detail xong` / `trades xong` |
+| `performance_metrics` | Bản đầy đủ cuối cùng `04:00 UTC`; bản mới nhất `05:00 UTC` → cũ ~12–13 giờ |
+| Log deep thật | L2/L3/L4 chạy `03:49–04:17 UTC`; sau restart chỉ có log test |
+| Kế hoạch chạy tiếp | `perf` ~`19:57 UTC`, `detail` ~`01:57 UTC`, `trades` ~`13:57 UTC` hôm sau |
+
+Nếu worker restart thường xuyên hơn 6 giờ, dữ liệu performance gần như không bao giờ
+được refresh tự động. Đây là nguyên nhân chính của cảm giác “dữ liệu cũ” dù scan L0 vẫn chạy.
+
+### V4 — Fetch thủ công chỉ có API/CLI, job nằm trong bộ nhớ
+
+| Thành phần | Hiện trạng |
+|---|---|
+| API | `POST /collector/run-scan`, `POST /collector/run-deep` (admin) |
+| CLI | `python -m app.collector_cli scan|deep|perf|detail|trades|...` |
+| UI | Không có nút chạy; chỉ hiển thị danh sách “Job thủ công” |
+| Lưu trữ job | `services/jobs.py` dùng dict `JOBS` trong process backend |
+| Hệ quả | Backend restart là mất job + lịch sử; job đang chạy bị kill giữa chừng |
+
+### V5 — UI Data Health không có trạng thái tải thực
+
+| Bằng chứng | Chi tiết |
+|---|---|
+| `DataHealthPage.tsx:27` | `refetchInterval: 30_000` |
+| `DataHealthPage.tsx:30-32` | Chỉ có skeleton `h-40` khi `isLoading` lần đầu |
+| Không có | Thời gian đã tải, trạng thái đang cập nhật, lần cập nhật cuối, nút thử lại |
+| Hệ quả | Request 19 giây lặp lại mỗi 30 giây; UI gần như luôn trong trạng thái chờ |
+
+### V6 — Rủi ro môi trường trong lúc khảo sát
+
+Trong lúc khảo sát, một process PowerShell bên ngoài chạy lặp
+`docker compose up -d --build backend`, làm container backend bị recreate khoảng 1 phút/lần.
+Việc này không phải lỗi code nhưng làm job thủ công biến mất và có thể gây lỗi kết nối.
+Khi triển khai/QA phải đảm bảo chỉ có một tiến trình compose đang chạy.
+
+---
+
+## 2. Mục tiêu
+
+1. Raw archive không tăng vô hạn; mặc định chỉ giữ **latest + previous**, có chế độ audit tuỳ chọn.
+2. `/collector/status` trả về **< 300 ms p95**, không quét filesystem.
+3. Deep fetch chạy đúng hạn kể cả sau restart; dữ liệu quá hạn được chạy bù ngay.
+4. Job thủ công được lưu DB, không mất khi backend restart, có thể xem trạng thái trên UI.
+5. UI Data Health không còn màn hình trắng/treo: skeleton từng phần, thời gian đã tải,
+   trạng thái đang cập nhật, lần cập nhật cuối, nút thử lại.
+6. Không dùng phần trăm tiến trình giả; nếu muốn tiến trình thật thì phải có tín hiệu từ server.
+
+---
+
+## 3. Quyết định thiết kế
+
+| # | Quyết định | Lý do |
+|---|---|---|
+| D1 | Raw archive mặc định **`latest_previous`**: mỗi endpoint giữ 1 bản latest + 1 bản previous | Đúng nhu cầu fallback, chặn tăng trưởng vô hạn |
+| D2 | Mỗi lần scan ghi **một bundle hoàn chỉnh** cho từng endpoint, gzip, ghi atomic | Giảm từ 373 file/lần xuống 1–2 file/lần; tránh file dở dang |
+| D3 | Thêm bảng `raw_archive_manifests`; `stats()` đọc manifest thay vì `rglob()` | O(1), không chặn event loop |
+| D4 | Scheduler dùng **last success** từ `collection_logs`, không dùng `last_run = now` khi start | Restart không làm trễ deep fetch |
+| D5 | Job thủ công lưu DB + worker queue; API chỉ enqueue | Không mất job khi backend restart |
+| D6 | Tách API nhanh/chậm: `/collector/status` nhanh, `/collector/archive-stats` riêng | UI load được phần nhanh trước, không chặn toàn trang |
+| D7 | UI giữ dữ liệu cũ khi refetch, hiện thời gian đã tải; **không hiện % giả** | Trung thực dữ liệu, tránh màn hình trắng |
+| D8 | Retention chạy hằng ngày; có CLI dry-run | Kiểm soát dung lượng, không xoá nhầm |
+| D9 | Không sửa migration cũ; migration mới đánh số tiếp từ `0019` | AGENTS.md §3 |
+| D10 | Giữ phạm vi raw archive ở L0 list; L2–L4 raw vẫn nằm trong DB JSONB | Không mở rộng phạm vi, tránh tăng dung lượng đột biến |
+
+---
+
+## 4. Thiết kế chi tiết
+
+### 4.1. Raw archive mới
+
+#### Chế độ mặc định `latest_previous`
+
+```text
+data/raw/
+  latest/
+    list-public.jsonl.gz
+    list-signal.jsonl.gz
+  previous/
+    list-public.jsonl.gz
+    list-signal.jsonl.gz
+```
+
+- Mỗi scan tạo **một bundle** cho `list-public` và một bundle cho `list-signal`.
+- Bundle chứa toàn bộ page + `_meta` của scan hiện tại.
+- Ghi vào `*.tmp` → `fsync` → `os.replace()` thành `latest`.
+- Chỉ sau khi scan **thành công** mới rotate:
+  - `latest` cũ → `previous`
+  - `latest` mới → `latest`
+- Scan lỗi: xoá file tạm, giữ nguyên `latest`/`previous`.
+- Không còn append theo giờ, không còn trùng dữ liệu trong cùng giờ.
+
+#### Chế độ audit (tuỳ chọn)
+
+```text
+data/raw/archive/
+  2026-11-07/
+    scan-<scan_id>-list-public.jsonl.gz
+    scan-<scan_id>-list-signal.jsonl.gz
+```
+
+- Bật bằng `RAW_ARCHIVE_MODE=audit`.
+- Mỗi scan một bundle; không append.
+- Dùng khi cần replay/audit dài ngày.
+- Mặc định **tắt** để không tăng dung lượng.
+
+#### Cấu hình đề xuất
+
+```env
+RAW_ARCHIVE_MODE=latest_previous        # latest_previous | audit
+RAW_ARCHIVE_HOT_VERSIONS=2
+RAW_ARCHIVE_COMPRESS_AFTER_DAYS=1
+RAW_ARCHIVE_AUDIT_RETENTION_DAYS=90
+RAW_ARCHIVE_DIR=data/raw
+```
+
+### 4.2. Manifest
+
+Migration mới `0019_raw_archive_manifest`:
+
+```sql
+CREATE TABLE raw_archive_manifests (
+    id              BIGSERIAL PRIMARY KEY,
+    scan_id         UUID NOT NULL,
+    layer           VARCHAR(8) NOT NULL,
+    endpoint        VARCHAR(64) NOT NULL,
+    mode            VARCHAR(16) NOT NULL,
+    status          VARCHAR(16) NOT NULL,   -- writing | success | failed | purged
+    path_latest     TEXT,
+    path_previous   TEXT,
+    files           INTEGER NOT NULL DEFAULT 0,
+    bytes           BIGINT NOT NULL DEFAULT 0,
+    records         BIGINT NOT NULL DEFAULT 0,
+    checksum        VARCHAR(64),
+    error           TEXT,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    rotated_at      TIMESTAMPTZ,
+    purged_at       TIMESTAMPTZ
+);
+
+CREATE INDEX ix_raw_manifest_created ON raw_archive_manifests (created_at DESC);
+CREATE INDEX ix_raw_manifest_layer_status ON raw_archive_manifests (layer, status);
+```
+
+Quy tắc:
+
+- `status=writing` khi bắt đầu ghi.
+- `status=success` sau khi rotate thành công.
+- `status=failed` nếu scan lỗi; file tạm bị xoá.
+- `status=purged` khi retention xoá bundle audit.
+- `files`/`bytes`/`records` phục vụ `stats()`; không cần quét lại filesystem.
+
+### 4.3. Retention
+
+Chạy trong worker, mỗi ngày một lần (ví dụ 03:15 UTC), có lock riêng.
+
+| Chế độ | Quy tắc |
+|---|---|
+| `latest_previous` | Luôn giữ `latest` + `previous`; không có file lịch sử |
+| `audit` | Nén sau 1 ngày; xoá bundle cũ hơn 90 ngày; cập nhật `status=purged` |
+
+Thêm CLI:
+
+```bash
+python -m app.collector_cli archive-retention --dry-run
+python -m app.collector_cli archive-retention
+```
+
+- `--dry-run` in danh sách file sẽ xoá, không thực thi.
+- Không xoá `latest`/`previous`.
+- Nếu manifest thiếu, job reconcile bằng cách liệt kê thư mục **một lần** rồi ghi lại manifest.
+
+### 4.4. API
+
+#### `GET /api/v1/collector/status` — nhanh
+
+Giữ shape cũ, bổ sung field:
+
+```json
+{
+  "enabled": true,
+  "tiers": {"watch": 436, "qualified_upper": 72, "high_upper": 9, "excluded": 10724},
+  "latest_runs": {"L0": {"...": "..."}, "L2": {"...": "..."}},
+  "jobs": [],
+  "raw_archive": {
+    "mode": "latest_previous",
+    "files": 2,
+    "bytes": 138000000,
+    "records": 11151,
+    "latest_at": "2026-11-08T00:00:36Z",
+    "source": "manifest"
+  },
+  "generated_at": "2026-11-08T00:00:00Z"
+}
+```
+
+- Không gọi `rglob()`.
+- `raw_archive` đọc từ manifest + cache Redis TTL 60 giây.
+- Nếu cache/manifest lỗi: trả `source: "stale"` + `latest_at` cũ, không làm request thất bại.
+- Mục tiêu p95 < 300 ms.
+
+#### `GET /api/v1/collector/archive-stats` — chi tiết
+
+- Trả danh sách manifest gần nhất, tổng file/bytes/records theo ngày.
+- Dùng cho card “Lưu trữ dữ liệu thô” nếu cần chi tiết.
+- Có thể cache 60 giây; không chặn `/collector/status`.
+
+#### Tiến trình thật (tuỳ chọn P2)
+
+Nếu cần hiển thị “đã quét bao nhiêu file”:
+
+```text
+GET /api/v1/collector/archive-stats/stream   (SSE)
+  event: stage   data: {"stage":"manifest","done":true}
+  event: stage   data: {"stage":"reconcile","scanned":1200,"total":4474}
+  event: done    data: {"files":2,"bytes":138000000}
+```
+
+Chỉ dùng khi thật sự cần; ưu tiên cache/manifest để không phải quét file.
+
+### 4.5. Scheduler
+
+#### Xác định job đến hạn
+
+Map job → layer:
+
+| Job | Layer | Interval mặc định |
+|---|---|---|
+| `scan` | L0 | 60 phút |
+| `perf` | L2 | 6 giờ |
+| `detail` | L3 | 12 giờ |
+| `trades` | L4 | 24 giờ |
+
+Quy tắc mới:
+
+```text
+last_success = max(collection_logs.finished_at)
+              where layer = <layer> and status = 'success'
+
+due = (last_success is null) or (now - last_success >= interval)
+```
+
+- Khi worker start: tính `due` từ DB, chạy ngay job quá hạn.
+- Không khởi tạo `last_run = now` cho deep job.
+- Sau khi chạy thành công, ghi `collection_logs` như hiện tại; lần sau tính từ đó.
+- Nếu job lỗi: thử lại sau 15 phút, tối đa 3 lần; sau đó chờ interval tiếp theo.
+- Thêm jitter ±5 phút cho deep job để tránh trùng thời điểm.
+- Manual job thành công cũng cập nhật `last_success` (qua `collection_logs`), tránh chạy lặp.
+
+#### Timeout và lock
+
+- Giữ `CollectorLock` hiện tại (`lock:collector:scan`, `lock:collector:deep`).
+- Thêm timeout cấu hình:
+  - `COLLECTOR_JOB_TIMEOUT_MIN=60`
+  - Job quá timeout → log error, giải phóng lock, ghi `collection_logs.status='failed'`.
+- Không chạy 2 job deep song song.
+
+### 4.6. Job thủ công
+
+Migration mới `0020_collector_jobs`:
+
+```sql
+CREATE TABLE collector_jobs (
+    id              UUID PRIMARY KEY,
+    kind            VARCHAR(16) NOT NULL,      -- scan | deep | perf | detail | trades
+    status          VARCHAR(16) NOT NULL,      -- queued | running | success | failed | skipped
+    requested_by    UUID REFERENCES users(id),
+    requested_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    started_at      TIMESTAMPTZ,
+    finished_at     TIMESTAMPTZ,
+    result          JSONB,
+    error           TEXT
+);
+
+CREATE INDEX ix_collector_jobs_requested ON collector_jobs (requested_at DESC);
+CREATE INDEX ix_collector_jobs_status ON collector_jobs (status, requested_at);
+```
+
+Luồng:
+
+1. API `POST /collector/run-scan` / `run-deep`:
+   - Kiểm tra kill switch + quyền admin.
+   - Tạo row `collector_jobs(status='queued')`.
+   - Push job id vào Redis list `queue:collector:jobs`.
+   - Trả `202 {job_id}`.
+2. Worker:
+   - `BRPOP queue:collector:jobs`.
+   - Set `status='running'`, chạy job với lock.
+   - Ghi `result`/`error`, `finished_at`.
+3. API `GET /collector/jobs/{job_id}`:
+   - Đọc DB, trả trạng thái; không phụ thuộc process backend.
+4. UI Data Health:
+   - Hiện 10 job gần nhất từ DB.
+   - Admin có nút “Chạy scan” / “Chạy deep” + xác nhận.
+   - Poll job đang chạy mỗi 2–3 giây; job xong tự refresh status.
+
+Không còn dùng dict `JOBS` làm nguồn sự thật. Có thể giữ dict làm cache tạm trong worker,
+nhưng DB là nguồn chính.
+
+### 4.7. UI Data Health
+
+#### Query
+
+```tsx
+useQuery({
+  queryKey: ["collector-status"],
+  queryFn: getCollectorStatus,
+  placeholderData: keepPreviousData,
+  staleTime: 10_000,
+  refetchInterval: 60_000,
+  refetchIntervalInBackground: false,
+});
+```
+
+#### Trạng thái hiển thị
+
+| Trạng thái | UI |
+|---|---|
+| Lần đầu, chưa có dữ liệu | Skeleton từng section (header, tier cards, bảng lần chạy, raw archive, job) |
+| Đang refetch, đã có dữ liệu | Giữ dữ liệu cũ + spinner nhỏ + “Đang cập nhật…” |
+| Đang tải | Hiện “Đang tải… 12s” (đếm thời gian đã trôi qua) |
+| Thành công | Hiện “Cập nhật lúc HH:mm:ss” + “Tự làm mới sau 60s” |
+| Lỗi | Giữ dữ liệu cũ nếu có + banner lỗi + nút “Thử lại” |
+| Không có dữ liệu | Empty state rõ ràng, không hiện số 0 giả |
+
+#### Nguyên tắc
+
+- **Không hiện % tiến trình** nếu server không gửi tiến trình thật.
+- Countdown chỉ dùng cho “lần tự làm mới tiếp theo”, không dùng cho thời gian tải.
+- Nếu bật SSE archive-stats: hiện stage thật (`manifest` → `reconcile` → `done`).
+- `aria-busy`, `aria-live="polite"` cho vùng trạng thái.
+- Số dùng `toLocaleString("vi-VN")`; ngày dùng `toLocaleString("vi-VN")`.
+- Không hiển thị `undefined`, `NaN`, `null`; null → `—` hoặc `N/A`.
+
+---
+
+## 5. Các bước triển khai
+
+### Bước 5.0.1 — Chốt spec + migration manifest (0,5 ngày)
+
+- Viết `docs/ky-thuat/RAW-ARCHIVE-SPEC.md`: mode, layout, atomic write, retention, manifest.
+- Migration `0019_raw_archive_manifest` + `downgrade()`.
+- Test: upgrade/downgrade; bảng + index tồn tại.
+
+### Bước 5.0.2 — Refactor RawArchive (1 ngày)
+
+- Thêm mode `latest_previous` / `audit`.
+- Ghi bundle gzip, atomic write, rotate latest/previous.
+- Ghi manifest `writing` → `success`/`failed`.
+- Giữ API `append()` cũ trong giai đoạn chuyển tiếp nếu cần, nhưng scan mới dùng `write_bundle()`.
+- Test:
+  - 2 scan cùng giờ không tạo file trùng.
+  - Scan lỗi không làm mất `latest`.
+  - `previous` đúng là bản trước.
+  - `stats()` đọc manifest, không quét file.
+
+### Bước 5.0.3 — Retention + CLI (0,5 ngày)
+
+- Job retention hằng ngày trong worker.
+- CLI `archive-retention --dry-run`.
+- Test: audit mode nén/xoá đúng; latest/previous không bị xoá.
+- Log số file/bytes đã xoá.
+
+### Bước 5.0.4 — API status nhanh + archive-stats (0,5 ngày)
+
+- Bỏ `RawArchive().stats()` khỏi `/collector/status`.
+- Đọc manifest + cache Redis TTL 60s.
+- Thêm `/collector/archive-stats`.
+- Test: status < 300 ms p95 với 4.474 file; response shape tương thích UI cũ.
+- Test: manifest lỗi → trả stale, không 500.
+
+### Bước 5.0.5 — Scheduler freshness (1 ngày)
+
+- Tính `last_success` từ `collection_logs`.
+- Startup chạy bù job quá hạn.
+- Retry 3 lần/15 phút; timeout; jitter.
+- Test:
+  - Worker start với `perf` quá hạn → chạy ngay.
+  - Restart không reset đồng hồ deep.
+  - Manual job thành công → không chạy lặp.
+  - Job lỗi → retry đúng số lần.
+
+### Bước 5.0.6 — Job thủ công lưu DB (1 ngày)
+
+- Migration `0020_collector_jobs`.
+- API enqueue; worker consume Redis queue.
+- `GET /collector/jobs/{id}` đọc DB.
+- UI hiện lịch sử job + nút chạy (admin).
+- Test: backend restart không mất job; job `queued` vẫn chạy khi worker lên.
+- Test: kill switch chặn job; quyền viewer bị 403.
+
+### Bước 5.0.7 — UI loading/progress (1 ngày)
+
+- `keepPreviousData`, `staleTime`, `refetchInterval` 60s, tắt refetch nền.
+- Skeleton từng section; elapsed timer; trạng thái đang cập nhật; lỗi + thử lại.
+- Countdown “tự làm mới sau …”; không hiện % giả.
+- Tách card raw archive nếu dùng endpoint riêng.
+- Test Playwright:
+  - Route chậm 20s: skeleton + elapsed tăng, không màn hình trắng.
+  - Refetch: dữ liệu cũ vẫn hiển thị, có spinner.
+  - Lỗi 500: banner lỗi + nút thử lại.
+  - Không có `undefined/NaN`.
+
+### Bước 5.0.8 — QA + docs (0,5 ngày)
+
+- `ruff`, `pytest` full, `npm run build`, Playwright.
+- `scripts/check_refs.py` 0 lỗi.
+- Cập nhật:
+  - `docs/ky-thuat/11-data-health-collector.md`
+  - `docs/api.md`
+  - `docs/kehoach/TASKS.md`
+  - `SESSION.md`
+  - `KE-HOACH-TONG-THE.md` nếu thay đổi kiến trúc raw archive
+- Commit theo format `feat(phaseN): ...`; N chốt khi triển khai.
+
+---
+
+## 6. Kiểm chứng
+
+### Raw archive
+
+- [ ] Hai scan trong cùng giờ: chỉ có `latest`/`previous`, không append trùng.
+- [ ] `latest` và `previous` mở được bằng `gzip`, JSONL hợp lệ.
+- [ ] Scan lỗi giữa chừng: `latest` cũ vẫn còn, không có file tạm rác.
+- [ ] `latest_previous`: số file cố định = 2 × số endpoint.
+- [ ] `audit`: retention nén/xoá đúng; `--dry-run` không xoá.
+- [ ] Manifest khớp số file/bytes thực tế.
+
+### API
+
+- [ ] `/collector/status` p95 < 300 ms khi có 4.474 file.
+- [ ] `/collector/status` không gọi `rglob()`/`stat()` trên toàn bộ archive.
+- [ ] `/health` gọi song song vẫn < 100 ms.
+- [ ] `/collector/archive-stats` trả đúng manifest; cache hoạt động.
+- [ ] Manifest lỗi → response stale có `source`, không 500.
+
+### Scheduler
+
+- [ ] Worker start khi `perf` quá hạn → chạy ngay.
+- [ ] Restart worker không làm `perf`/`detail`/`trades` trễ thêm 6/12/24h.
+- [ ] Job lỗi retry đúng 3 lần, không loop vô hạn.
+- [ ] Manual scan thành công cập nhật `last_success`.
+- [ ] Không chạy 2 deep job song song.
+
+### Job thủ công
+
+- [ ] Backend restart giữa lúc job chạy: DB có trạng thái `running`/`failed`, không mất row.
+- [ ] Worker restart: job `queued` được chạy tiếp.
+- [ ] Viewer không gọi được API admin.
+- [ ] UI hiện lịch sử job từ DB sau restart.
+
+### UI
+
+- [ ] Route chậm 20s: skeleton + elapsed timer, không màn hình trắng.
+- [ ] Refetch: dữ liệu cũ vẫn hiển thị, có “Đang cập nhật…”.
+- [ ] Lỗi: banner + nút “Thử lại”.
+- [ ] Countdown “tự làm mới sau …” đúng, không dùng làm progress.
+- [ ] Không có `undefined/NaN/null` lọt UI.
+
+### Hồi quy
+
+- [ ] Scan L0 vẫn ghi `portfolio_snapshots` đủ ~11k trader/giờ.
+- [ ] `recompute_universe` vẫn cho cùng tier counts.
+- [ ] `performance_metrics`/`trades` không bị ảnh hưởng.
+- [ ] `pytest`, `ruff`, `npm run build`, Playwright pass.
+- [ ] `check_refs` 0 lỗi.
+
+---
+
+## 7. Checklist nghiệm thu
+
+- [ ] Raw archive mặc định không tăng quá 2 bản/endpoint.
+- [ ] Không còn file `page-*.jsonl` mới sinh ra mỗi giờ.
+- [ ] `/data-health` load < 1 giây khi manifest/cache hoạt động.
+- [ ] Deep data được refresh đúng hạn sau restart.
+- [ ] Có nút chạy scan/deep trên UI admin và trạng thái job đọc từ DB.
+- [ ] UI có skeleton, elapsed timer, trạng thái cập nhật, lỗi + thử lại.
+- [ ] Không có % tiến trình giả.
+- [ ] Docs + `TASKS.md` + `SESSION.md` cập nhật; `check_refs` 0 lỗi.
+- [ ] Không commit secret, `.env`, `data/`, `dist`, `graphify-out/`, token tạm.
+
+---
+
+## 8. Rủi ro & kiểm soát
+
+| Rủi ro | Kiểm soát |
+|---|---|
+| Xoá nhầm `latest` khi rotate | Ghi atomic + giữ `previous`; test crash; CLI dry-run |
+| Manifest lệch thực tế | Job reconcile định kỳ; log cảnh báo; stats trả `source` |
+| Windows bind mount vẫn chậm | Cân nhắc named volume cho `data/raw`; không đo bằng `rglob` nữa |
+| Scheduler chạy trùng sau restart | Lock + `last_success` từ DB + jitter |
+| Job thủ công bị treo | Timeout + trạng thái `failed` + retry có giới hạn |
+| UI progress gây hiểu nhầm | Không hiện %; chỉ elapsed/stage thật |
+| Retention làm mất dữ liệu audit | Mặc định `latest_previous`; audit phải bật rõ; dry-run trước |
+| `portfolio_snapshots` vẫn tăng ~11k dòng/giờ | Theo dõi riêng; plan partition/retention ở giai đoạn sau |
+
+---
+
+## 9. Việc không làm
+
+- Không đổi cổng host (web 8090, backend 8010).
+- Không sửa `phase0/`.
+- Không sửa migration cũ.
+- Không tự ý xoá dữ liệu thật ngoài chính sách retention đã chốt.
+- Không mở rộng raw archive sang L2–L4 trong kế hoạch này.
+- Không dùng progress bar % dựa trên thời gian.
+- Không auto-trade, không đưa lời khuyên đầu tư.
+
+---
+
+## 10. Definition of Done
+
+- Raw archive chuyển sang `latest_previous` (hoặc `audit` nếu bật), ghi atomic, có manifest.
+- `stats()` không còn quét filesystem; `/collector/status` p95 < 300 ms.
+- Deep fetch chạy bù khi quá hạn; restart không làm trễ 6/12/24 giờ.
+- Job thủ công lưu DB, worker xử lý, UI xem được trạng thái.
+- `/data-health` có skeleton từng phần, thời gian đã tải, trạng thái cập nhật, lỗi + thử lại.
+- Test backend/frontend/E2E pass; docs cập nhật; `check_refs` 0 lỗi.
+- Báo cáo 1–3 dòng kèm commit hash khi hoàn thành.
