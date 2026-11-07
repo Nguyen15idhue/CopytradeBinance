@@ -29,3 +29,6 @@ data/
 Thumbs.db
 .idea/
 .vscode/
+
+# Graphify artifact
+graphify-out/

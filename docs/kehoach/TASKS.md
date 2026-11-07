@@ -355,25 +355,25 @@
 **Tham chiếu:** §8.3 T0 Metadata (1221–1236) · §8.4 T1 Published (1237–1262) · §8.5 T2 Derived (1263–1300) · §8.6 T3 Unavailable (1301–1313) · §8.7 Công thức (1314–1410) · §8.8 Data Confidence (1411–1437) · §8.9 Missing/null (1438–1449)  
 **→ đọc khi:** viết công thức, xử lý null/zero, confidence.
 
-- [ ] ROI wrapper (4 window, giữ nguyên published).
-- [ ] PnL wrapper.
-- [ ] MDD wrapper (chỉ published).
-- [ ] Sharpe wrapper (null handling).
-- [ ] WinRate order + position tách biệt.
-- [ ] Copier PnL.
-- [ ] AUM / CopyAum.
-- [ ] Runtime.
-- [ ] Max/avg leverage.
-- [ ] Margin mode.
-- [ ] Holding time.
-- [ ] Position win rate.
-- [ ] Profit factor.
-- [ ] Payoff ratio.
-- [ ] Symbol concentration.
-- [ ] Fee drag.
-- [ ] Worst position ROI.
-- [ ] Data confidence.
-- [ ] Benchmark return.
+- [x] ROI wrapper (4 window, giữ nguyên published). → Bằng chứng: `quant/metrics.py` `published_metrics`; 4 window trong `trader_metrics.metrics`.
+- [x] PnL wrapper. → Bằng chứng: published 4 window + `trader_metrics.roi_90d/mdd_90d`.
+- [x] MDD wrapper (chỉ published). → Bằng chứng: lấy `performance.mdd`; mdd null giữ null + `missing_mdd` (511 trader, 0 mdd null ở 90D).
+- [x] Sharpe wrapper (null handling). → Bằng chứng: 90D có 9 trader sharpe null, lưu `NULL` + flag.
+- [x] WinRate order + position tách biệt. → Bằng chứng: `win_rate_order` và `position_win_rate` trong metrics JSONB.
+- [x] Copier PnL. → Bằng chứng: `published[90D].copier_pnl`, `copier_pnl_per_copier`.
+- [x] AUM / CopyAum. → Bằng chứng: `profile.aum/copy_aum` + cột `aum`, `copy_aum`; `copy_aum_ratio`.
+- [x] Runtime. → Bằng chứng: `runtime_days` từ detail startTime (fallback trader.start_time).
+- [x] Max/avg leverage. → Bằng chứng: `derived.max_leverage/avg_leverage`; cột tương ứng.
+- [x] Margin mode. → Bằng chứng: `derived.margin_mode` (mode isolated).
+- [x] Holding time. → Bằng chứng: avg/median/max holding hours từ positions.
+- [x] Position win rate. → Bằng chứng: `derived.position_win_rate`.
+- [x] Profit factor. → Bằng chứng: gross win / |gross loss|; null nếu <5 vị thế.
+- [x] Payoff ratio. → Bằng chứng: avg win / |avg loss|; null nếu thiếu mẫu.
+- [x] Symbol concentration. → Bằng chứng: `top_symbol_share`, `hhi`, `symbols_top3`.
+- [x] Fee drag. → Bằng chứng: `total_fees` (rebate âm) + `fee_drag_pct`.
+- [x] Worst position ROI. → Bằng chứng: `worst_position_roi` + `near_liquidation_count`.
+- [x] Data confidence. → Bằng chứng: `quant/confidence.py`; live avg 0.847, đủ 4 thành phần.
+- [x] Benchmark return. → Bằng chứng: chưa có nguồn klines → `null` + flag `missing_benchmark` (không bịa số).
 
 ### Bước 3.2 — Funnel & tier
 

@@ -9,6 +9,7 @@ from app.models.snapshot import PortfolioSnapshot
 from app.models.tier_history import TierHistory
 from app.models.trade import Trade
 from app.models.trader import Trader
+from app.models.trader_metric import TraderMetric
 from app.models.transfer import Transfer
 from app.models.universe import TraderUniverse
 from app.models.user import User
@@ -24,6 +25,7 @@ __all__ = [
     "TierHistory",
     "Trade",
     "Trader",
+    "TraderMetric",
     "Transfer",
     "TraderUniverse",
     "User",

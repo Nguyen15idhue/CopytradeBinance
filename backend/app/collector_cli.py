@@ -92,6 +92,14 @@ async def cmd_trades() -> int:
     return 0
 
 
+async def cmd_metrics() -> int:
+    from app.services.quant.builder import rebuild_metrics
+
+    async with SessionLocal() as db:
+        print(json.dumps(await rebuild_metrics(db), ensure_ascii=False))
+    return 0
+
+
 async def cmd_deep() -> int:
     from app.services.deep_fetch import run_deep_fetch
 
@@ -112,7 +120,8 @@ async def cmd_deep() -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description="CLI collector Phase 2")
     parser.add_argument(
-        "command", choices=["scan", "recompute", "perf", "detail", "trades", "deep"]
+        "command",
+        choices=["scan", "recompute", "perf", "detail", "trades", "metrics", "deep"],
     )
     args = parser.parse_args()
     if args.command == "scan":
@@ -125,6 +134,8 @@ def main() -> int:
         return asyncio.run(cmd_detail())
     if args.command == "trades":
         return asyncio.run(cmd_trades())
+    if args.command == "metrics":
+        return asyncio.run(cmd_metrics())
     return asyncio.run(cmd_deep())
 
 
