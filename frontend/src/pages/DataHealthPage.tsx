@@ -1,20 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { getCollectorStatus } from "../lib/api";
-
-const TIER_LABELS: Record<string, string> = {
-  excluded: "Excluded",
-  watch: "C — Watch",
-  qualified_upper: "B — Qualified",
-  high_upper: "A — High",
-};
-
-const LAYER_LABELS: Record<string, string> = {
-  L0: "L0 — Universe scan",
-  L2: "L2 — Performance",
-  L3: "L3 — Detail + positions + transfers",
-  L4: "L4 — Full trades",
-};
+import {
+  JOB_KIND_LABELS,
+  JOB_STATUS_LABELS,
+  LAYER_LABELS,
+  TIER_LABELS,
+  label,
+} from "../i18n/vi";
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -41,7 +34,7 @@ export default function DataHealthPage() {
   if (query.isError || !query.data) {
     return (
       <div className="rounded-2xl border border-red-500/30 bg-red-500/5 p-6">
-        <h1 className="text-lg font-semibold text-danger">Không tải được Data Health</h1>
+        <h1 className="text-lg font-semibold text-danger">Không tải được Sức khỏe dữ liệu</h1>
         <p className="mt-2 text-sm text-muted">
           {query.error instanceof Error ? query.error.message : "Lỗi không xác định"}
         </p>
@@ -50,7 +43,7 @@ export default function DataHealthPage() {
   }
 
   const data = query.data;
-  const tiers = ["excluded", "watch", "qualified_upper", "high_upper"];
+  const tiers = ["high_upper", "qualified_upper", "watch", "excluded"];
   const total = Object.values(data.tiers).reduce((sum, value) => sum + value, 0);
   const watchTotal =
     (data.tiers.watch ?? 0) +
@@ -61,9 +54,9 @@ export default function DataHealthPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Data Health</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">Sức khỏe dữ liệu</h1>
           <p className="mt-2 text-muted">
-            Trạng thái collector 2 tầng, độ phủ universe và lần chạy gần nhất.
+            Trạng thái bộ thu thập 2 tầng, độ phủ universe và lần chạy gần nhất.
           </p>
         </div>
         <span
@@ -73,7 +66,7 @@ export default function DataHealthPage() {
               : "border-red-500/40 bg-red-500/10 text-danger"
           }`}
         >
-          {data.enabled ? "Collector đang bật" : "Kill switch đang bật"}
+          {data.enabled ? "Bộ thu thập đang bật" : "Công tắc dừng đang bật"}
         </span>
       </div>
 
@@ -83,14 +76,14 @@ export default function DataHealthPage() {
             Universe theo tier
           </h2>
           <p className="text-sm text-muted">
-            Tổng {total.toLocaleString("vi-VN")} · Watch {watchTotal.toLocaleString("vi-VN")}
+            Tổng {total.toLocaleString("vi-VN")} · Theo dõi {watchTotal.toLocaleString("vi-VN")}
           </p>
         </div>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           {tiers.map((tier) => (
             <div key={tier} className="rounded-xl border border-line bg-panel p-4">
               <p className="text-xs uppercase tracking-wide text-faint">
-                {TIER_LABELS[tier] ?? tier}
+                {label(TIER_LABELS, tier)}
               </p>
               <p className="mt-2 text-2xl font-semibold">
                 {(data.tiers[tier] ?? 0).toLocaleString("vi-VN")}
@@ -111,17 +104,17 @@ export default function DataHealthPage() {
                 <th className="pb-2">Tầng</th>
                 <th className="pb-2">Trạng thái</th>
                 <th className="pb-2">Xong lúc</th>
-                <th className="pb-2 text-right">Request</th>
-                <th className="pb-2 text-right">Items</th>
+                <th className="pb-2 text-right">Số request</th>
+                <th className="pb-2 text-right">Bản ghi</th>
                 <th className="pb-2 text-right">Lỗi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
-              {Object.entries(LAYER_LABELS).map(([layer, label]) => {
+              {Object.entries(LAYER_LABELS).map(([layer, layerLabel]) => {
                 const run = data.latest_runs[layer];
                 return (
                   <tr key={layer}>
-                    <td className="py-2 text-body">{label}</td>
+                    <td className="py-2 text-body">{layerLabel}</td>
                     <td className="py-2">
                       {run ? (
                         <span
@@ -129,7 +122,7 @@ export default function DataHealthPage() {
                             run.status === "success" ? "text-accent" : "text-warn"
                           }
                         >
-                          {run.status}
+                          {label(JOB_STATUS_LABELS, run.status, run.status)}
                         </span>
                       ) : (
                         <span className="text-faint">chưa chạy</span>
@@ -150,10 +143,10 @@ export default function DataHealthPage() {
       <div className="grid gap-4 md:grid-cols-2">
         <section className="rounded-2xl border border-line bg-panel p-5">
           <h2 className="text-sm font-medium uppercase tracking-wide text-faint">
-            Raw archive
+            Lưu trữ dữ liệu thô
           </h2>
           <p className="mt-3 text-2xl font-semibold">
-            {data.raw_archive.files.toLocaleString("vi-VN")} file
+            {data.raw_archive.files.toLocaleString("vi-VN")} tệp
           </p>
           <p className="text-sm text-muted">{formatBytes(data.raw_archive.bytes)}</p>
           <p className="mt-2 text-xs text-faint">
@@ -176,7 +169,8 @@ export default function DataHealthPage() {
                 .map((job) => (
                   <li key={job.id} className="flex items-center justify-between gap-3">
                     <span className="text-body">
-                      {job.kind} · {job.status}
+                      {label(JOB_KIND_LABELS, job.kind, job.kind)} ·{" "}
+                      {label(JOB_STATUS_LABELS, job.status, job.status)}
                     </span>
                     <span className="text-xs text-faint">{formatDate(job.started_at)}</span>
                   </li>

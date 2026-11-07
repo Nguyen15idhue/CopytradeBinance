@@ -4,19 +4,13 @@ import { Link } from "react-router-dom";
 
 import { getRanking, runRanking } from "../lib/api";
 import { getStoredUser } from "../lib/auth";
+import { BOARD_LABELS, RISK_LEVEL_LABELS, TIER_LABELS, label } from "../i18n/vi";
 
 const BOARDS = [
-  ["overall", "Overall", "Điểm tổng hợp sau hard filter"],
-  ["low_risk", "Low Risk", "Runtime ≥ 90, MDD ≤ 20, leverage ≤ 5, confidence ≥ 0.8"],
-  ["consistency", "Consistency", "Xếp theo điểm ổn định, không theo ROI"],
+  ["overall", BOARD_LABELS.overall, "Điểm tổng hợp sau bộ lọc cứng"],
+  ["low_risk", BOARD_LABELS.low_risk, "Số ngày ≥ 90, MDD ≤ 20, đòn bẩy ≤ 5, độ tin cậy ≥ 0,8"],
+  ["consistency", BOARD_LABELS.consistency, "Xếp theo điểm ổn định, không theo ROI"],
 ] as const;
-
-const TIER_LABELS: Record<string, string> = {
-  high_upper: "High",
-  qualified_upper: "Qualified",
-  watch: "Watch",
-  excluded: "Excluded",
-};
 
 function num(value: number | null, digits = 2, suffix = ""): string {
   return value === null ? "N/A" : `${value.toFixed(digits)}${suffix}`;
@@ -42,7 +36,7 @@ export default function RankingPage() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Ranking</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">Bảng xếp hạng</h1>
           <p className="mt-2 text-muted">
             Ba bảng xếp hạng có kiểm soát. Không có bảng “High Return” để tránh chase ROI.
           </p>
@@ -54,7 +48,7 @@ export default function RankingPage() {
             disabled={run.isPending}
             className="rounded-lg bg-emerald-500 px-3 py-2 text-sm font-medium text-slate-950 disabled:opacity-50"
           >
-            {run.isPending ? "Đang chụp snapshot..." : "Chạy ranking"}
+            {run.isPending ? "Đang tạo bản chụp..." : "Chạy xếp hạng"}
           </button>
         ) : null}
       </div>
@@ -78,11 +72,11 @@ export default function RankingPage() {
 
       {ranking.data ? (
         <p className="text-xs text-faint">
-          Snapshot:{" "}
+          Bản chụp:{" "}
           {ranking.data.collected_at
             ? new Date(ranking.data.collected_at).toLocaleString("vi-VN")
             : "chưa có"}{" "}
-          · config v{ranking.data.config_version ?? "—"} · {ranking.data.total} trader
+          · phiên bản cấu hình v{ranking.data.config_version ?? "—"} · {ranking.data.total} trader
         </p>
       ) : null}
 
@@ -94,9 +88,9 @@ export default function RankingPage() {
         </div>
       ) : !ranking.data?.items.length ? (
         <div className="rounded-2xl border border-line bg-panel p-8 text-center">
-          <p className="text-body">Chưa có snapshot cho bảng này.</p>
+          <p className="text-body">Chưa có bản chụp cho bảng này.</p>
           <p className="mt-2 text-sm text-muted">
-            {isAdmin ? "Bấm “Chạy ranking” để tạo snapshot." : "Cần admin chạy ranking."}
+            {isAdmin ? "Bấm “Chạy xếp hạng” để tạo bản chụp." : "Cần admin chạy xếp hạng."}
           </p>
         </div>
       ) : (
@@ -106,13 +100,13 @@ export default function RankingPage() {
               <tr>
                 <th className="px-3 py-3">#</th>
                 <th className="px-3 py-3">Trader</th>
-                <th className="px-3 py-3">Tier</th>
-                <th className="px-3 py-3 text-right">Score</th>
-                <th className="px-3 py-3 text-right">Conf</th>
+                <th className="px-3 py-3">Nhóm</th>
+                <th className="px-3 py-3 text-right">Điểm</th>
+                <th className="px-3 py-3 text-right">Tin cậy</th>
                 <th className="px-3 py-3 text-right">ROI 90D</th>
                 <th className="px-3 py-3 text-right">MDD</th>
                 <th className="px-3 py-3 text-right">Sharpe</th>
-                <th className="px-3 py-3">Risk</th>
+                <th className="px-3 py-3">Rủi ro</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
@@ -125,7 +119,7 @@ export default function RankingPage() {
                     </Link>
                   </td>
                   <td className="px-3 py-2 text-muted">
-                    {TIER_LABELS[item.tier] ?? item.tier}
+                    {label(TIER_LABELS, item.tier)}
                   </td>
                   <td className="px-3 py-2 text-right text-strong">{num(item.score, 1)}</td>
                   <td className="px-3 py-2 text-right text-muted">
@@ -134,7 +128,7 @@ export default function RankingPage() {
                   <td className="px-3 py-2 text-right text-body">{num(item.roi_90d, 2, "%")}</td>
                   <td className="px-3 py-2 text-right text-body">{num(item.mdd_90d, 2, "%")}</td>
                   <td className="px-3 py-2 text-right text-body">{num(item.sharpe)}</td>
-                  <td className="px-3 py-2 capitalize text-muted">{item.risk_level ?? "unknown"}</td>
+                  <td className="px-3 py-2 text-muted">{label(RISK_LEVEL_LABELS, item.risk_level)}</td>
                 </tr>
               ))}
             </tbody>
