@@ -10,29 +10,20 @@ import {
   saveSettings,
 } from "../lib/api";
 import { getStoredUser } from "../lib/auth";
+import { BAND_LABELS, GROUP_LABELS, JOB_STATUS_LABELS, label } from "../i18n/vi";
 import type { PreviewImpact, SettingsSnapshot } from "../types/trader";
 
 const TABS = [
-  ["scoring", "Scoring"],
-  ["risk", "Risk Rules"],
+  ["scoring", "Chấm điểm"],
+  ["risk", "Quy tắc rủi ro"],
   ["ai", "AI"],
-  ["collector", "Data Collection"],
-  ["health", "Data Health"],
-  ["ranking", "Ranking"],
-  ["system", "System"],
+  ["collector", "Thu thập dữ liệu"],
+  ["health", "Sức khỏe dữ liệu"],
+  ["ranking", "Xếp hạng"],
+  ["system", "Hệ thống"],
 ] as const;
 
 type Tab = (typeof TABS)[number][0];
-
-const GROUP_LABELS: Record<string, string> = {
-  risk_management: "Risk Management",
-  consistency: "Consistency",
-  profitability: "Profitability",
-  trading_quality: "Trading Quality",
-  copy_performance: "Copy Performance",
-  capital_efficiency: "Capital Efficiency",
-  data_reliability: "Data Reliability",
-};
 
 function Card({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -134,13 +125,13 @@ export default function SettingsPage() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Settings</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">Cài đặt</h1>
           <p className="mt-2 text-muted">
-            Cấu hình version hoá; thay đổi scoring tạo version mới, rollback được.
+            Cấu hình có phiên bản; thay đổi cách chấm điểm tạo phiên bản mới, khôi phục được.
           </p>
         </div>
         <span className="rounded-full border border-line px-3 py-1 text-sm text-muted">
-          config v{settings.data.scoring.version} · {isAdmin ? "admin" : "viewer (read-only)"}
+          phiên bản cấu hình v{settings.data.scoring.version} · {isAdmin ? "quản trị" : "chỉ xem"}
         </span>
       </div>
 
@@ -172,12 +163,12 @@ export default function SettingsPage() {
 
       {tab === "scoring" ? (
         <div className="space-y-4">
-          <Card title="Trọng số scoring">
+          <Card title="Trọng số chấm điểm">
             <div className="grid gap-3 md:grid-cols-4">
               {Object.entries(weights).map(([group, weight]) => (
                 <NumberInput
                   key={group}
-                  label={GROUP_LABELS[group] ?? group}
+                  label={label(GROUP_LABELS, group, group)}
                   value={weight}
                   disabled={!isAdmin || busy}
                   onChange={(value) => setWeights({ ...weights, [group]: value })}
@@ -189,37 +180,37 @@ export default function SettingsPage() {
                 type="button"
                 disabled={!isAdmin || busy}
                 onClick={() =>
-                  run(async () => setPreview(await previewSettings(weights)), "Đã tính preview")
+                  run(async () => setPreview(await previewSettings(weights)), "Đã tính xem trước")
                 }
                 className="rounded-lg border border-line px-3 py-2 text-sm text-body disabled:opacity-50"
               >
-                Preview impact
+                Xem trước ảnh hưởng
               </button>
               <button
                 type="button"
                 disabled={!isAdmin || busy}
-                onClick={() => run(() => saveSettings({ scoring: { weights } }), "Đã tạo version mới")}
+                onClick={() => run(() => saveSettings({ scoring: { weights } }), "Đã tạo phiên bản mới")}
                 className="rounded-lg bg-emerald-500 px-3 py-2 text-sm font-medium text-slate-950 disabled:opacity-50"
               >
-                Lưu version mới
+                Lưu phiên bản mới
               </button>
             </div>
           </Card>
 
           {preview ? (
-            <Card title="Preview impact">
+            <Card title="Xem trước ảnh hưởng">
               <p className="text-sm text-body">
-                {preview.traders} trader · {preview.changed_band} đổi band
+                {preview.traders} trader · {preview.changed_band} đổi mức điểm
               </p>
               <div className="mt-3 overflow-x-auto">
                 <table className="w-full min-w-[560px] text-left text-sm">
                   <thead className="text-xs uppercase tracking-wide text-faint">
                     <tr>
                       <th className="pb-2">Trader</th>
-                      <th className="pb-2 text-right">Score cũ</th>
-                      <th className="pb-2 text-right">Score mới</th>
+                      <th className="pb-2 text-right">Điểm cũ</th>
+                      <th className="pb-2 text-right">Điểm mới</th>
                       <th className="pb-2 text-right">Δ</th>
-                      <th className="pb-2">Band</th>
+                      <th className="pb-2">Mức điểm</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-line">
@@ -230,7 +221,7 @@ export default function SettingsPage() {
                         <td className="py-2 text-right text-strong">{row.new_score?.toFixed(1) ?? "—"}</td>
                         <td className="py-2 text-right text-body">{row.delta.toFixed(2)}</td>
                         <td className="py-2 text-muted">
-                          {row.old_band} → {row.new_band}
+                          {label(BAND_LABELS, row.old_band, "—")} → {label(BAND_LABELS, row.new_band, "—")}
                         </td>
                       </tr>
                     ))}
@@ -240,7 +231,7 @@ export default function SettingsPage() {
             </Card>
           ) : null}
 
-          <Card title="Versions">
+          <Card title="Phiên bản">
             <div className="space-y-2">
               {(versions.data ?? []).map((version) => (
                 <div
@@ -250,7 +241,7 @@ export default function SettingsPage() {
                   <span className="text-strong">v{version.version}</span>
                   {version.is_active ? (
                     <span className="rounded-full border border-accent/40 bg-accent/10 px-2 text-xs text-accent">
-                      active
+                      đang dùng
                     </span>
                   ) : null}
                   <span className="text-faint">{new Date(version.created_at).toLocaleString("vi-VN")}</span>
@@ -259,11 +250,11 @@ export default function SettingsPage() {
                       type="button"
                       disabled={busy}
                       onClick={() =>
-                        run(() => rollbackSettings(version.version), `Đã rollback v${version.version}`)
+                        run(() => rollbackSettings(version.version), `Đã khôi phục v${version.version}`)
                       }
                       className="ml-auto rounded border border-line px-2 py-1 text-xs text-body"
                     >
-                      Rollback
+                      Khôi phục
                     </button>
                   ) : null}
                 </div>
@@ -274,10 +265,10 @@ export default function SettingsPage() {
       ) : null}
 
       {tab === "risk" ? (
-        <Card title="Risk Rules">
+        <Card title="Quy tắc rủi ro">
           <p className="text-sm text-body">
-            Hard filters thuộc scoring version hiện tại. Risk events R01–R11 không tự loại trader,
-            chỉ tạo cảnh báo và ảnh hưởng confidence.
+            Bộ lọc cứng thuộc phiên bản chấm điểm hiện tại. Cảnh báo rủi ro R01–R11 không tự loại
+            trader, chỉ tạo cảnh báo và ảnh hưởng độ tin cậy.
           </p>
           <ul className="mt-3 space-y-1 text-sm text-muted">
             <li>HF01 — status khác ACTIVE: không xếp hạng</li>
@@ -354,7 +345,7 @@ export default function SettingsPage() {
               disabled={!isAdmin || busy}
               onChange={(event) => setAi({ ...ai, enabled: event.target.checked })}
             />
-            Bật AI report
+            Bật nhận định AI
           </label>
           <button
             type="button"
@@ -386,7 +377,7 @@ export default function SettingsPage() {
         <Card title="Chu kỳ thu thập">
           <div className="grid gap-3 md:grid-cols-2">
             <NumberInput
-              label="Scan (phút)"
+              label="Quét universe (phút)"
               value={collector.scan_interval_min}
               min={5}
               max={1440}
@@ -394,7 +385,7 @@ export default function SettingsPage() {
               onChange={(value) => setCollector({ ...collector, scan_interval_min: value })}
             />
             <NumberInput
-              label="Performance (giờ)"
+              label="Hiệu suất (giờ)"
               value={collector.deep_interval_hours_watch}
               min={1}
               max={168}
@@ -404,7 +395,7 @@ export default function SettingsPage() {
               }
             />
             <NumberInput
-              label="Detail (giờ)"
+              label="Chi tiết (giờ)"
               value={collector.deep_interval_hours_qualified}
               min={1}
               max={168}
@@ -414,7 +405,7 @@ export default function SettingsPage() {
               }
             />
             <NumberInput
-              label="Trades (giờ)"
+              label="Giao dịch (giờ)"
               value={collector.deep_interval_hours_high}
               min={1}
               max={168}
@@ -434,21 +425,21 @@ export default function SettingsPage() {
           >
             Lưu chu kỳ
           </button>
-          <p className="mt-2 text-xs text-faint">Worker đọc cấu hình mỗi vòng lặp (60s).</p>
+          <p className="mt-2 text-xs text-faint">Tiến trình nền đọc cấu hình mỗi vòng (60 giây).</p>
         </Card>
       ) : null}
 
       {tab === "health" ? (
-        <Card title="Data Health">
+        <Card title="Sức khỏe dữ liệu">
           {health.data ? (
             <div className="space-y-2 text-sm">
               <p className="text-body">
-                Collector: {health.data.enabled ? "bật" : "tắt"} · raw archive{" "}
-                {health.data.raw_archive.files} file
+                Bộ thu thập: {health.data.enabled ? "bật" : "tắt"} · lưu trữ thô{" "}
+                {health.data.raw_archive.files} tệp
               </p>
               {Object.entries(health.data.latest_runs).map(([layer, run]) => (
                 <p key={layer} className="text-muted">
-                  {layer}: {run ? `${run.status} · ${run.items_ok} item` : "chưa chạy"}
+                  {layer}: {run ? `${label(JOB_STATUS_LABELS, run.status, run.status)} · ${run.items_ok} bản ghi` : "chưa chạy"}
                 </p>
               ))}
             </div>
@@ -459,22 +450,22 @@ export default function SettingsPage() {
       ) : null}
 
       {tab === "ranking" ? (
-        <Card title="Ranking">
+        <Card title="Xếp hạng">
           <p className="text-sm text-body">
-            3 bảng Overall / Low Risk / Consistency dùng chung scoring version hiện tại.
-            Snapshot được tạo ở trang Ranking.
+            3 bảng Tổng hợp / Rủi ro thấp / Độ ổn định dùng chung phiên bản chấm điểm hiện tại.
+            Bản chụp được tạo ở trang Bảng xếp hạng.
           </p>
         </Card>
       ) : null}
 
       {tab === "system" ? (
-        <Card title="System">
+        <Card title="Hệ thống">
           <dl className="space-y-2 text-sm">
             {[
-              ["App", settings.data.system.app_name],
+              ["Tên ứng dụng", settings.data.system.app_name],
               ["Môi trường", settings.data.system.app_env],
-              ["API prefix", settings.data.system.api_v1_prefix],
-              ["Scoring version", String(settings.data.scoring.version)],
+              ["Tiền tố API", settings.data.system.api_v1_prefix],
+              ["Phiên bản chấm điểm", String(settings.data.scoring.version)],
             ].map(([label, value]) => (
               <div key={label} className="flex justify-between gap-3">
                 <dt className="text-faint">{label}</dt>
