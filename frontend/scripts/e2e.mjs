@@ -169,7 +169,7 @@ try {
 
   // 4.0.1 — Screener giữ trạng thái qua điều hướng, F5 và URL
   await page.getByLabel("MDD ≤").fill("20");
-  await page.waitForResponse((response) => response.url().includes("max_mdd_90d=20"));
+  await page.waitForResponse((response) => response.url().includes("max_mdd=20"));
   const firstTraderHref = await page
     .locator('a[href^="/traders/"]')
     .first()
@@ -190,9 +190,26 @@ try {
     (await page.getByLabel("MDD ≤").inputValue()) === "20",
     "F5 làm mất bộ lọc MDD",
   );
-  await page.getByRole("button", { name: "Đặt lại" }).click();
+  await page.getByRole("button", { name: "Xóa tất cả" }).click();
   await page.getByRole("heading", { name: "Bộ lọc trader" }).waitFor();
   console.log("Screener giữ trạng thái: OK");
+
+  // 4.0.5 — Đa khung + filter mở rộng
+  await page.getByRole("button", { name: "7 ngày" }).click();
+  await page.getByRole("columnheader", { name: "ROI 7D" }).waitFor();
+  await page.getByRole("columnheader", { name: "Copier PnL 7D" }).waitFor();
+  await page.getByText("Quy mô & phổ biến").click();
+  await page.getByLabel("Số copier ≥").fill("5");
+  await page.waitForResponse((response) => response.url().includes("min_copiers=5"));
+  await page.getByLabel("AUM ≥").fill("1000");
+  await page.waitForResponse((response) => response.url().includes("min_aum=1000"));
+  await page.getByRole("button", { name: "90 ngày" }).click();
+  await page.getByRole("columnheader", { name: "ROI 90D" }).waitFor();
+  const windowBody = await page.locator("body").innerText();
+  assert(!windowBody.includes("undefined") && !windowBody.includes("NaN"), "Đa khung có undefined/NaN");
+  await page.getByRole("button", { name: "Xóa tất cả" }).click();
+  await page.getByRole("heading", { name: "Bộ lọc trader" }).waitFor();
+  console.log("Screener đa khung + filter: OK");
 
   await page.getByLabel("Mô tả trader bạn muốn tìm").fill("trader an toàn, còn slot, vốn dưới 100$");
   await page.getByRole("button", { name: "Diễn giải" }).click();
@@ -204,8 +221,18 @@ try {
   });
   const nlBody = await page.locator("body").innerText();
   assert(!nlBody.includes("undefined") && !nlBody.includes("NaN"), "NL search có undefined/NaN");
-  await page.getByRole("button", { name: "Xóa" }).click();
+  await page.getByRole("button", { name: "Xóa", exact: true }).click();
   console.log("NL screener search: OK");
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.getByRole("heading", { name: "Bộ lọc trader" }).waitFor();
+  const mobileScroll = await page.evaluate(() => document.documentElement.scrollWidth);
+  assert(mobileScroll <= 392, `Screener mobile overflow ngang (${mobileScroll}px)`);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.getByRole("heading", { name: "Bộ lọc trader" }).waitFor();
+  console.log("Screener mobile 390: OK");
 
   const banner = page.getByText("Mới bắt đầu?");
   if (await banner.count()) {

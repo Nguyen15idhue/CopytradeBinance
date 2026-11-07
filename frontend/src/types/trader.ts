@@ -100,6 +100,19 @@ export interface ScreenerItem {
   max_leverage: number | null;
   profit_factor: number | null;
   fee_drag_pct: number | null;
+  avg_leverage: number | null;
+  position_win_rate: number | null;
+  risk_score: number | null;
+  windows: Record<
+    string,
+    {
+      roi?: number | null;
+      mdd?: number | null;
+      sharpe?: number | null;
+      copier_pnl?: number | null;
+      win_rate?: number | null;
+    }
+  >;
   low_sample: boolean;
   filter_reasons: string[];
   breakdown: {
@@ -121,6 +134,8 @@ export interface ScreenerResponse {
   sort_by: string;
   sort_dir: "asc" | "desc";
   config_version: number;
+  window?: string;
+  window_missing?: boolean;
 }
 
 export interface FunnelSummary {

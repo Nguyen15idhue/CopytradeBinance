@@ -379,3 +379,9 @@ Commit: test(phase6): 4.0.9 eval agent da use case
   17 filter mới (copier, PnL, AUM, avg leverage, profit factor, fee drag, confidence, risk score,
   copy_aum_ratio); `sort_columns(window)`; response có `windows` + meta `window/window_missing`.
   → Bằng chứng: `test_screener_api` 6 pass (sort 7D, copier/PnL/AUM, null khớp DB); regression agent 9 pass.
+- [x] B4.0.5 UI Screener đa khung — selector `7/30/90/180 ngày`; cột ROI/MDD/Sharpe/WinRate/Copier PnL
+  theo khung; thêm Số copier, AUM, Copy AUM, Profit factor; 3 nhóm filter thu gọn
+  (Hiệu suất / Quy mô & phổ biến / Rủi ro & chất lượng); badge số filter + "Xóa tất cả";
+  nhãn tách file `i18n/screener.ts` (không đụng i18n/vi.ts đang có thay đổi ngoài phạm vi).
+  → Bằng chứng: build pass; E2E thêm "Screener đa khung + filter" + "Screener mobile 390" PASS;
+  toàn bộ E2E PASS, 0 console error.

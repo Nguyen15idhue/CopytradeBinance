@@ -90,6 +90,8 @@ Trợ lý AI chat (chỉ admin): icon ✦ góc phải dưới mọi trang sau đ
 - Panel drawer desktop (~440px), full-screen mobile + nút phóng to toàn màn hình; Esc đóng; Ctrl/Cmd+Enter gửi.
 - Tin nhắn assistant render markdown an toàn (không `dangerouslySetInnerHTML`): in đậm/nghiêng, bảng, danh sách, code.
 - Screener có ô “Mô tả trader bạn muốn tìm” → chips + Áp dụng (admin diễn giải qua `/agent/search`).
+- Screener có selector khung `7/30/90/180 ngày`, 3 nhóm lọc (Hiệu suất / Quy mô & phổ biến /
+  Rủi ro & chất lượng) và badge số filter; trạng thái lưu trên URL nên back/F5/share đều giữ nguyên.
 - Stream SSE: tool trace collapsible, citation chips, cảnh báo; session lưu DB.
 - API: `POST /agent/chat` (SSE), `GET/PATCH/DELETE /agent/sessions`, `POST /agent/feedback`.
 - Rebuild knowledge index: `docker compose exec backend python -m app.knowledge_cli index` (idempotent; `--dry-run` để đếm trước).

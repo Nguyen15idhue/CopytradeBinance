@@ -632,3 +632,7 @@ Nguồn: `docs/0/04-ke-hoach-screener-da-khung.md`. Khảo sát xác nhận V1�
   meta `window` + `window_missing`. `api/v1/screener.py` thêm param tương ứng;
   `agent/db_tools.search_traders` map filter mới + sort theo window.
   → `test_screener_api` 6 pass (sort 7D desc, copier≥10, copier_pnl≥1000, aum≥50000, null khớp DB).
+- B4.0.5: `ScreenerPage` thêm selector khung 7/30/90/180 ngày; cột ROI/MDD/Sharpe/WinRate/Copier PnL
+  theo khung + cột Số copier/AUM/Copy AUM/Profit factor; 3 nhóm filter thu gọn; badge filter +
+  "Xóa tất cả"; `i18n/screener.ts` cho nhãn mới; `screenerQuery.ts` thêm `avg_lev_max/risk_score_max`.
+  E2E: "Screener đa khung + filter" (7D→90D, copier≥5, AUM≥1000) và "Screener mobile 390" PASS.

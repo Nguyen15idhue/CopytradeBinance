@@ -13,6 +13,8 @@ export const SCREENER_DEFAULTS = {
   runtime_min: "",
   orders_min: "",
   lev_max: "",
+  avg_lev_max: "",
+  risk_score_max: "",
   copiers_min: "",
   copier_pnl_min: "",
   aum_min: "",

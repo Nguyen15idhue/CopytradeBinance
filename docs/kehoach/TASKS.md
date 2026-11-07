@@ -908,7 +908,7 @@ Tóm tắt: không auto-trading, không realtime WebSocket, không Paper Copy tr
 - [x] B4.0.2 Migration `0018_metric_windows`. → Bằng chứng: 15 cột + 6 index; up/down OK; `test_models` 4 pass.
 - [x] B4.0.3 Builder ghi đa khung. → Bằng chứng: `WINDOW_COLUMN_MAP`; backfill 531 trader/501 có đa khung; `test_metric_windows` 2 pass.
 - [x] B4.0.4 Screener API đa khung + filter mở rộng. → Bằng chứng: `window` + 17 filter; `test_screener_api` 6 pass.
-- [ ] B4.0.5 UI Screener đa khung.
+- [x] B4.0.5 UI Screener đa khung. → Bằng chứng: selector khung + 3 nhóm filter + badge; E2E đa khung/mobile PASS.
 - [ ] B4.0.6 Detail hiển thị 4 khung.
 - [ ] B4.0.7 Agent trả đủ dữ liệu trader.
 - [ ] B4.0.8 Orchestrator JSON compact.
