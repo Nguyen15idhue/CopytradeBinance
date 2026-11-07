@@ -47,6 +47,7 @@ class Settings(BaseSettings):
     ai_daily_budget_usd: float = 2.0
     ai_timeout_seconds: int = 60
     ai_max_tokens: int = 2500
+    ai_reasoning_effort: str = "auto"
     ai_cooldown_hours: int = 24
     prompt_version: str = "v1"
 

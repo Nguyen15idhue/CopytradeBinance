@@ -61,12 +61,23 @@ async def call_model(
         raise AIError("Model id trống")
     if not api_key:
         raise AIError("Thiếu OPENROUTER_API_KEY")
+    effort = get_settings().ai_reasoning_effort.strip().lower()
+    if effort in {"off", "none", "false"}:
+        reasoning = {"enabled": False}
+    elif effort == "auto":
+        # GLM 5.3 Flash bắt buộc reasoning; các model report khác nên tắt
+        # để tránh reasoning ăn hết token trước khi trả JSON.
+        reasoning = (
+            {"effort": "low"} if "glm-5.3-flash" in model else {"enabled": False}
+        )
+    else:
+        reasoning = {"effort": effort}
     started = time.perf_counter()
     payload = {
         "model": model,
         "temperature": 0.2,
         "max_tokens": max_tokens,
-        "reasoning": {"enabled": False},  # tránh reasoning đốt hết token trước khi trả JSON
+        "reasoning": reasoning,
         "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": prompt},
