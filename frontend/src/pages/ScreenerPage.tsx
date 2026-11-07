@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 
+import OnboardingBanner from "../components/OnboardingBanner";
+
 import {
   deleteView,
   getFunnelSummary,
@@ -152,6 +154,7 @@ export default function ScreenerPage() {
 
   return (
     <div className="space-y-5">
+      <OnboardingBanner />
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">Screener</h1>

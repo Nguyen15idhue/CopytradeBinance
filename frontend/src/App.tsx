@@ -7,6 +7,7 @@ import DemoHomePage from "./pages/DemoHomePage";
 import DataHealthPage from "./pages/DataHealthPage";
 import LoginPage from "./pages/LoginPage";
 import RankingPage from "./pages/RankingPage";
+import HelpPage from "./pages/HelpPage";
 import RiskMonitorPage from "./pages/RiskMonitorPage";
 import SettingsPage from "./pages/SettingsPage";
 import ScreenerPage from "./pages/ScreenerPage";
@@ -29,6 +30,7 @@ export default function App() {
         <Route path="/compare" element={<ComparePage />} />
         <Route path="/risk" element={<RiskMonitorPage />} />
         <Route path="/ranking" element={<RankingPage />} />
+        <Route path="/help" element={<HelpPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/traders/:id" element={<TraderDetailPage />} />
       </Route>

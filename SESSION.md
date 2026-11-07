@@ -526,3 +526,14 @@ Lưu ý: ranking/help cases (K/H) chỉ chạy được sau khi hoàn thành bư
 - UI `/ranking`: 3 tab, metadata snapshot, bảng 9 cột, link Detail, empty + nút chạy (admin).
 - Test: 1 integration contract (3 board + 422 + RBAC + run); E2E render 2 tab.
 - Bug đã sửa: E2E 502 do Nginx cache DNS khi backend recreate → restart nginx.
+
+### 15.5. Trang hướng dẫn 5.5
+
+- Nội dung: `docs/huong-dan-nguoi-moi.md` (8 mục), render tại `/help`, không dùng dữ liệu live.
+- Mục lục: sticky, active highlight theo scroll, thanh tiến độ đọc, drawer mobile, nút về đầu trang.
+- Tìm kiếm client-side theo tiêu đề + keyword (sharpe, mdd, tier, risk…); print CSS + nút In/PDF.
+- **5 hình minh hoạ SVG** (`HelpIllustrations.tsx`): luồng copy trading, phễu tier, cấu trúc metric card,
+  risk event + evidence, quy trình 5 bước; dùng theme token, caption tiếng Việt.
+- Banner “Mới bắt đầu?” trên Screener, dismiss lưu `ct_help_banner_dismissed` (E2E kiểm reload).
+- Mobile: thêm menu drawer cho toàn app (giải quyết gap G1); header gọn lại.
+- E2E: Help 8 mục, ≥4 figure, TOC ≥8 link, anchor `#glossary`, search, banner persist.

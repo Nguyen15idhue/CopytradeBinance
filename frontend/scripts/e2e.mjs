@@ -86,6 +86,27 @@ try {
   await page.getByText(/config v/).waitFor();
   console.log("Ranking render: OK");
 
+  await page.getByRole("link", { name: "Hướng dẫn" }).click();
+  await page.getByRole("heading", { name: "Hướng dẫn" }).waitFor();
+  const helpHeadings = await page.getByRole("heading", { level: 2 }).count();
+  assert(helpHeadings >= 8, `Help thiếu mục (${helpHeadings})`);
+  const figures = await page.locator("figure").count();
+  assert(figures >= 4, `Help thiếu hình minh hoạ (${figures})`);
+  const tocLinks = await page
+    .getByRole("navigation", { name: "Mục lục hướng dẫn" })
+    .getByRole("link")
+    .count();
+  assert(tocLinks >= 8, `Mục lục thiếu mục (${tocLinks})`);
+  await page.getByRole("link", { name: /Từ điển thuật ngữ/ }).click();
+  await page.waitForTimeout(400);
+  assert(page.url().endsWith("#glossary"), "Anchor mục lục không đổi URL");
+  await page.getByPlaceholder("Tìm trong hướng dẫn...").fill("Sharpe");
+  await page.waitForTimeout(300);
+  const filtered = await page.getByRole("heading", { level: 2 }).count();
+  assert(filtered >= 1 && filtered < helpHeadings, "Search help không lọc");
+  await page.getByPlaceholder("Tìm trong hướng dẫn...").fill("");
+  console.log("Help render/search: OK");
+
   await page.getByRole("link", { name: "Data Health" }).click();
   await page.getByRole("heading", { name: "Data Health" }).waitFor();
   await page.getByRole("heading", { name: "Universe theo tier" }).waitFor();
@@ -104,6 +125,16 @@ try {
   assert(screenerBody.includes("High"), "Screener thiếu tier High");
   assert(screenerBody.includes("Score"), "Screener thiếu cột Score");
   console.log("Screener render: OK");
+
+  const banner = page.getByText("Mới bắt đầu?");
+  if (await banner.count()) {
+    await page.getByRole("button", { name: "Đã hiểu" }).click();
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.getByRole("heading", { name: "Screener" }).waitFor();
+  }
+  const bannerAfter = await page.getByText("Mới bắt đầu?").count();
+  assert(bannerAfter === 0, "Banner onboarding không dismiss vĩnh viễn");
+  console.log("Onboarding banner dismiss: OK");
 
   const compareIds = await page.evaluate(async () => {
     const token = localStorage.getItem("ct_access_token");

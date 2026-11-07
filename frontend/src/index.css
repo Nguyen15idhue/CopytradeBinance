@@ -49,3 +49,26 @@ textarea,
 button {
   color: inherit;
 }
+
+@media print {
+  aside,
+  header,
+  nav,
+  .print-hidden {
+    display: none !important;
+  }
+  html,
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  main {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+  section,
+  article {
+    border-color: #cbd5e1 !important;
+    break-inside: avoid;
+  }
+}

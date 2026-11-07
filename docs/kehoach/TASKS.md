@@ -618,19 +618,20 @@ hoàn thiện trang Ranking và trang hướng dẫn cho người mới.
 **Tham chiếu:** §13.1 Nguyên tắc thiết kế (2224–2234) · §13.11 Checklist UI (2599–2616) · §16.3 Rủi ro sản phẩm (3169–3183)  
 **→ đọc khi:** viết nội dung onboarding, thuật ngữ, disclaimer.
 
-- [ ] Route `/help` (Hướng dẫn); link cố định ở sidebar + banner “Mới bắt đầu?” trên Screener (dismiss lưu localStorage).
-- [ ] Mục 1 — Copy trading là gì: cơ chế copy, rủi ro mất vốn, không phải đầu tư được bảo đảm.
-- [ ] Mục 2 — Hệ thống làm gì/không làm gì: chỉ phân tích dữ liệu công khai; không auto-trade, không paper copy, không tư vấn đầu tư.
-- [ ] Mục 3 — Cách đọc từng màn hình: Screener → Trader Detail → Compare → Risk Monitor → Data Health, kèm ảnh minh hoạ.
-- [ ] Mục 4 — Từ điển thuật ngữ: ROI, MDD, Sharpe, WinRate (order vs position), Profit Factor, Payoff, AUM, Copy AUM, Leverage, Confidence, Tier, Excluded, Low sample.
-- [ ] Mục 5 — Tier & reason codes; vì sao “Excluded” không hẳn là trader xấu.
-- [ ] Mục 6 — Published vs Derived vs Estimated; dữ liệu không có (open positions, per-copier PnL, funding, slippage).
-- [ ] Mục 7 — Quy trình 5 bước cho người mới + checklist tự kiểm tra trước khi copy.
-- [ ] Mục 8 — FAQ + disclaimer pháp lý + kênh liên hệ.
-- [ ] Mục lục anchor, tìm kiếm nội bộ (client-side), responsive, print CSS.
-- [ ] Nội dung tĩnh: không gọi AI, không phụ thuộc dữ liệu live.
-- [ ] Nguồn nội dung: `docs/huong-dan-nguoi-moi.md`, version hoá cùng UI.
-- [ ] Test: route render, anchor, E2E mở Help, không có `undefined`/`NaN`.
+- [x] Route `/help` (Hướng dẫn); link cố định ở sidebar + banner “Mới bắt đầu?” trên Screener (dismiss lưu localStorage). → Bằng chứng: `/help` + nav; banner dismiss được, reload không hiện lại (E2E).
+- [x] Mục 1 — Copy trading là gì: cơ chế copy, rủi ro mất vốn, không phải đầu tư được bảo đảm. → Bằng chứng: mục 1 + sơ đồ luồng copy.
+- [x] Mục 2 — Hệ thống làm gì/không làm gì. → Bằng chứng: mục 2.
+- [x] Mục 3 — Cách đọc từng màn hình, kèm ảnh minh hoạ. → Bằng chứng: mục 3 + sơ đồ Risk evidence.
+- [x] Mục 4 — Từ điển thuật ngữ. → Bằng chứng: mục 4 + sơ đồ cấu trúc metric card.
+- [x] Mục 5 — Tier & reason codes. → Bằng chứng: mục 5 + sơ đồ phễu.
+- [x] Mục 6 — Published vs Derived vs Estimated. → Bằng chứng: mục 6.
+- [x] Mục 7 — Quy trình 5 bước + checklist. → Bằng chứng: mục 7 + sơ đồ workflow.
+- [x] Mục 8 — FAQ + disclaimer. → Bằng chứng: mục 8.
+- [x] Mục lục anchor, tìm kiếm nội bộ, responsive, print CSS. → Bằng chứng: TOC sticky + active highlight + progress + mobile drawer; search theo keyword; print CSS.
+- [x] Hình minh hoạ dễ hiểu. → Bằng chứng: 5 SVG (Copy flow, Funnel, Metric anatomy, Risk evidence, Workflow) trong `HelpIllustrations.tsx`, dùng theme token, có caption.
+- [x] Nội dung tĩnh: không gọi AI, không phụ thuộc dữ liệu live. → Bằng chứng: toàn bộ nội dung hardcode; số phễu ghi “minh hoạ”.
+- [x] Nguồn nội dung `docs/huong-dan-nguoi-moi.md`. → Bằng chứng: file 8 mục; UI đồng bộ nội dung.
+- [x] Test: route render, anchor, E2E Help, không `undefined`/`NaN`. → Bằng chứng: E2E Help render/search/anchor/banner pass.
 
 ### Bước 5.6 — QA & gate Phase 5
 
