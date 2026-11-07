@@ -500,13 +500,13 @@
 **Tham chiếu:** §13.5 Màn hình Compare (2457–2489) · §11.3 Ranking & compare (2050–2057)  
 **→ đọc khi:** làm bảng so sánh, correlation, deep link.
 
-- [ ] Compare page.
-- [ ] Chọn 2–4 trader.
-- [ ] Bảng so sánh.
-- [ ] Chart so sánh.
-- [ ] Correlation matrix + disclaimer “estimated”.
-- [ ] Deep link/share URL.
-- [ ] Responsive 1280px/1440px.
+- [x] Compare page. → Bằng chứng: `/compare` + nav link.
+- [x] Chọn 2–4 trader. → Bằng chứng: picker search qua `/traders?q=`, chip chọn, chặn >4.
+- [x] Bảng so sánh. → Bằng chứng: 15 dòng chỉ số × 2–4 trader.
+- [x] Chart so sánh. → Bằng chứng: LineChart ROI lũy kế theo từng trader từ `series`.
+- [x] Correlation matrix + disclaimer “estimated”. → Bằng chứng: Pearson trên sai phân chartItems; E2E thấy “estimated”.
+- [x] Deep link/share URL. → Bằng chứng: `?ids=a,b` cập nhật qua `useSearchParams`; mở lại giữ danh sách.
+- [x] Responsive 1280px/1440px. → Bằng chứng: bảng `overflow-x-auto`, layout grid co giãn.
 
 ### Bước 4.4 — Risk Monitor
 

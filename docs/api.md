@@ -37,6 +37,59 @@ Base: `/api/v1`
 - Login rate limit 5/phút/IP.
 - Gửi header `Authorization: Bearer <access_token>` cho endpoint bảo vệ.
 
+## Trader detail mở rộng
+
+| Endpoint | Nội dung |
+|---|---|
+| GET `/traders/{id}/performance` | 4 window, `chartItems`, benchmark null + note |
+| GET `/traders/{id}/positions` | Phân trang 50 (≤200), filter `symbol`, `side` |
+| GET `/traders/{id}/trades` | Phân trang 100 (≤200), filter `symbol`, `side` |
+| GET `/traders/{id}/transfers` | Timeline nạp/rút |
+| GET `/traders/{id}/risk` | `risk_level`, flags, events + evidence |
+| GET `/traders/{id}/score` | `config_version`, score, band, breakdown, hard flags |
+
+- 404 wrapper `TRADER_NOT_FOUND` nếu id không tồn tại.
+- `benchmark` luôn `null` khi chưa có nguồn klines; không nội suy.
+
+## Compare
+
+### GET `/compare?ids=a,b`
+
+- Bắt buộc 2–4 id; sai số lượng → 422 `INVALID_COMPARE`.
+- Trả `items`, `series` (chartItems), `correlation` (Pearson + `sample_days` + disclaimer “estimated”).
+- Correlation cần ≥ 30 điểm chung; thiếu → `null`, không bịa số.
+
+## Screener
+
+### GET `/traders`
+
+Filter/sort/pagination. Mặc định `include_excluded=false`, sort `score desc`, `page_size ≤ 100`.
+
+Query: `q, portfolio_type, status, potential_tier (lặp lại), include_excluded, min_pre_score,
+min_roi_90d, max_roi_90d, max_mdd_90d, min_sharpe, max_sharpe, min_win_rate, max_win_rate,
+min_runtime_days, min_total_orders, min_copiers, min_copy_aum, max_leverage, risk_level,
+has_sharpe, sort_by, sort_dir, page, page_size`.
+
+`potential_tier` nhận alias `excluded | watch | qualified | high` hoặc tên nội bộ.
+
+Mỗi item có score, band, confidence, breakdown, risk_level, tier, metrics chính và `filter_reasons`.
+
+### GET `/traders/funnel-summary`
+
+`{ universe, watch, qualified, high, excluded }`.
+
+### GET `/traders/export.csv`
+
+CSV theo filter hiện tại (tối đa 100 dòng), UTF-8.
+
+### Saved views
+
+| Method | Endpoint | Mô tả |
+|---|---|---|
+| GET | `/saved-views` | Danh sách view của user |
+| POST | `/saved-views` | `{name, filters}`; trùng tên thì cập nhật |
+| DELETE | `/saved-views/{id}` | Xoá view của user |
+
 ## Collector & Data Health
 
 | Method | Endpoint | Quyền | Mô tả |

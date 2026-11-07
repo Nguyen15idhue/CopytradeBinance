@@ -229,6 +229,40 @@ export interface ScoreResponse {
   };
 }
 
+export interface CompareItem {
+  id: string;
+  nickname: string | null;
+  tier: string;
+  score: number | null;
+  band: string | null;
+  confidence: number | null;
+  risk_level: string | null;
+  roi_90d: number | null;
+  mdd_90d: number | null;
+  sharpe: number | null;
+  win_rate_order: number | null;
+  max_leverage: number | null;
+  profit_factor: number | null;
+  runtime_days: number | null;
+  copier_pnl_90d: number | null;
+  copy_aum: number | null;
+  pnl_90d: number | null;
+  top_symbol: string | null;
+  windows: Record<string, { roi: number | null; mdd: number | null }>;
+}
+
+export interface CompareResponse {
+  items: CompareItem[];
+  series: Record<string, Array<{ date_time: number; value: number }>>;
+  correlation: {
+    ids: string[];
+    matrix: Array<Array<number | null>>;
+    sample_days: number;
+    disclaimer: string;
+  };
+  missing: string[];
+}
+
 export interface AuthUser {
   id: string;
   email: string;

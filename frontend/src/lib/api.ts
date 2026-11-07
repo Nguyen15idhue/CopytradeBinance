@@ -1,6 +1,7 @@
 import { clearSession, getAccessToken } from "./auth";
 import type {
   CollectorStatus,
+  CompareResponse,
   FunnelSummary,
   LoginResult,
   Paged,
@@ -153,4 +154,8 @@ export async function getRisk(portfolioId: string): Promise<RiskResponse> {
 
 export async function getScore(portfolioId: string): Promise<ScoreResponse> {
   return request<ScoreResponse>(`/traders/${id(portfolioId)}/score`);
+}
+
+export async function getCompare(ids: string[]): Promise<CompareResponse> {
+  return request<CompareResponse>(`/compare?ids=${ids.map(encodeURIComponent).join(",")}`);
 }

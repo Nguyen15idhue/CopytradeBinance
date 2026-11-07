@@ -57,6 +57,22 @@ try {
   assert(screenerBody.includes("Score"), "Screener thiếu cột Score");
   console.log("Screener render: OK");
 
+  const compareIds = await page.evaluate(async () => {
+    const token = localStorage.getItem("ct_access_token");
+    const response = await fetch("/api/v1/traders?page_size=2", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const json = await response.json();
+    return json.data.items.map((item) => item.id).join(",");
+  });
+  await page.goto(`${base}/compare?ids=${compareIds}`, { waitUntil: "domcontentloaded" });
+  await page.getByRole("heading", { name: "Compare" }).waitFor();
+  await page.getByRole("heading", { name: "Correlation" }).waitFor();
+  const compareBody = await page.locator("body").innerText();
+  assert(compareBody.includes("Correlation"), "Compare thiếu correlation");
+  assert(compareBody.includes("estimated"), "Correlation thiếu disclaimer");
+  console.log("Compare render: OK");
+
   async function pickTrader(tier) {
     return page.evaluate(async (value) => {
       const token = localStorage.getItem("ct_access_token");

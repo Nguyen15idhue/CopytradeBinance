@@ -7,7 +7,7 @@ const navItems = [
   { to: "/data-health", label: "Data Health" },
   { to: "/screener", label: "Screener" },
   { to: "/ranking", label: "Ranking", phase: "Phase 4" },
-  { to: "/compare", label: "Compare", phase: "Phase 4" },
+  { to: "/compare", label: "Compare" },
   { to: "/risk", label: "Risk", phase: "Phase 4" },
   { to: "/settings", label: "Settings", phase: "Phase 5" },
 ];

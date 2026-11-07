@@ -397,3 +397,11 @@ cd frontend; npm run build
 - Score breakdown 7 nhóm; risk chips có evidence; “what’s missing”; positions table; trades; transfers.
 - Fix dữ liệu: API detail convert chuỗi số từ JSONB sang number (tránh `.toFixed` crash).
 - E2E pass, không console error.
+
+### 11.3. Compare 2–4 trader 4.3
+
+- `services/compare.py` + `api/v1/compare.py`: validate 2–4 id, trả metrics, series chartItems, correlation.
+- Correlation = Pearson trên sai phân ROI theo ngày, cần ≥ 30 điểm chung; disclaimer “estimated”.
+- UI `/compare`: picker tìm trader, chip tối đa 4, bảng 15 chỉ số, chart nhiều đường,
+  ma trận correlation, deep link `?ids=`.
+- Test: 5 unit + 2 integration pass; E2E “Compare render: OK”.
