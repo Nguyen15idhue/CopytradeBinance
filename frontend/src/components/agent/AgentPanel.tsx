@@ -255,7 +255,8 @@ export default function AgentPanel({ onClose }: { onClose: () => void }) {
               ),
             );
           },
-          onDone: (answer, _usage, messageId) => {
+          onDone: (answer, _usage, messageId, sessionId) => {
+            if (sessionId) setSessionId(sessionId);
             setMessages((prev) =>
               prev.map((item) =>
                 item.id === assistantMessage.id

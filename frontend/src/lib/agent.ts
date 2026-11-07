@@ -49,7 +49,7 @@ export interface AgentStreamHandlers {
   onTrace: (tool: string, summary: string | undefined, ok: boolean | undefined) => void;
   onCitation: (items: { source_type: string; ref: string }[]) => void;
   onWarning: (message: string) => void;
-  onDone: (answer: string, usage: unknown, messageId: number) => void;
+  onDone: (answer: string, usage: unknown, messageId: number, sessionId: number) => void;
   onError: (message: string) => void;
 }
 
@@ -105,6 +105,7 @@ export async function streamAgentChat(
         String(data.answer ?? ""),
         data.usage,
         Number(data.message_id ?? 0),
+        Number(data.session_id ?? 0),
       );
     } else if (event === "error") {
       handlers.onError(String(data.message ?? "Trợ lý AI gặp lỗi"));

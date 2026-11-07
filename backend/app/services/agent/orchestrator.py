@@ -3,6 +3,7 @@
 import asyncio
 import time
 from collections.abc import AsyncIterator
+from datetime import datetime
 from typing import Any
 from uuid import UUID
 
@@ -47,17 +48,37 @@ def template_from_evidence(evidence: list[dict]) -> str:
 
 
 async def get_or_create_session(
-    db: AsyncSession, user_id: UUID, session_id: int | None, model: str
+    db: AsyncSession, user_id: UUID, session_id: int | None, model: str,
+    title_hint: str | None = None,
 ) -> AgentSession:
     if session_id is not None:
         session = await db.get(AgentSession, session_id)
         if session is None or str(session.user_id) != str(user_id):
             raise ApiError(404, "AGENT_SESSION_NOT_FOUND", "Không tìm thấy đoạn chat")
         return session
-    session = AgentSession(user_id=user_id, title="Đoạn chat mới", model=model)
+    title = (title_hint or "").strip()[:60] or "Đoạn chat mới"
+    session = AgentSession(user_id=user_id, title=title, model=model)
     db.add(session)
     await db.flush()
     return session
+
+
+async def load_history(db: AsyncSession, session_id: int, limit: int = 10) -> list[dict]:
+    """Nạp lượt chat trước để model có ngữ cảnh multi-turn."""
+    rows = (
+        await db.execute(
+            select(AgentMessage)
+            .where(AgentMessage.session_id == session_id)
+            .order_by(AgentMessage.created_at.desc())
+            .limit(limit)
+        )
+    ).scalars().all()
+    turns = [
+        {"role": row.role, "content": (row.content or "")[:2000]}
+        for row in reversed(rows)
+        if row.role in ("user", "assistant")
+    ]
+    return turns
 
 
 async def _save_message(
@@ -105,12 +126,15 @@ async def run_chat(
     config = await get_ai_config(db)
     model = config.get("model_primary") or settings.ai_model_primary
     await check_agent_budget(db, settings.ai_daily_budget_usd, settings.ai_monthly_budget_usd)
-    session = await get_or_create_session(db, user_id, session_id, model)
+    session = await get_or_create_session(db, user_id, session_id, model, message)
+    prior_turns = await load_history(db, session.id)
     await _save_message(db, session, "user", message)
+    session.updated_at = datetime.now().astimezone()
     await db.commit()
 
     history: list[dict[str, Any]] = [
         {"role": "system", "content": SYSTEM_PROMPT},
+        *prior_turns,
         {"role": "user", "content": message},
     ]
     specs = tool_specs()

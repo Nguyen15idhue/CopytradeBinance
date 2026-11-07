@@ -98,6 +98,74 @@ async def test_agent_chat_rbac_and_sse(monkeypatch) -> None:
 
 
 @pytest.mark.asyncio
+async def test_agent_multi_turn_memory(monkeypatch) -> None:
+    from sqlalchemy import select
+
+    from app.core.database import SessionLocal
+    from app.main import app
+    from app.models.agent import AgentMessage, AgentSession
+    from app.seed import seed_admin
+
+    await seed_admin()
+    seen: list[list[dict]] = []
+
+    async def fake_call(messages, specs, api_key, transport=None, **kwargs):
+        seen.append(messages)
+        return AgentModelResult(text=f"Trả lời {len(seen)}", role="primary"), []
+
+    monkeypatch.setattr("app.services.agent.orchestrator.call_agent_model", fake_call)
+
+    async def login(client: AsyncClient) -> dict:
+        response = await client.post(
+            "/api/v1/auth/login",
+            json={"email": "admin@example.com", "password": "Admin123!ChangeMe"},
+        )
+        assert response.status_code == 200, response.text
+        return {"Authorization": f"Bearer {response.json()['data']['access_token']}"}
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        admin = await login(client)
+        first = await client.post(
+            "/api/v1/agent/chat", json={"message": "câu hỏi đầu về trader"}, headers=admin
+        )
+        assert first.status_code == 200
+        sid = None
+        for line in first.text.splitlines():
+            if line.startswith("data:") and "session_id" in line:
+                import json as _json
+
+                sid = _json.loads(line[5:])["session_id"]
+        assert sid
+
+        second = await client.post(
+            "/api/v1/agent/chat",
+            json={"message": "còn trader đó thì sao?", "session_id": sid},
+            headers=admin,
+        )
+        assert second.status_code == 200
+        # Lượt 2 phải thấy nội dung lượt 1
+        turn2_text = " ".join(m.get("content", "") for m in seen[1])
+        assert "câu hỏi đầu về trader" in turn2_text
+        assert "Trả lời 1" in turn2_text
+
+    async with SessionLocal() as db:
+        session = await db.get(AgentSession, sid)
+        assert session is not None
+        assert "câu hỏi đầu" in (session.title or "")
+        count = await db.scalar(
+            select(AgentMessage.id).where(AgentMessage.session_id == sid)
+        )
+        assert count is not None
+        rows = (
+            await db.execute(
+                select(AgentMessage).where(AgentMessage.session_id == sid)
+            )
+        ).scalars().all()
+        assert len(rows) == 4
+
+
+@pytest.mark.asyncio
 async def test_agent_budget_exceeded_blocks() -> None:
     from datetime import date
 
