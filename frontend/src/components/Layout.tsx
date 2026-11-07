@@ -1,20 +1,21 @@
 import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 
+import { NAV_LABELS } from "../i18n/vi";
 import { clearSession, getStoredUser } from "../lib/auth";
 import ThemeToggle from "./ThemeToggle";
 
 type NavItem = { to: string; label: string; phase?: string };
 
 const navItems: NavItem[] = [
-  { to: "/", label: "Demo traders" },
-  { to: "/data-health", label: "Data Health" },
-  { to: "/screener", label: "Screener" },
-  { to: "/ranking", label: "Ranking" },
-  { to: "/compare", label: "Compare" },
-  { to: "/risk", label: "Risk" },
-  { to: "/settings", label: "Settings" },
-  { to: "/help", label: "Hướng dẫn" },
+  { to: "/", label: NAV_LABELS.home },
+  { to: "/data-health", label: NAV_LABELS.dataHealth },
+  { to: "/screener", label: NAV_LABELS.screener },
+  { to: "/ranking", label: NAV_LABELS.ranking },
+  { to: "/compare", label: NAV_LABELS.compare },
+  { to: "/risk", label: NAV_LABELS.risk },
+  { to: "/settings", label: NAV_LABELS.settings },
+  { to: "/help", label: NAV_LABELS.help },
 ];
 
 function NavList({ onNavigate }: { onNavigate?: () => void }) {
@@ -66,7 +67,7 @@ export default function Layout() {
           <p className="text-xs font-semibold uppercase tracking-widest text-accent">
             CopytradeBinance
           </p>
-          <p className="mt-1 text-sm text-muted">Screener &amp; Risk</p>
+          <p className="mt-1 text-sm text-muted">Bộ lọc &amp; phân tích rủi ro</p>
         </div>
         <NavList />
       </aside>
@@ -84,7 +85,7 @@ export default function Layout() {
                 <p className="text-xs font-semibold uppercase tracking-widest text-accent">
                   CopytradeBinance
                 </p>
-                <p className="mt-1 text-sm text-muted">Screener &amp; Risk</p>
+                <p className="mt-1 text-sm text-muted">Bộ lọc &amp; phân tích rủi ro</p>
               </div>
               <button
                 type="button"
@@ -113,14 +114,14 @@ export default function Layout() {
             </button>
             <div className="hidden items-center gap-3 text-sm text-muted sm:flex">
               <span className="h-2 w-2 rounded-full bg-emerald-400" />
-              <span className="truncate">Dữ liệu demo — fixture Phase 0</span>
+              <span className="truncate">Dữ liệu demo — bộ dữ liệu mẫu Phase 0</span>
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-2 text-sm sm:gap-3">
             <ThemeToggle />
             <span className="hidden text-muted lg:inline">{user?.email}</span>
             <span className="hidden rounded-full border border-line px-2 py-0.5 text-xs uppercase text-muted sm:inline">
-              {user?.role}
+              {user?.role === "admin" ? "quản trị" : "chỉ xem"}
             </span>
             <button
               type="button"

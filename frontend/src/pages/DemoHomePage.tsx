@@ -3,15 +3,15 @@ import { Link } from "react-router-dom";
 const traders = [
   {
     id: "4520644381136785152",
-    name: "Qualified Fixture",
-    tier: "Qualified",
-    description: "Trader B từ manifest Phase 0 — đủ dữ liệu cho vertical slice.",
+    name: "Mẫu Đạt",
+    tier: "Đạt (B)",
+    description: "Trader B từ bộ dữ liệu mẫu Phase 0 — đủ dữ liệu cho vertical slice.",
     className: "border-emerald-500/30 bg-emerald-500/5",
   },
   {
     id: "5296057151807357697",
-    name: "Excluded Fixture",
-    tier: "Excluded",
+    name: "Mẫu Bị loại",
+    tier: "Bị loại",
     description: "Portfolio mới, runtime < 30 ngày — dùng kiểm tra badge và lý do loại.",
     className: "border-amber-500/30 bg-amber-500/5",
   },
@@ -21,9 +21,9 @@ export default function DemoHomePage() {
   return (
     <div>
       <div className="max-w-2xl">
-        <h1 className="text-3xl font-semibold tracking-tight">Trader demo</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">Trader mẫu</h1>
         <p className="mt-2 text-muted">
-          Hai fixture Phase 0 dùng để kiểm tra luồng collect → raw → API → UI. Không phải
+          Hai trader mẫu Phase 0 dùng để kiểm tra luồng collect → raw → API → UI. Không phải
           dữ liệu thị trường realtime.
         </p>
       </div>

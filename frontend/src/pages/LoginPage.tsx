@@ -44,7 +44,7 @@ export default function LoginPage() {
           CopytradeBinance
         </p>
         <h1 className="mt-2 text-2xl font-semibold">Đăng nhập</h1>
-        <p className="mt-1 text-sm text-muted">Screener &amp; Risk Analytics</p>
+        <p className="mt-1 text-sm text-muted">Bộ lọc &amp; phân tích rủi ro</p>
 
         <label className="mt-6 block text-sm text-body">
           Email
