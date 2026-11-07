@@ -263,6 +263,29 @@ export interface CompareResponse {
   missing: string[];
 }
 
+export interface RiskEventRow {
+  trader_id: string;
+  nickname: string | null;
+  code: string;
+  severity: string;
+  label: string;
+  evidence: Record<string, unknown>;
+  status: string;
+  created_at: string;
+}
+
+export interface RiskEventsResponse {
+  items: RiskEventRow[];
+  page: number;
+  page_size: number;
+  total: number;
+}
+
+export interface RiskSummary {
+  total: number;
+  by_severity: Record<string, number>;
+}
+
 export interface AuthUser {
   id: string;
   email: string;

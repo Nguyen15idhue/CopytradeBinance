@@ -59,6 +59,17 @@ Base: `/api/v1`
 - Trả `items`, `series` (chartItems), `correlation` (Pearson + `sample_days` + disclaimer “estimated”).
 - Correlation cần ≥ 30 điểm chung; thiếu → `null`, không bịa số.
 
+## Risk Monitor
+
+| Method | Endpoint | Mô tả |
+|---|---|---|
+| GET | `/risk/summary` | Tổng event + đếm theo severity |
+| GET | `/risk/events` | Filter `severity`, `status`, `trader`; phân trang |
+| GET | `/traders/{id}/risk` | Event/flags của một trader |
+
+Mỗi event có `code` R01–R11, `severity`, `label`, `evidence` JSON và `status` (`open`).
+Không có dữ liệu open positions từ Binance; UI ghi rõ, không mô phỏng.
+
 ## Screener
 
 ### GET `/traders`

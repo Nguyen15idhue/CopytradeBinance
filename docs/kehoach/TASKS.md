@@ -513,11 +513,11 @@
 **Tham chiếu:** §9.7 Risk rules (1545–1572) · §13.4 Trader Detail (2345–2456)  
 **→ đọc khi:** làm danh sách risk event, filter, evidence.
 
-- [ ] Risk Monitor page.
-- [ ] List event + filter severity/status.
-- [ ] Mở evidence (trade/position/snapshot).
-- [ ] Link từ Detail sang Risk Monitor.
-- [ ] Không hiển thị open positions giả.
+- [x] Risk Monitor page. → Bằng chứng: `/risk` + nav link.
+- [x] List event + filter severity/status. → Bằng chứng: `/risk/events` filter severity/status/trader + phân trang; summary theo severity.
+- [x] Mở evidence (trade/position/snapshot). → Bằng chứng: click event mở JSON evidence `{field,value,threshold,rule}` + link trader.
+- [x] Link từ Detail sang Risk Monitor. → Bằng chứng: nút “Mở Risk Monitor →” kèm `?trader=<id>`.
+- [x] Không hiển thị open positions giả. → Bằng chứng: ghi chú “Binance không cung cấp open positions”; E2E assert.
 
 ### Bước 4.5 — QA & gate Phase 4
 

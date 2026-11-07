@@ -8,7 +8,7 @@ const navItems = [
   { to: "/screener", label: "Screener" },
   { to: "/ranking", label: "Ranking", phase: "Phase 4" },
   { to: "/compare", label: "Compare" },
-  { to: "/risk", label: "Risk", phase: "Phase 4" },
+  { to: "/risk", label: "Risk" },
   { to: "/settings", label: "Settings", phase: "Phase 5" },
 ];
 

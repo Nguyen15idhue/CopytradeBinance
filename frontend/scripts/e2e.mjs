@@ -73,6 +73,13 @@ try {
   assert(compareBody.includes("estimated"), "Correlation thiếu disclaimer");
   console.log("Compare render: OK");
 
+  await page.getByRole("link", { name: "Risk" }).click();
+  await page.getByRole("heading", { name: "Risk Monitor" }).waitFor();
+  await page.getByText(/event/).first().waitFor();
+  const riskBody = await page.locator("body").innerText();
+  assert(riskBody.includes("open positions"), "Risk thiếu ghi chú open positions");
+  console.log("Risk Monitor render: OK");
+
   async function pickTrader(tier) {
     return page.evaluate(async (value) => {
       const token = localStorage.getItem("ct_access_token");

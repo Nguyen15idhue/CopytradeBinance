@@ -7,7 +7,9 @@ import type {
   Paged,
   PerformanceResponse,
   PositionRow,
+  RiskEventsResponse,
   RiskResponse,
+  RiskSummary,
   SavedView,
   ScoreResponse,
   ScreenerResponse,
@@ -158,4 +160,12 @@ export async function getScore(portfolioId: string): Promise<ScoreResponse> {
 
 export async function getCompare(ids: string[]): Promise<CompareResponse> {
   return request<CompareResponse>(`/compare?ids=${ids.map(encodeURIComponent).join(",")}`);
+}
+
+export async function getRiskSummary(): Promise<RiskSummary> {
+  return request<RiskSummary>("/risk/summary");
+}
+
+export async function getRiskEvents(params: Record<string, unknown>): Promise<RiskEventsResponse> {
+  return request<RiskEventsResponse>(`/risk/events?${toQuery(params)}`);
 }

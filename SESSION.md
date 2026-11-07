@@ -405,3 +405,11 @@ cd frontend; npm run build
 - UI `/compare`: picker tìm trader, chip tối đa 4, bảng 15 chỉ số, chart nhiều đường,
   ma trận correlation, deep link `?ids=`.
 - Test: 5 unit + 2 integration pass; E2E “Compare render: OK”.
+
+### 11.4. Risk Monitor 4.4
+
+- `api/v1/risk.py`: `/risk/summary`, `/risk/events` filter severity/status/trader + phân trang.
+- UI `/risk`: summary chip, filter, danh sách event, mở evidence JSON, link sang trader.
+- Detail có link `?trader=<id>` sang Risk Monitor.
+- Không hiển thị open positions giả; ghi rõ Binance không cung cấp.
+- Test: integration risk API pass; E2E “Risk Monitor render: OK”.
