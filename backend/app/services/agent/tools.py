@@ -58,11 +58,6 @@ def _stub(tool_name: str) -> ToolHandler:
 
 
 for _name in (
-    "search_traders",
-    "get_trader_profile",
-    "compare_traders",
-    "get_ranking",
-    "get_risk_events",
     "analyze_portfolio_fit",
     "sql_query",
     "search_knowledge",

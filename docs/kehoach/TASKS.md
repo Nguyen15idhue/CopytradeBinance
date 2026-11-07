@@ -887,7 +887,7 @@ Tóm tắt: không auto-trading, không realtime WebSocket, không Paper Copy tr
 
 - [x] B1. Schema agent + migration 0015. → Bằng chứng: `backend/app/models/agent.py` (5 bảng), migration `0015_agent_tables` (+`ai_usage.feature`); `test_agent_schema.py` 4 pass; alembic downgrade -1/upgrade head OK.
 - [x] B2. Agent core + model + SSE skeleton. → Bằng chứng: `services/agent/` 5 module + `api/v1/agent.py` (admin-only); `test_agent_core.py` 11 pass (container, gồm RBAC viewer 403 + SSE done/citation); reasoning auto dùng chung; `docs/api.md` + `12-ai.md` + section TSX.
-- [ ] B3. DB tools (search/profile/compare/ranking/risk/health).
+- [x] B3. DB tools (search/profile/compare/ranking/risk/health). → Bằng chứng: `services/agent/db_tools.py` + `test_agent_db_tools.py` 4 pass (container); regression screener/compare/ranking/core 14 pass; top-10 sort deterministic; unknown/empty có cấu trúc; risk_score chưa backfill → rỗng đúng.
 - [ ] B4. Read-only SQL + views.
 - [ ] B5. Floating chat UI.
 - [ ] B6. QA Phase 1 agent.
