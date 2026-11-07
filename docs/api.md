@@ -104,6 +104,7 @@ Lỗi: 403 viewer, 404 trader/report, 409 `NO_METRICS`/`AI_DISABLED`, 429 `AI_BU
 | Method | Endpoint | Quyền | Mô tả |
 |---|---|---|---|
 | POST | `/agent/chat` | admin | Chat SSE: `token/tool_call/tool_result/citation/warning/done/error` |
+| POST | `/agent/search` | admin | NL → `{filters, chips, assumptions}` cho Screener |
 | GET | `/agent/sessions` | admin | Danh sách đoạn chat (50 gần nhất) |
 | GET | `/agent/sessions/{id}` | admin | Chi tiết session + message (tối đa 200) |
 | PATCH | `/agent/sessions/{id}` | admin | Đổi `title`, `archived` |
@@ -129,6 +130,8 @@ Mỗi event có `code` R01–R19, `severity`, `label`, `evidence` JSON và `stat
 Không có dữ liệu open positions từ Binance; UI ghi rõ, không mô phỏng.
 
 ## Screener
+
+Tham số mới: `min_score` (lọc điểm tối thiểu), `max_min_copy_usd` (vốn tối thiểu ≤ X, qua view `agent_trader_copy_constraints`).
 
 ### GET `/traders`
 

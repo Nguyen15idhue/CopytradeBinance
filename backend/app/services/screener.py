@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
-from sqlalchemy import Select, and_, asc, desc, func, select
+from sqlalchemy import Select, and_, asc, column, desc, exists, func, select, table
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.scoring_config import ScoringConfig
@@ -59,6 +59,8 @@ class ScreenerFilters:
     max_leverage: float | None = None
     risk_level: list[str] = field(default_factory=list)
     has_sharpe: bool | None = None
+    min_score: float | None = None
+    max_min_copy_usd: float | None = None
 
     def normalized_tiers(self) -> list[str]:
         return [TIER_ALIASES.get(tier, tier) for tier in self.potential_tier]
@@ -141,6 +143,32 @@ def apply_filters(statement: Select, filters: ScreenerFilters) -> Select:
         statement = statement.where(TraderMetric.sharpe_90d.is_not(None))
     if filters.has_sharpe is False:
         statement = statement.where(TraderMetric.sharpe_90d.is_(None))
+    if filters.min_score is not None:
+        statement = statement.where(TraderScore.score >= filters.min_score)
+    if filters.max_min_copy_usd is not None:
+        view = table(
+            "agent_trader_copy_constraints",
+            column("lead_portfolio_id"),
+            column("fixed_radio_min_copy_usd"),
+            column("fixed_amount_min_copy_usd"),
+        )
+        cheapest = func.coalesce(
+            func.least(
+                func.coalesce(view.c.fixed_radio_min_copy_usd, 1e12),
+                func.coalesce(view.c.fixed_amount_min_copy_usd, 1e12),
+            ),
+            1e12,
+        )
+        statement = statement.where(
+            exists(
+                select(1)
+                .select_from(view)
+                .where(
+                    view.c.lead_portfolio_id == TraderUniverse.lead_portfolio_id,
+                    cheapest <= float(filters.max_min_copy_usd),
+                )
+            )
+        )
     return statement
 
 

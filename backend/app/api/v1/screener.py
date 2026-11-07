@@ -58,6 +58,8 @@ def _filters(
     max_leverage: float | None,
     risk_level: list[str] | None,
     has_sharpe: bool | None,
+    min_score: float | None = None,
+    max_min_copy_usd: float | None = None,
 ) -> ScreenerFilters:
     return ScreenerFilters(
         q=q,
@@ -80,6 +82,8 @@ def _filters(
         max_leverage=max_leverage,
         risk_level=risk_level or [],
         has_sharpe=has_sharpe,
+        min_score=min_score,
+        max_min_copy_usd=max_min_copy_usd,
     )
 
 
@@ -106,6 +110,8 @@ async def screener(
     max_leverage: float | None = Query(default=None),
     risk_level: list[str] | None = Query(default=None),
     has_sharpe: bool | None = Query(default=None),
+    min_score: float | None = Query(default=None),
+    max_min_copy_usd: float | None = Query(default=None),
     sort_by: str = Query(default="score"),
     sort_dir: Literal["asc", "desc"] = Query(default="desc"),
     page: int = Query(default=1, ge=1),
@@ -117,7 +123,7 @@ async def screener(
         q, portfolio_type, status, potential_tier, include_excluded, min_pre_score,
         min_roi_90d, max_roi_90d, max_mdd_90d, min_sharpe, max_sharpe, min_win_rate,
         max_win_rate, min_runtime_days, min_total_orders, min_copiers, min_copy_aum,
-        max_leverage, risk_level, has_sharpe,
+        max_leverage, risk_level, has_sharpe, min_score, max_min_copy_usd,
     )
     result = await list_traders(
         db, filters, page=page, page_size=page_size, sort_by=sort_by, sort_dir=sort_dir

@@ -32,6 +32,10 @@ class FeedbackBody(BaseModel):
     comment: str | None = Field(default=None, max_length=1000)
 
 
+class NlSearchBody(BaseModel):
+    query: str = Field(min_length=2, max_length=500)
+
+
 def _serialize_session(session: AgentSession) -> dict:
     return {
         "id": session.id,
@@ -132,6 +136,18 @@ async def delete_session(
     await db.delete(session)
     await db.commit()
     return ok({"deleted": session_id}, request)
+
+
+@router.post("/search")
+async def nl_search(
+    body: NlSearchBody,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_admin),
+) -> dict:
+    from app.services.agent.nl_search import parse_nl_filters
+
+    return ok(parse_nl_filters(body.query), request)
 
 
 @router.post("/feedback")

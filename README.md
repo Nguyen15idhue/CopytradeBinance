@@ -88,6 +88,7 @@ Trợ lý AI chat (chỉ admin): icon ✦ góc phải dưới mọi trang sau đ
 
 - Icon ✦ góc phải dưới mọi trang; viewer không thấy, không gọi API.
 - Panel drawer desktop (~440px), full-screen mobile; Esc đóng; Ctrl/Cmd+Enter gửi.
+- Screener có ô “Mô tả trader bạn muốn tìm” → chips + Áp dụng (admin diễn giải qua `/agent/search`).
 - Stream SSE: tool trace collapsible, citation chips, cảnh báo; session lưu DB.
 - API: `POST /agent/chat` (SSE), `GET/PATCH/DELETE /agent/sessions`, `POST /agent/feedback`.
 - Rebuild knowledge index: `docker compose exec backend python -m app.knowledge_cli index` (idempotent; `--dry-run` để đếm trước).

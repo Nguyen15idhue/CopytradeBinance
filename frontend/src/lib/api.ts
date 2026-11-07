@@ -219,6 +219,19 @@ export async function getRanking(board: string): Promise<RankingResponse> {
   return request<RankingResponse>(`/ranking?board=${encodeURIComponent(board)}`);
 }
 
+export interface NlSearchResult {
+  filters: Record<string, unknown>;
+  chips: string[];
+  assumptions: string[];
+}
+
+export async function parseNlSearch(query: string): Promise<NlSearchResult> {
+  return request<NlSearchResult>("/agent/search", {
+    method: "POST",
+    body: JSON.stringify({ query }),
+  });
+}
+
 export async function runRanking(): Promise<Record<string, unknown>> {
   return request<Record<string, unknown>>("/ranking/run", { method: "POST" });
 }

@@ -19,6 +19,7 @@ import {
   getFunnelSummary,
   getSavedViews,
   getScreener,
+  parseNlSearch,
   saveView,
   toQuery,
 } from "../lib/api";
@@ -79,6 +80,13 @@ export default function ScreenerPage() {
   const [ordersMin, setOrdersMin] = useState("");
   const [leverageMax, setLeverageMax] = useState("");
   const [risk, setRisk] = useState("");
+  const [minCopyMax, setMinCopyMax] = useState("");
+  const [nlText, setNlText] = useState("");
+  const [nlChips, setNlChips] = useState<string[]>([]);
+  const [nlAssumptions, setNlAssumptions] = useState<string[]>([]);
+  const [nlPending, setNlPending] = useState<Record<string, unknown> | null>(null);
+  const [nlError, setNlError] = useState<string | null>(null);
+  const [nlBusy, setNlBusy] = useState(false);
   const [sortBy, setSortBy] = useState("score");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
@@ -98,6 +106,7 @@ export default function ScreenerPage() {
       min_total_orders: ordersMin,
       max_leverage: leverageMax,
       risk_level: risk ? [risk] : [],
+      max_min_copy_usd: minCopyMax,
       sort_by: sortBy,
       sort_dir: sortDir,
       page,
@@ -115,6 +124,7 @@ export default function ScreenerPage() {
       ordersMin,
       leverageMax,
       risk,
+      minCopyMax,
       sortBy,
       sortDir,
       page,
@@ -137,8 +147,51 @@ export default function ScreenerPage() {
     setOrdersMin("");
     setLeverageMax("");
     setRisk("");
+    setMinCopyMax("");
     setSortBy("score");
     setSortDir("desc");
+    setPage(1);
+    clearNl();
+  }
+
+  function clearNl() {
+    setNlChips([]);
+    setNlAssumptions([]);
+    setNlPending(null);
+    setNlError(null);
+  }
+
+  async function interpretNl() {
+    if (!nlText.trim() || nlBusy) return;
+    setNlBusy(true);
+    setNlError(null);
+    try {
+      const result = await parseNlSearch(nlText.trim());
+      setNlChips(result.chips ?? []);
+      setNlAssumptions(result.assumptions ?? []);
+      setNlPending(result.filters ?? null);
+    } catch (err) {
+      setNlError(err instanceof Error ? err.message : "Không diễn giải được mô tả");
+    } finally {
+      setNlBusy(false);
+    }
+  }
+
+  function applyNl() {
+    if (!nlPending) return;
+    const get = (key: string) => nlPending[key];
+    const levels = get("risk_level") as string[] | undefined;
+    setRisk(levels?.[0] ?? "");
+    setMddMax(get("max_mdd_90d") != null ? String(get("max_mdd_90d")) : "");
+    setSharpeMin(get("min_sharpe") != null ? String(get("min_sharpe")) : "");
+    setRuntimeMin(get("min_runtime_days") != null ? String(get("min_runtime_days")) : "");
+    setLeverageMax(get("max_leverage") != null ? String(get("max_leverage")) : "");
+    setMinCopyMax(get("min_copy_usd_max") != null ? String(get("min_copy_usd_max")) : "");
+    const extra: string[] = [];
+    if (get("has_slot")) extra.push("Còn slot: Screener chưa lọc slot — kiểm tra trong chat AI");
+    if (get("min_score") != null) extra.push(`Điểm ≥ ${get("min_score")}: dùng sắp xếp Điểm giảm dần`);
+    if (get("no_veto")) extra.push("Không veto: lọc thủ công trong bảng kết quả");
+    setNlAssumptions((prev) => [...prev, ...extra]);
     setPage(1);
   }
 
@@ -182,6 +235,75 @@ export default function ScreenerPage() {
           </div>
         ) : null}
       </div>
+
+      <section className="space-y-3 rounded-2xl border border-line bg-panel p-4">
+        <div>
+          <h2 className="text-base font-semibold text-strong">Mô tả trader bạn muốn tìm</h2>
+          <p className="text-sm text-muted">
+            Ví dụ: “trader an toàn, còn slot, vốn tối thiểu dưới 100$”.
+          </p>
+        </div>
+        <div className="flex flex-col gap-2 md:flex-row">
+          <input
+            value={nlText}
+            onChange={(event) => setNlText(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") interpretNl();
+            }}
+            aria-label="Mô tả trader bạn muốn tìm"
+            placeholder="Nhập mô tả bằng lời…"
+            className="w-full rounded-lg border border-line bg-app px-3 py-2 text-strong"
+          />
+          <div className="flex shrink-0 gap-2">
+            <button
+              type="button"
+              onClick={interpretNl}
+              disabled={nlBusy || !nlText.trim()}
+              className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+            >
+              Diễn giải
+            </button>
+            <button
+              type="button"
+              onClick={applyNl}
+              disabled={!nlPending}
+              className="rounded-lg border border-line px-4 py-2 text-sm text-body disabled:opacity-50"
+            >
+              Áp dụng
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setNlText("");
+                clearNl();
+              }}
+              className="rounded-lg border border-line px-3 py-2 text-sm text-muted"
+            >
+              Xóa
+            </button>
+          </div>
+        </div>
+        {nlError ? <p className="text-sm text-danger">{nlError}</p> : null}
+        {nlChips.length > 0 ? (
+          <div className="flex flex-wrap gap-2" aria-label="Điều kiện đã hiểu">
+            {nlChips.map((chip) => (
+              <span
+                key={chip}
+                className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-sm text-accent"
+              >
+                {chip}
+              </span>
+            ))}
+          </div>
+        ) : null}
+        {nlAssumptions.length > 0 ? (
+          <ul className="list-disc space-y-1 pl-5 text-sm text-muted">
+            {nlAssumptions.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        ) : null}
+      </section>
 
       <section className="space-y-3 rounded-2xl border border-line bg-panel p-4">
         <div className="grid gap-3 md:grid-cols-4">
@@ -308,6 +430,15 @@ export default function ScreenerPage() {
               type="number"
               value={ordersMin}
               onChange={(event) => { setOrdersMin(event.target.value); setPage(1); }}
+              className="mt-1 w-full rounded-lg border border-line bg-app px-2 py-1.5 text-sm text-strong"
+            />
+          </label>
+          <label className="text-xs uppercase tracking-wide text-faint">
+            Vốn tối thiểu ≤ ($)
+            <input
+              type="number"
+              value={minCopyMax}
+              onChange={(event) => { setMinCopyMax(event.target.value); setPage(1); }}
               className="mt-1 w-full rounded-lg border border-line bg-app px-2 py-1.5 text-sm text-strong"
             />
           </label>

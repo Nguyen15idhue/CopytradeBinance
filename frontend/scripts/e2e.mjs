@@ -167,6 +167,19 @@ try {
   }
   console.log("Screener render: OK");
 
+  await page.getByLabel("Mô tả trader bạn muốn tìm").fill("trader an toàn, còn slot, vốn dưới 100$");
+  await page.getByRole("button", { name: "Diễn giải" }).click();
+  await page.getByText("Còn slot").waitFor();
+  await page.getByRole("button", { name: "Áp dụng" }).click();
+  await page.waitForFunction(() => {
+    const text = document.body.innerText;
+    return text.includes("trader khớp") || text.includes("Không có trader khớp");
+  });
+  const nlBody = await page.locator("body").innerText();
+  assert(!nlBody.includes("undefined") && !nlBody.includes("NaN"), "NL search có undefined/NaN");
+  await page.getByRole("button", { name: "Xóa" }).click();
+  console.log("NL screener search: OK");
+
   const banner = page.getByText("Mới bắt đầu?");
   if (await banner.count()) {
     await page.getByRole("button", { name: "Đã hiểu" }).click();

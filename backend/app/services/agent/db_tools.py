@@ -58,6 +58,7 @@ def _ev(
             "min_sharpe": {"type": "number"},
             "min_confidence": {"type": "number"},
             "min_score": {"type": "number"},
+            "min_copy_usd_max": {"type": "number"},
             "has_slot": {"type": "boolean"},
             "sort": {"type": "array"},
             "limit": {"type": "integer"},
@@ -73,6 +74,9 @@ async def search_traders(db: AsyncSession, args: dict[str, Any]) -> ToolResult:
         max_mdd_90d=args.get("max_mdd_90d"),
         max_leverage=args.get("max_leverage"),
         min_sharpe=args.get("min_sharpe"),
+        min_score=args.get("min_score"),
+        min_confidence=None,
+        max_min_copy_usd=args.get("min_copy_usd_max"),
     )
     version_row = (
         await db.execute(select(ScoringConfig).where(ScoringConfig.is_active.is_(True)))
@@ -85,8 +89,6 @@ async def search_traders(db: AsyncSession, args: dict[str, Any]) -> ToolResult:
         statement = statement.where(
             or_(TraderMetric.risk_veto.is_(None), TraderMetric.risk_veto == [])
         )
-    if args.get("min_score") is not None:
-        statement = statement.where(TraderScore.score >= float(args["min_score"]))
     if args.get("min_confidence") is not None:
         statement = statement.where(TraderScore.confidence >= float(args["min_confidence"]))
     sorts = args.get("sort") or [{"field": "score", "dir": "desc"}]
