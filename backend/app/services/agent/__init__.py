@@ -1,3 +1,3 @@
 """Agent package: orchestrator + tools + model client + verifier."""
 
-from app.services.agent import db_tools, sql_tools, tools  # noqa: F401
+from app.services.agent import db_tools, sql_tools, tools, web_tools  # noqa: F401

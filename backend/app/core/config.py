@@ -60,6 +60,9 @@ class Settings(BaseSettings):
     agent_timeout_seconds: int = 120
     agent_rate_limit_per_min: int = 20
     agent_retention_days: int = 90
+    tavily_api_key: str = ""
+    agent_web_search_enabled: bool = True
+    agent_web_search_max_results: int = 5
 
     @property
     def cors_origin_list(self) -> list[str]:

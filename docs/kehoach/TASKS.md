@@ -891,7 +891,7 @@ Tóm tắt: không auto-trading, không realtime WebSocket, không Paper Copy tr
 - [x] B4. Read-only SQL + views. → Bằng chứng: migration `0016_agent_views` (5 view); `sql_tools.py` (chỉ SELECT/WITH, chặn DDL/DML/multi-statement/bảng secret, limit 200/500, timeout 5s, transaction READ ONLY); `test_agent_sql.py` 4 pass.
 - [x] B5. Floating chat UI. → Bằng chứng: `AgentLauncher/Panel` + `lib/agent.ts` (SSE flush buffer); chỉ admin; E2E full PASS (agent mock SSE + viewer ẩn icon, 0 console error).
 - [x] B6. QA Phase 1 agent. → Bằng chứng: full suite 145 pass, ruff pass, build pass, E2E PASS, check_refs 174/0, không secret trong agent code.
-- [ ] B7. Tavily web search + cache.
+- [x] B7. Tavily web search + cache. → Bằng chứng: `web_tools.py` (mock Tavily, cache Redis 24h, timeout 10s, tắt khi thiếu key); `test_agent_web.py` 2 pass (gồm prompt-injection snippet chỉ là dữ liệu).
 - [ ] B8. Knowledge index code/docs.
 - [ ] B9. Citation + verifier hardening.
 - [ ] B10. Portfolio fit + vốn 100$.
