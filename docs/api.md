@@ -59,6 +59,16 @@ Base: `/api/v1`
 - Trả `items`, `series` (chartItems), `correlation` (Pearson + `sample_days` + disclaimer “estimated”).
 - Correlation cần ≥ 30 điểm chung; thiếu → `null`, không bịa số.
 
+## Ranking
+
+| Method | Endpoint | Quyền | Mô tả |
+|---|---|---|---|
+| GET | `/ranking?board=overall\|low_risk\|consistency` | user | Snapshot mới nhất của bảng |
+| POST | `/ranking/run` | admin | Chụp snapshot 3 bảng theo config hiện tại |
+
+Trả `board`, `config_version`, `collected_at`, `items` (rank, trader, score/band/confidence, tier,
+risk_level, ROI/MDD/Sharpe), `total`. Board không hợp lệ → 422.
+
 ## Settings
 
 | Method | Endpoint | Quyền | Mô tả |

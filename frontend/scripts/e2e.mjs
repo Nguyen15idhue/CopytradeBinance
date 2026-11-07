@@ -76,6 +76,16 @@ try {
   }, originalVersion);
   console.log("Settings preview/save/rollback: OK");
 
+  await page.getByRole("link", { name: "Ranking" }).click();
+  await page.getByRole("heading", { name: "Ranking" }).waitFor();
+  await page.getByText(/config v/).waitFor();
+  const rankingBody = await page.locator("body").innerText();
+  assert(rankingBody.includes("Overall"), "Ranking thiếu tab Overall");
+  assert(rankingBody.includes("Low Risk"), "Ranking thiếu tab Low Risk");
+  await page.getByRole("button", { name: "Low Risk" }).click();
+  await page.getByText(/config v/).waitFor();
+  console.log("Ranking render: OK");
+
   await page.getByRole("link", { name: "Data Health" }).click();
   await page.getByRole("heading", { name: "Data Health" }).waitFor();
   await page.getByRole("heading", { name: "Universe theo tier" }).waitFor();

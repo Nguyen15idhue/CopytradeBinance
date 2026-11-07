@@ -604,14 +604,14 @@ hoàn thiện trang Ranking và trang hướng dẫn cho người mới.
 **Tham chiếu:** §9.8 Ranking boards (1573–1584) · §9.9 Ví dụ trader mẫu (1585–1612) · §11.3 Ranking & compare (2050–2057)  
 **→ đọc khi:** làm API/trang Ranking từ snapshot đã có.
 
-- [ ] API `GET /ranking?board=overall|low_risk|consistency` đọc snapshot mới nhất + `config_version`.
-- [ ] Trả `rank`, trader id/nickname, score, band, confidence, tier, risk_level, ROI/MDD/Sharpe.
-- [ ] Trang `/ranking`: 3 tab (Overall / Low Risk / Consistency), bảng xếp hạng, link sang Detail.
-- [ ] Ghi rõ nguồn “snapshot + config version”, thời điểm chụp; không trộn score version cũ.
-- [ ] Nav bỏ badge “Phase 4”, link thật.
-- [ ] Empty state khi chưa có snapshot + nút chạy ranking cho admin.
-- [ ] Ghi chú không có bảng “High Return” (tránh chase ROI).
-- [ ] Test: contract API, E2E 3 tab render, snapshot cũ không bị ghi đè.
+- [x] API `GET /ranking?board=overall|low_risk|consistency` đọc snapshot mới nhất + `config_version`. → Bằng chứng: `api/v1/ranking.py`; board sai → 422.
+- [x] Trả `rank`, trader id/nickname, score, band, confidence, tier, risk_level, ROI/MDD/Sharpe. → Bằng chứng: integration test contract; API thêm `rank`.
+- [x] Trang `/ranking`: 3 tab (Overall / Low Risk / Consistency), bảng xếp hạng, link sang Detail. → Bằng chứng: `RankingPage.tsx`; E2E “Ranking render: OK”.
+- [x] Ghi rõ nguồn “snapshot + config version”, thời điểm chụp; không trộn score version cũ. → Bằng chứng: dòng metadata `Snapshot … config v…`.
+- [x] Nav bỏ badge “Phase 4”, link thật. → Bằng chứng: nav mở `/ranking`.
+- [x] Empty state khi chưa có snapshot + nút chạy ranking cho admin. → Bằng chứng: panel “Chưa có snapshot” + nút “Chạy ranking”.
+- [x] Ghi chú không có bảng “High Return” (tránh chase ROI). → Bằng chứng: mô tả đầu trang.
+- [x] Test: contract API, E2E 3 tab render, snapshot cũ không bị ghi đè. → Bằng chứng: `test_ranking_api.py` pass; `/ranking/run` thêm snapshot, bản cũ giữ.
 
 ### Bước 5.5 — Trang hướng dẫn cho người mới
 

@@ -9,6 +9,7 @@ import type {
   Paged,
   PerformanceResponse,
   PositionRow,
+  RankingResponse,
   RiskEventsResponse,
   RiskResponse,
   RiskSummary,
@@ -212,4 +213,12 @@ export async function getSettingsVersions(): Promise<SettingsVersion[]> {
 
 export async function rollbackSettings(version: number): Promise<SettingsSnapshot> {
   return request<SettingsSnapshot>(`/settings/rollback/${version}`, { method: "POST" });
+}
+
+export async function getRanking(board: string): Promise<RankingResponse> {
+  return request<RankingResponse>(`/ranking?board=${encodeURIComponent(board)}`);
+}
+
+export async function runRanking(): Promise<Record<string, unknown>> {
+  return request<Record<string, unknown>>("/ranking/run", { method: "POST" });
 }

@@ -77,7 +77,12 @@ async def request_context(request: Request, call_next):
         hits.append(monotonic())
     response = await call_next(request)
     route = request.scope.get("route")
-    metrics.observe(request.method, getattr(route, "path", path), response.status_code, monotonic() - started)
+    metrics.observe(
+        request.method,
+        getattr(route, "path", path),
+        response.status_code,
+        monotonic() - started,
+    )
     response.headers["X-Request-ID"] = request.state.request_id
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"

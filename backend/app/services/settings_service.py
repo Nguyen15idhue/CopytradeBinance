@@ -16,7 +16,7 @@ from app.models.trader_score import TraderScore
 from app.services import scoring as sc
 from app.services.config_store import get_setting, set_setting
 from app.services.crypto import encrypt_secret
-from app.services.scoring_service import _components
+from app.services.scoring_service import _components, build_scores
 
 AI_CONFIG_KEY = "ai.config"
 COLLECTOR_CONFIG_KEY = "collector.config"
@@ -218,6 +218,8 @@ async def update_settings(
             {"version": next_version, "weights": weights},
         )
         changed["scoring_version"] = next_version
+        await db.commit()
+        await build_scores(db)
 
     if payload.ai:
         data = payload.ai.model_dump(exclude_none=True)
@@ -327,4 +329,5 @@ async def rollback(db: AsyncSession, version: int, user_id: UUID | None) -> dict
         {"version": version},
     )
     await db.commit()
+    await build_scores(db)
     return await get_settings_snapshot(db)

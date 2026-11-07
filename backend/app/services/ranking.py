@@ -5,7 +5,7 @@ import time
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.ranking_snapshot import RankingSnapshot
@@ -78,6 +78,15 @@ async def build_rankings(db: AsyncSession, top_n: int = TOP_N) -> dict[str, Any]
         await db.execute(select(ScoringConfig).where(ScoringConfig.is_active.is_(True)))
     ).scalars().first()
     version = config.version if config else 1
+    existing_scores = await db.scalar(
+        select(func.count())
+        .select_from(TraderScore)
+        .where(TraderScore.config_version == version)
+    )
+    if not existing_scores:
+        from app.services.scoring_service import build_scores
+
+        await build_scores(db)
 
     rows = (
         await db.execute(

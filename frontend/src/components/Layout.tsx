@@ -3,11 +3,13 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { clearSession, getStoredUser } from "../lib/auth";
 import ThemeToggle from "./ThemeToggle";
 
-const navItems = [
+type NavItem = { to: string; label: string; phase?: string };
+
+const navItems: NavItem[] = [
   { to: "/", label: "Demo traders" },
   { to: "/data-health", label: "Data Health" },
   { to: "/screener", label: "Screener" },
-  { to: "/ranking", label: "Ranking", phase: "Phase 4" },
+  { to: "/ranking", label: "Ranking" },
   { to: "/compare", label: "Compare" },
   { to: "/risk", label: "Risk" },
   { to: "/settings", label: "Settings" },

@@ -518,3 +518,11 @@ Lưu ý: ranking/help cases (K/H) chỉ chạy được sau khi hoàn thành bư
 - Tách `backend/requirements-dev.txt` để pip-audit production sạch; nâng cryptography lên 50.x.
 - `pip-audit` 0 lỗi; `npm audit` 0 lỗi; CI thêm scan.
 - Bug đã sửa: `param()` phải đứng trước mọi lệnh trong script PowerShell.
+
+### 15.4. Ranking UI 5.4
+
+- API `GET /ranking?board=...` đọc snapshot mới nhất + `config_version`; `POST /ranking/run` (admin).
+- Tự rebuild score nếu version active chưa có `trader_scores` (tránh bảng rỗng sau khi đổi config).
+- UI `/ranking`: 3 tab, metadata snapshot, bảng 9 cột, link Detail, empty + nút chạy (admin).
+- Test: 1 integration contract (3 board + 422 + RBAC + run); E2E render 2 tab.
+- Bug đã sửa: E2E 502 do Nginx cache DNS khi backend recreate → restart nginx.

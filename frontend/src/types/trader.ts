@@ -358,6 +358,28 @@ export interface PreviewImpact {
   weights: Record<string, number>;
 }
 
+export interface RankingItem {
+  rank: number;
+  id: string;
+  nickname: string | null;
+  tier: string;
+  score: number | null;
+  band: string | null;
+  confidence: number | null;
+  risk_level: string | null;
+  roi_90d: number | null;
+  mdd_90d: number | null;
+  sharpe: number | null;
+}
+
+export interface RankingResponse {
+  board: string;
+  config_version: number | null;
+  collected_at: string | null;
+  items: RankingItem[];
+  total: number;
+}
+
 export interface AuthUser {
   id: string;
   email: string;

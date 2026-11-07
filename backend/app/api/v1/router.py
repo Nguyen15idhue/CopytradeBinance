@@ -7,6 +7,7 @@ from app.api.v1.ai import router as ai_router
 from app.api.v1.auth import router as auth_router
 from app.api.v1.collector import router as collector_router
 from app.api.v1.compare import router as compare_router
+from app.api.v1.ranking import router as ranking_router
 from app.api.v1.risk import router as risk_router
 from app.api.v1.saved_views import router as saved_views_router
 from app.api.v1.screener import router as screener_router
@@ -23,6 +24,7 @@ router.include_router(admin_router)
 router.include_router(ai_router)
 router.include_router(collector_router)
 router.include_router(compare_router)
+router.include_router(ranking_router)
 router.include_router(risk_router)
 router.include_router(screener_router)
 router.include_router(saved_views_router)
