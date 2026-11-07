@@ -95,14 +95,14 @@ export function CopyFlowDiagram() {
 export function FunnelDiagram() {
   const rows = [
     ["Universe (PUBLIC + SIGNAL)", 660, "11.124"],
-    ["Watch (C + B + A)", 420, "~515"],
-    ["Qualified (B)", 210, "~109"],
-    ["High (A)", 90, "~13"],
+    ["Theo dõi (C + B + A)", 420, "~515"],
+    ["Đạt (B)", 210, "~109"],
+    ["Cao (A)", 90, "~13"],
   ];
   return (
     <Frame
       title="Phễu sàng lọc"
-      caption="Số minh hoạ từ Phase 0. Số thực tế thay đổi theo thị trường; luôn đọc từ Data Health."
+      caption="Số minh hoạ từ Phase 0. Số thực tế thay đổi theo thị trường; luôn đọc từ Sức khỏe dữ liệu."
     >
       {rows.map(([label, width, value], index) => {
         const y = 24 + index * 46;
@@ -135,7 +135,7 @@ export function MetricAnatomyDiagram() {
   return (
     <Frame
       title="Cấu trúc một metric card"
-      caption="Mỗi chỉ số phải cho biết nguồn (published/derived), cửa sổ (7D/30D/90D/180D) và cảnh báo mẫu nhỏ."
+      caption="Mỗi chỉ số phải cho biết nguồn (Binance công bố/hệ thống tính), cửa sổ (7D/30D/90D/180D) và cảnh báo mẫu nhỏ."
     >
       <rect x="30" y="25" width="300" height="150" rx="12" fill={elevated} stroke={line} />
       <text x="50" y="52" fill={muted} fontSize="11" letterSpacing="1">
@@ -145,11 +145,11 @@ export function MetricAnatomyDiagram() {
         19,19%
       </text>
       <text x="50" y="114" fill={muted} fontSize="11">
-        published · 90D
+        Binance công bố · 90D
       </text>
       <rect x="50" y="128" width="86" height="22" rx="11" fill="none" stroke={warn} />
       <text x="93" y="143" textAnchor="middle" fill={warn} fontSize="10">
-        low sample
+        mẫu nhỏ
       </text>
 
       <line x1="330" y1="52" x2="430" y2="52" stroke={muted} strokeDasharray="4 4" />
@@ -175,18 +175,18 @@ export function MetricAnatomyDiagram() {
 export function RiskEvidenceDiagram() {
   return (
     <Frame
-      title="Risk event và evidence"
-      caption="Risk event chỉ là cảnh báo, không tự loại trader. Mở evidence để xem field, giá trị và ngưỡng."
+      title="Cảnh báo rủi ro và bằng chứng"
+      caption="Cảnh báo rủi ro chỉ là tín hiệu, không tự loại trader. Mở bằng chứng để xem trường dữ liệu, giá trị và ngưỡng."
     >
       <rect x="20" y="40" width="200" height="120" rx="10" fill={elevated} stroke={line} />
       <text x="120" y="66" textAnchor="middle" fill={danger} fontSize="12" fontWeight="600">
-        R03 · critical
+        R03 · Nghiêm trọng
       </text>
       <text x="120" y="90" textAnchor="middle" fill={body} fontSize="12">
         MDD &gt; 30%
       </text>
       <text x="120" y="112" textAnchor="middle" fill={muted} fontSize="11">
-        event được tạo
+        cảnh báo được tạo
       </text>
 
       <line x1="220" y1="100" x2="280" y2="100" stroke={muted} markerEnd="url(#arrow2)" />
@@ -198,7 +198,7 @@ export function RiskEvidenceDiagram() {
 
       <rect x="290" y="30" width="240" height="140" rx="10" fill={box} stroke={line} />
       <text x="305" y="52" fill={muted} fontSize="10" letterSpacing="1">
-        EVIDENCE JSON
+        BẰNG CHỨNG JSON
       </text>
       <text x="305" y="74" fill={body} fontSize="11" fontFamily="monospace">
         {"{"}
@@ -221,7 +221,7 @@ export function RiskEvidenceDiagram() {
         Bạn quyết định
       </text>
       <text x="630" y="110" textAnchor="middle" fill={muted} fontSize="11">
-        không auto-loại
+        không tự động loại
       </text>
     </Frame>
   );

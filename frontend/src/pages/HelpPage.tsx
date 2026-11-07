@@ -50,7 +50,7 @@ const SECTIONS: Section[] = [
         <p>
           <strong>Không làm:</strong> không auto-trade, không kết nối API giao dịch của bạn,
           không paper copy, không đưa lời khuyên đầu tư, không hiển thị dữ liệu Binance không có
-          (open positions, per-copier PnL, funding).
+          (vị thế đang mở, PnL từng copier, funding).
         </p>
       </>
     ),
@@ -63,22 +63,24 @@ const SECTIONS: Section[] = [
       <>
         <ul>
         <li>
-          <strong>Screener</strong> — lọc universe theo tier, ROI, MDD, Sharpe, WinRate, leverage, risk.
+          <strong>Bộ lọc trader</strong> — lọc universe theo nhóm, ROI, MDD, Sharpe, WinRate,
+          đòn bẩy, rủi ro.
         </li>
         <li>
-          <strong>Trader Detail</strong> — 10 chỉ số, score breakdown, risk flags, vị thế/trade/transfer.
+          <strong>Chi tiết trader</strong> — 10 chỉ số, phân rã điểm, cảnh báo rủi ro, vị thế,
+          giao dịch, nạp/rút.
         </li>
         <li>
-          <strong>Compare</strong> — so sánh 2–4 trader; correlation là “estimated”.
+          <strong>So sánh</strong> — so sánh 2–4 trader; tương quan là “ước tính”.
         </li>
         <li>
-          <strong>Risk Monitor</strong> — cảnh báo R01–R11 kèm evidence.
+          <strong>Cảnh báo rủi ro</strong> — cảnh báo R01–R11 kèm bằng chứng.
         </li>
         <li>
-          <strong>Ranking</strong> — Overall / Low Risk / Consistency.
+          <strong>Bảng xếp hạng</strong> — Tổng hợp / Rủi ro thấp / Độ ổn định.
         </li>
         <li>
-          <strong>Data Health</strong> — độ phủ, lần chạy collector, dữ liệu cũ.
+          <strong>Sức khỏe dữ liệu</strong> — độ phủ, lần chạy bộ thu thập, dữ liệu cũ.
         </li>
       </ul>
       <RiskEvidenceDiagram />
@@ -118,7 +120,7 @@ const SECTIONS: Section[] = [
           <strong>Leverage</strong> — đòn bẩy từ position-history; <strong>Confidence</strong> — độ tin cậy 0–1.
         </li>
         <li>
-          <strong>Low sample</strong> — mẫu nhỏ, kết luận kém tin cậy.
+          <strong>Mẫu nhỏ (Low sample)</strong> — mẫu nhỏ, kết luận kém tin cậy.
         </li>
       </ul>
       <MetricAnatomyDiagram />
@@ -127,18 +129,18 @@ const SECTIONS: Section[] = [
   },
   {
     id: "tier",
-    title: "5. Tier và lý do loại",
+    title: "5. Nhóm và lý do loại",
     keywords: "tier excluded watch qualified high reason runtime aum slot totalorder",
     body: (
       <>
         <p>
-          High / Qualified / Watch / Excluded. B và A ban đầu là upper bound ở tầng list, sau đó
-          được hạ theo totalOrder.
+          Cao (A) / Đạt (B) / Theo dõi (C) / Bị loại. B và A ban đầu là giới hạn trên ở tầng list,
+          sau đó được hạ theo tổng số lệnh.
         </p>
         <p>
-          <strong>Excluded không hẳn là trader xấu.</strong> Có thể chỉ vì runtime &lt; 30 ngày,
+          <strong>Bị loại không hẳn là trader xấu.</strong> Có thể chỉ vì số ngày hoạt động &lt; 30,
           AUM &lt; 5.000, không giao dịch 7 ngày, hết slot hoặc thiếu dữ liệu. Luôn đọc
-          <em> filter_reasons</em>.
+          <em> lý do loại</em>.
         </p>
         <FunnelDiagram />
       </>
@@ -146,23 +148,23 @@ const SECTIONS: Section[] = [
   },
   {
     id: "data",
-    title: "6. Published, derived, estimated",
-    keywords: "published derived estimated null open positions funding slippage nguồn dữ liệu",
+    title: "6. Nguồn dữ liệu: Binance công bố, hệ thống tính, ước tính",
+    keywords: "published derived estimated binance công bố hệ thống tính ước tính null open positions funding slippage nguồn dữ liệu",
     body: (
       <>
         <ul>
           <li>
-            <strong>Published</strong> — Binance trả trực tiếp (ROI, MDD, Sharpe, winRate…).
+            <strong>Binance công bố (Published)</strong> — Binance trả trực tiếp (ROI, MDD, Sharpe, WinRate…).
           </li>
           <li>
-            <strong>Derived</strong> — hệ thống tính từ position/trade (profit factor, holding, fee drag…).
+            <strong>Hệ thống tính (Derived)</strong> — tính từ vị thế/giao dịch (profit factor, thời gian giữ, chi phí…).
           </li>
           <li>
-            <strong>Estimated</strong> — ước tính từ chartItems (drawdown, correlation): chỉ tham khảo.
+            <strong>Ước tính (Estimated)</strong> — ước tính từ chartItems (drawdown, tương quan): chỉ tham khảo.
           </li>
         </ul>
         <p>
-          Không có dữ liệu: open positions, per-copier PnL, funding, slippage, liquidation price.
+          Không có dữ liệu: vị thế đang mở, PnL từng copier, funding, slippage, giá thanh lý.
           <strong> null</strong> nghĩa là không có dữ liệu, không phải 0.
         </p>
       </>
@@ -175,10 +177,10 @@ const SECTIONS: Section[] = [
     body: (
       <>
         <ol>
-          <li>Mở Screener, giữ filter mặc định (runtime ≥ 30, orders ≥ 20).</li>
-          <li>Đọc Trader Detail: 10 chỉ số, score breakdown, risk flags, what’s missing.</li>
-          <li>So sánh 2–4 ứng viên; xem correlation và mức tập trung.</li>
-          <li>Kiểm tra Risk Monitor cho cảnh báo critical.</li>
+          <li>Mở Bộ lọc trader, giữ bộ lọc mặc định (số ngày ≥ 30, số lệnh ≥ 20).</li>
+          <li>Đọc Chi tiết trader: 10 chỉ số, phân rã điểm, cảnh báo rủi ro, dữ liệu còn thiếu.</li>
+          <li>So sánh 2–4 ứng viên; xem tương quan và mức tập trung.</li>
+          <li>Kiểm tra Cảnh báo rủi ro cho cảnh báo nghiêm trọng.</li>
           <li>Tự quyết định, bắt đầu nhỏ, theo dõi định kỳ.</li>
         </ol>
         <p className="font-medium text-strong">Checklist trước khi copy:</p>
@@ -195,25 +197,27 @@ const SECTIONS: Section[] = [
   },
   {
     id: "faq",
-    title: "8. FAQ & disclaimer",
-    keywords: "faq sharpe roi score correlation disclaimer tư vấn n/a",
+    title: "8. Câu hỏi thường gặp & miễn trừ trách nhiệm",
+    keywords: "faq câu hỏi thường gặp sharpe roi điểm tương quan miễn trừ tư vấn n/a",
     body: (
       <>
         <p>
           <strong>Sharpe N/A?</strong> Chưa đủ mẫu hoặc Binance không công bố; không chấm 0.
         </p>
         <p>
-          <strong>ROI cao vẫn Excluded?</strong> Có thể runtime ngắn, MDD cao, mẫu nhỏ hoặc thiếu dữ liệu.
+          <strong>ROI cao vẫn bị loại?</strong> Có thể số ngày hoạt động ngắn, MDD cao, mẫu nhỏ
+          hoặc thiếu dữ liệu.
         </p>
         <p>
-          <strong>Score có phải khuyến nghị?</strong> Không. Score chỉ xếp hạng tương đối theo cấu hình.
+          <strong>Điểm có phải khuyến nghị?</strong> Không. Điểm chỉ xếp hạng tương đối theo cấu hình.
         </p>
         <p>
-          <strong>Correlation dùng chia vốn?</strong> Không. Đây là ước tính, bị ảnh hưởng nạp/rút.
+          <strong>Tương quan dùng để chia vốn?</strong> Không. Đây là ước tính, bị ảnh hưởng bởi
+          nạp/rút.
         </p>
         <p className="rounded-lg border border-warn/30 bg-warn/10 p-3 text-warn">
-          Disclaimer: công cụ phân tích dữ liệu công khai, không phải tư vấn đầu tư. Copy trading có
-          rủi ro mất toàn bộ vốn. Bạn tự chịu trách nhiệm với quyết định của mình.
+          Miễn trừ trách nhiệm: công cụ phân tích dữ liệu công khai, không phải tư vấn đầu tư.
+          Copy trading có rủi ro mất toàn bộ vốn. Bạn tự chịu trách nhiệm với quyết định của mình.
         </p>
       </>
     ),
@@ -273,7 +277,7 @@ export default function HelpPage() {
       <div className="print-hidden">
         <h1 className="text-3xl font-semibold tracking-tight">Hướng dẫn</h1>
         <p className="mt-2 text-muted">
-          Dành cho người chưa biết copy trading. Đọc 5–10 phút trước khi dùng Screener.
+          Dành cho người chưa biết copy trading. Đọc 5–10 phút trước khi dùng Bộ lọc trader.
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <input
@@ -284,7 +288,7 @@ export default function HelpPage() {
             className="w-72 rounded-lg border border-line bg-app px-3 py-2 text-strong"
           />
           <Link to="/screener" className="rounded-lg border border-line px-3 py-2 text-sm text-body">
-            Mở Screener
+            Mở Bộ lọc trader
           </Link>
           <button
             type="button"

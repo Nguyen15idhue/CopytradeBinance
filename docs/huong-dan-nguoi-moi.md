@@ -4,8 +4,8 @@
 > Cập nhật file này rồi đồng bộ `frontend/src/pages/HelpPage.tsx`.
 >
 > Trang `/help` có thêm: mục lục sticky (active + tiến độ), tìm kiếm theo keyword, drawer mobile,
-> print CSS và **5 hình minh hoạ SVG** (luồng copy, phễu tier, cấu trúc metric card,
-> risk evidence, quy trình 5 bước) trong `frontend/src/components/help/HelpIllustrations.tsx`.
+> print CSS và **5 hình minh hoạ SVG** (luồng copy, phễu nhóm, cấu trúc thẻ chỉ số,
+> bằng chứng rủi ro, quy trình 5 bước) trong `frontend/src/components/help/HelpIllustrations.tsx`.
 
 ## 1. Copy trading là gì?
 
@@ -38,12 +38,12 @@ Copy trading là cơ chế để tài khoản của bạn tự động sao chép
 
 | Màn hình | Dùng để |
 |---|---|
-| **Screener** | Lọc universe xuống shortlist theo tier, ROI, MDD, Sharpe, WinRate, leverage, risk |
-| **Trader Detail** | Xem 10 chỉ số, breakdown điểm, risk flags, vị thế/trade/transfer gần nhất |
-| **Compare** | So sánh 2–4 trader, xem tương quan (estimated) |
-| **Risk Monitor** | Danh sách cảnh báo R01–R11 kèm evidence |
-| **Ranking** | 3 bảng Overall / Low Risk / Consistency |
-| **Data Health** | Độ phủ, lần chạy collector, dữ liệu cũ |
+| **Bộ lọc trader** | Lọc universe xuống shortlist theo nhóm, ROI, MDD, Sharpe, WinRate, đòn bẩy, rủi ro |
+| **Chi tiết trader** | Xem 10 chỉ số, phân rã điểm, cảnh báo rủi ro, vị thế/giao dịch/nạp rút gần nhất |
+| **So sánh** | So sánh 2–4 trader, xem tương quan (ước tính) |
+| **Cảnh báo rủi ro** | Danh sách cảnh báo R01–R11 kèm bằng chứng |
+| **Bảng xếp hạng** | 3 bảng Tổng hợp / Rủi ro thấp / Độ ổn định |
+| **Sức khỏe dữ liệu** | Độ phủ, lần chạy bộ thu thập, dữ liệu cũ |
 
 ## 4. Từ điển thuật ngữ
 
@@ -60,33 +60,33 @@ Copy trading là cơ chế để tài khoản của bạn tự động sao chép
 - **Confidence**: độ tin cậy dữ liệu 0–1 (coverage, history, freshness, continuity).
 - **Low sample**: mẫu giao dịch nhỏ, kết luận kém tin cậy.
 
-## 5. Tier và lý do loại
+## 5. Nhóm và lý do loại
 
-- **High**: vượt ngưỡng B/A trên dữ liệu hiện có.
-- **Qualified**: vượt ngưỡng B (upper bound ở tầng list).
-- **Watch**: pass pre-filter, chưa đủ điều kiện B/A.
-- **Excluded**: có ít nhất một lý do loại.
+- **Cao (A)**: vượt ngưỡng B/A trên dữ liệu hiện có.
+- **Đạt (B)**: vượt ngưỡng B (giới hạn trên ở tầng list).
+- **Theo dõi (C)**: pass pre-filter, chưa đủ điều kiện B/A.
+- **Bị loại**: có ít nhất một lý do loại.
 
-**Excluded không hẳn là trader xấu.** Có thể chỉ vì: runtime < 30 ngày, AUM < 5.000,
-không giao dịch 7 ngày, hết slot copy, hoặc thiếu dữ liệu. Hãy đọc `filter_reasons`.
+**Bị loại không hẳn là trader xấu.** Có thể chỉ vì: số ngày hoạt động < 30, AUM < 5.000,
+không giao dịch 7 ngày, hết slot copy, hoặc thiếu dữ liệu. Hãy đọc `lý do loại`.
 
-Tier có thể đổi khi dữ liệu mới hơn; B/A ban đầu chỉ là upper bound và được hạ theo `totalOrder`.
+Nhóm có thể đổi khi dữ liệu mới hơn; B/A ban đầu chỉ là giới hạn trên và được hạ theo `tổng số lệnh`.
 
-## 6. Dữ liệu: published, derived, estimated
+## 6. Dữ liệu: Binance công bố, hệ thống tính, ước tính
 
-- **Published**: Binance trả trực tiếp (ROI, MDD, Sharpe, winRate…).
-- **Derived**: hệ thống tự tính từ position/trade (profit factor, holding time, fee drag…).
-- **Estimated**: ước tính từ chartItems (drawdown, correlation) — chỉ tham khảo.
+- **Binance công bố (Published)**: Binance trả trực tiếp (ROI, MDD, Sharpe, WinRate…).
+- **Hệ thống tính (Derived)**: tự tính từ vị thế/giao dịch (profit factor, thời gian giữ, chi phí…).
+- **Ước tính (Estimated)**: ước tính từ chartItems (drawdown, tương quan) — chỉ tham khảo.
 
-Không có dữ liệu: open positions, per-copier PnL, funding, slippage, liquidation price.
+Không có dữ liệu: vị thế đang mở, PnL từng copier, funding, slippage, giá thanh lý.
 `null` trên giao diện nghĩa là **không có dữ liệu**, không phải `0`.
 
 ## 7. Quy trình 5 bước cho người mới
 
-1. **Mở Screener**, giữ filter mặc định (High/Qualified/Watch, runtime ≥ 30, orders ≥ 20).
-2. **Đọc Trader Detail**: 10 chỉ số, score breakdown, risk flags, “what’s missing”.
-3. **So sánh 2–4 ứng viên** ở Compare; xem correlation và mức tập trung.
-4. **Kiểm tra Risk Monitor** cho các cảnh báo critical (MDD, leverage, worst ROI).
+1. **Mở Bộ lọc trader**, giữ bộ lọc mặc định (Cao/Đạt/Theo dõi, số ngày ≥ 30, số lệnh ≥ 20).
+2. **Đọc Chi tiết trader**: 10 chỉ số, phân rã điểm, cảnh báo rủi ro, dữ liệu còn thiếu.
+3. **So sánh 2–4 ứng viên** ở trang So sánh; xem tương quan và mức tập trung.
+4. **Kiểm tra Cảnh báo rủi ro** cho các cảnh báo nghiêm trọng (MDD, đòn bẩy, ROI xấu nhất).
 5. **Tự quyết định**: chỉ copy số vốn chấp nhận mất; bắt đầu nhỏ; theo dõi định kỳ.
 
 Checklist trước khi copy:
@@ -97,17 +97,17 @@ Checklist trước khi copy:
 - [ ] Không copy vì ROI cao đơn thuần.
 - [ ] Đã xem lại sau ít nhất 7 ngày.
 
-## 8. FAQ & disclaimer
+## 8. Câu hỏi thường gặp & miễn trừ trách nhiệm
 
 **Vì sao Sharpe hiển thị N/A?** Portfolio chưa đủ mẫu hoặc Binance không công bố.
 Không chấm 0 và không tô đỏ.
 
-**Vì sao trader ROI cao vẫn bị Excluded?** Có thể runtime quá ngắn, MDD quá cao,
+**Vì sao trader ROI cao vẫn bị loại?** Có thể số ngày hoạt động quá ngắn, MDD quá cao,
 mẫu quá nhỏ, hoặc thiếu dữ liệu.
 
-**Score có phải khuyến nghị đầu tư?** Không. Score chỉ xếp hạng tương đối theo cấu hình hiện tại.
+**Điểm có phải khuyến nghị đầu tư?** Không. Điểm chỉ xếp hạng tương đối theo cấu hình hiện tại.
 
-**Correlation có dùng để chia vốn?** Không. Đây là ước tính từ chartItems, bị ảnh hưởng nạp/rút.
+**Tương quan có dùng để chia vốn?** Không. Đây là ước tính từ chartItems, bị ảnh hưởng nạp/rút.
 
-**Disclaimer:** Công cụ phân tích dữ liệu công khai, không phải tư vấn đầu tư.
+**Miễn trừ trách nhiệm:** Công cụ phân tích dữ liệu công khai, không phải tư vấn đầu tư.
 Copy trading có rủi ro mất toàn bộ vốn. Bạn tự chịu trách nhiệm với quyết định của mình.
