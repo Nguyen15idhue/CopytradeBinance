@@ -37,6 +37,20 @@ Base: `/api/v1`
 - Login rate limit 5/phút/IP.
 - Gửi header `Authorization: Bearer <access_token>` cho endpoint bảo vệ.
 
+## Trader detail mở rộng
+
+| Endpoint | Nội dung |
+|---|---|
+| GET `/traders/{id}/performance` | 4 window, `chartItems`, benchmark null + note |
+| GET `/traders/{id}/positions` | Phân trang 50 (≤200), filter `symbol`, `side` |
+| GET `/traders/{id}/trades` | Phân trang 100 (≤200), filter `symbol`, `side` |
+| GET `/traders/{id}/transfers` | Timeline nạp/rút |
+| GET `/traders/{id}/risk` | `risk_level`, flags, events + evidence |
+| GET `/traders/{id}/score` | `config_version`, score, band, breakdown, hard flags |
+
+- 404 wrapper `TRADER_NOT_FOUND` cho mọi endpoint khi id không tồn tại.
+- `benchmark` luôn `null` khi chưa có nguồn klines; không nội suy.
+
 ## Screener
 
 ### GET `/traders`

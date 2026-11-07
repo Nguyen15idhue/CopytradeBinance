@@ -7,6 +7,7 @@ from app.api.v1.auth import router as auth_router
 from app.api.v1.collector import router as collector_router
 from app.api.v1.saved_views import router as saved_views_router
 from app.api.v1.screener import router as screener_router
+from app.api.v1.trader_detail import router as trader_detail_router
 from app.api.v1.traders import router as traders_router
 from app.api.v1.universe import router as universe_router
 from app.core.database import get_db
@@ -18,6 +19,7 @@ router.include_router(admin_router)
 router.include_router(collector_router)
 router.include_router(screener_router)
 router.include_router(saved_views_router)
+router.include_router(trader_detail_router)
 router.include_router(traders_router)
 router.include_router(universe_router)
 

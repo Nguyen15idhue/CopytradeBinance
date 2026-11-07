@@ -378,3 +378,14 @@ cd frontend; npm run build
 | Báo cáo | `docs/kehoach/PHASE3-REPORT.md` |
 
 **Gate Phase 3: ĐẠT.**
+
+---
+
+## 11. Phase 4 — Detail + Compare + Risk Monitor
+
+### 11.1. API detail mở rộng 4.1
+
+- `api/v1/trader_detail.py`: performance, positions, trades, transfers, risk, score.
+- Positions/trades phân trang + filter symbol/side; 404 wrapper thống nhất.
+- Performance trả chartItems từ list snapshot + note flow; benchmark null có ghi chú.
+- Test contract + 404 + phân trang: 3 test pass.

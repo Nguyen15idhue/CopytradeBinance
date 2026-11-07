@@ -468,13 +468,13 @@
 **Tham chiếu:** §11.2 Trader & screener (2009–2049) · §11.3 Ranking & compare (2050–2057) · §11.6 Thứ tự implement API (2085–2092)  
 **→ đọc khi:** thêm endpoint performance/positions/trades/transfers/risk/score.
 
-- [ ] API `/traders/{id}/performance`.
-- [ ] API `/traders/{id}/positions`.
-- [ ] API `/traders/{id}/trades`.
-- [ ] API `/traders/{id}/transfers`.
-- [ ] API `/traders/{id}/risk`.
-- [ ] API `/traders/{id}/score`.
-- [ ] Phân trang + filter cho positions/trades.
+- [x] API `/traders/{id}/performance`. → Bằng chứng: trả 4 window + chartItems + benchmark null; test contract pass.
+- [x] API `/traders/{id}/positions`. → Bằng chứng: phân trang 50 (max 200), filter symbol/side; test pass.
+- [x] API `/traders/{id}/trades`. → Bằng chứng: phân trang 100, filter symbol/side; test pass.
+- [x] API `/traders/{id}/transfers`. → Bằng chứng: danh sách timeline; test pass.
+- [x] API `/traders/{id}/risk`. → Bằng chứng: risk_level + flags + events/evidence; test pass.
+- [x] API `/traders/{id}/score`. → Bằng chứng: config_version + score + breakdown + hard flags; test pass.
+- [x] Phân trang + filter cho positions/trades. → Bằng chứng: test `test_positions_filter_pagination` (page 1 ≠ page 2, filter Long).
 
 ### Bước 4.2 — Trader Detail UI
 
