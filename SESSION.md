@@ -442,3 +442,22 @@ cd frontend; npm run build
   khai báo trong `index.css` + `tailwind.config.js`; thay toàn bộ màu slate cứng trong 8 file UI.
 - Chart dùng CSS var; nút chuyển ở topbar và trang login.
 - Tài liệu: `docs/ui-theme.md`; E2E kiểm tra light/dark/system.
+
+---
+
+## 13. Phạm vi bổ sung Phase 5 (07/11/2026)
+
+Lý do: Phase 4 hoàn thành nhưng trang `/ranking` vẫn là placeholder vì checklist 4.1–4.5 không có
+task API/UI Ranking; Phase 3.5 mới chỉ có service + snapshot.
+
+Đã cập nhật tài liệu (không sửa mã nguồn):
+
+- `TASKS.md` Phase 5:
+  - **Bước 5.4 — Ranking UI** (chuyển từ Phase 4): API `/ranking?board=`, 3 tab, đọc snapshot + config version.
+  - **Bước 5.5 — Trang hướng dẫn người mới**: 8 mục từ “copy trading là gì” đến FAQ/disclaimer,
+    banner onboarding, mục lục anchor, nội dung tĩnh.
+  - QA cũ đổi thành **5.6**, bổ sung check Ranking/Help; thời lượng Phase 5: **7–9 ngày**.
+- `05-ui-ux-va-trang.md`: thêm màn hình 6b Ranking và 6c Hướng dẫn + component `HelpToc`, `OnboardingBanner`.
+- `PHASE4-REPORT.md`: ghi nhận Ranking UI chuyển sang 5.4.
+
+Không thay đổi quyết định D02 (4 màn hình lõi): Ranking dùng lại dữ liệu Phase 3.5, Help là trang phụ trợ.

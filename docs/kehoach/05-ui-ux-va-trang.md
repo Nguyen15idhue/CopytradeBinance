@@ -341,6 +341,64 @@ Nút: `Run now`, `View logs`, `Download report`.
 
 ---
 
+## 6b. Màn hình — Ranking (phase 5)
+
+**Mục tiêu:** trả lời “ai đang dẫn đầu theo từng tiêu chí”, không khuyến khích chase ROI.
+
+**Bố cục**
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│ Ranking   [Overall] [Low Risk] [Consistency]                │
+│ Snapshot 07/11/2026 12:00 · config v1 · [Giải thích cách tính]│
+├─────────────────────────────────────────────────────────────┤
+│ #  Trader          Score  Band     Conf  ROI90  MDD  Sharpe │
+│ 1  ...                                                       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+- 3 tab đọc `ranking_snapshots` mới nhất theo `config_version`; không trộn version.
+- Cột: hạng, trader, tier, score + band, confidence, ROI 90D, MDD, Sharpe, risk level.
+- Click trader → Detail. Tooltip ghi “snapshot + config version + thời điểm chụp”.
+- Không có bảng “High Return”; ghi chú lý do ngay dưới tiêu đề.
+- Empty state: “Chưa có snapshot” + nút chạy ranking (admin).
+- Bảng dài: phân trang hoặc virtualize; mobile horizontal scroll.
+
+## 6c. Màn hình — Hướng dẫn người mới (phase 5)
+
+**Mục tiêu:** người chưa biết copy trading hiểu được hệ thống trong 5–10 phút, không cần hỏi support.
+
+**Bố cục**
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│ Hướng dẫn                                                   │
+│ [Mục lục]  Copy trading là gì? · Thuật ngữ · Tier · Dữ liệu │
+│            Quy trình 5 bước · FAQ · Disclaimer              │
+├─────────────────────────────────────────────────────────────┤
+│ Nội dung (anchor + search nội bộ)                           │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Nội dung bắt buộc**
+
+1. Copy trading là gì; rủi ro mất vốn; không phải đầu tư được bảo đảm.
+2. Hệ thống làm gì/không làm gì: không auto-trade, không paper copy, không tư vấn.
+3. Cách đọc 5 màn hình: Screener → Detail → Compare → Risk → Data Health.
+4. Từ điển: ROI, MDD, Sharpe, WinRate order/position, Profit Factor, Payoff, AUM, Copy AUM,
+   Leverage, Confidence, Tier, Excluded, Low sample.
+5. Tier + reason codes; “Excluded” không hẳn xấu.
+6. Published vs Derived vs Estimated; dữ liệu không có (open positions, per-copier, funding).
+7. Quy trình 5 bước cho người mới + checklist trước khi copy.
+8. FAQ + disclaimer pháp lý + kênh liên hệ.
+
+**Hành vi**
+
+- Link “Hướng dẫn” cố định ở sidebar; banner “Mới bắt đầu?” trên Screener (dismiss lưu localStorage).
+- Nội dung tĩnh, không gọi AI; muốn cập nhật thì sửa `docs/huong-dan-nguoi-moi.md` và rebuild.
+- Mục lục anchor, search client-side, print CSS để in/lưu PDF.
+- Không hiển thị số liệu live trong trang help (tránh hiểu nhầm là dữ liệu hiện tại).
+
 ## 7. Màn hình 5 — AI Report (phase 5)
 
 - Nút “Analyze” trên Trader Detail.
@@ -373,6 +431,8 @@ Nút: `Run now`, `View logs`, `Download report`.
 - `ChartCard` — title, source, timeframe.
 - `TooltipInfo`.
 - `InsightList` — deterministic insights.
+- `HelpToc` — mục lục anchor cho trang Hướng dẫn.
+- `OnboardingBanner` — banner “Mới bắt đầu?” dismiss được (localStorage).
 
 ### Màu
 

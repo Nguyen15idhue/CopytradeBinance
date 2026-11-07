@@ -21,7 +21,7 @@
 | 2 — Collector 2 tầng | `[x]` hoàn thành | 4–6 ngày | Scan 11.124 ≥ 99%, Watch 400–700 | §6 (528–973), §12 (2105–2219) |
 | 3 — Quant + Scoring + Screener | `[x]` hoàn thành | 7–9 ngày | Screener dùng được, score breakdown đúng | §8 (1187–1449), §9 (1450–1612) |
 | 4 — Detail + Compare + Risk | `[x]` hoàn thành | 5–7 ngày | Detail sâu, compare 4 trader, risk evidence | §11.2–11.3 (2009–2057), §13.4–13.5 (2345–2489) |
-| 5 — AI + Settings + Hardening | `[ ]` | 5–7 ngày | AI không sửa score, config version/rollback | §11.5 (2071–2084), §13.6–13.7 (2490–2543), §15.8 (3075–3095) |
+| 5 — AI + Settings + Hardening | `[ ]` | 7–9 ngày | AI không sửa score, config version/rollback, Ranking + Help dùng được | §11.5 (2071–2084), §13.6–13.7 (2490–2543), §15.8 (3075–3095) |
 | 6 — Testing + Deploy + Beta | `[ ]` | 4–6 ngày | Uptime 7 ngày, beta 3–5 user | §14 (2617–2918), §15 (2919–3128) |
 | | | **33–47 ngày** | +20% buffer → **40–56 ngày** | |
 
@@ -534,12 +534,20 @@
 
 **Gate:** mỗi chỉ số có tooltip + nguồn; compare 4 trader không vỡ; risk evidence mở được.
 
+> **Ghi chú phạm vi:** API + trang Ranking chưa nằm trong checklist 4.1–4.5 và đã được **chuyển sang Phase 5, bước 5.4**.
+> Phase 3.5 đã có service/ranking snapshot; Phase 5 chỉ bổ sung API đọc snapshot + UI.
+
 ---
 
-## Phase 5 — AI + Settings + Hardening
+## Phase 5 — AI + Settings + Hardening + Ranking/Help
 
-**Mục tiêu:** AI report có kiểm soát, toàn bộ cấu hình chỉnh trên web, bảo mật cơ bản.  
-**Thời lượng:** 5–7 ngày.
+**Mục tiêu:** AI report có kiểm soát, toàn bộ cấu hình chỉnh trên web, bảo mật cơ bản,
+hoàn thiện trang Ranking và trang hướng dẫn cho người mới.  
+**Thời lượng:** 7–9 ngày.
+
+> **Phạm vi bổ sung (07/11/2026):** Ranking UI/API chuyển từ Phase 4 sang bước 5.4;
+> trang hướng dẫn người mới là bước 5.5. Đây không phải màn hình lõi mới — vẫn giữ 4 màn hình MVP
+> theo D02, Help là trang phụ trợ và Ranking dùng lại dữ liệu đã có từ Phase 3.5.
 
 ### Bước 5.1 — AI report có kiểm soát
 
@@ -591,7 +599,40 @@
 - [ ] Security headers + CORS production.
 - [ ] Dependency scan (`pip-audit`, `npm audit`).
 
-### Bước 5.4 — QA & gate Phase 5
+### Bước 5.4 — Ranking UI (chuyển từ Phase 4)
+
+**Tham chiếu:** §9.8 Ranking boards (1573–1584) · §9.9 Ví dụ trader mẫu (1585–1612) · §11.3 Ranking & compare (2050–2057)  
+**→ đọc khi:** làm API/trang Ranking từ snapshot đã có.
+
+- [ ] API `GET /ranking?board=overall|low_risk|consistency` đọc snapshot mới nhất + `config_version`.
+- [ ] Trả `rank`, trader id/nickname, score, band, confidence, tier, risk_level, ROI/MDD/Sharpe.
+- [ ] Trang `/ranking`: 3 tab (Overall / Low Risk / Consistency), bảng xếp hạng, link sang Detail.
+- [ ] Ghi rõ nguồn “snapshot + config version”, thời điểm chụp; không trộn score version cũ.
+- [ ] Nav bỏ badge “Phase 4”, link thật.
+- [ ] Empty state khi chưa có snapshot + nút chạy ranking cho admin.
+- [ ] Ghi chú không có bảng “High Return” (tránh chase ROI).
+- [ ] Test: contract API, E2E 3 tab render, snapshot cũ không bị ghi đè.
+
+### Bước 5.5 — Trang hướng dẫn cho người mới
+
+**Tham chiếu:** §13.1 Nguyên tắc thiết kế (2224–2234) · §13.11 Checklist UI (2599–2616) · §16.3 Rủi ro sản phẩm (3169–3183)  
+**→ đọc khi:** viết nội dung onboarding, thuật ngữ, disclaimer.
+
+- [ ] Route `/help` (Hướng dẫn); link cố định ở sidebar + banner “Mới bắt đầu?” trên Screener (dismiss lưu localStorage).
+- [ ] Mục 1 — Copy trading là gì: cơ chế copy, rủi ro mất vốn, không phải đầu tư được bảo đảm.
+- [ ] Mục 2 — Hệ thống làm gì/không làm gì: chỉ phân tích dữ liệu công khai; không auto-trade, không paper copy, không tư vấn đầu tư.
+- [ ] Mục 3 — Cách đọc từng màn hình: Screener → Trader Detail → Compare → Risk Monitor → Data Health, kèm ảnh minh hoạ.
+- [ ] Mục 4 — Từ điển thuật ngữ: ROI, MDD, Sharpe, WinRate (order vs position), Profit Factor, Payoff, AUM, Copy AUM, Leverage, Confidence, Tier, Excluded, Low sample.
+- [ ] Mục 5 — Tier & reason codes; vì sao “Excluded” không hẳn là trader xấu.
+- [ ] Mục 6 — Published vs Derived vs Estimated; dữ liệu không có (open positions, per-copier PnL, funding, slippage).
+- [ ] Mục 7 — Quy trình 5 bước cho người mới + checklist tự kiểm tra trước khi copy.
+- [ ] Mục 8 — FAQ + disclaimer pháp lý + kênh liên hệ.
+- [ ] Mục lục anchor, tìm kiếm nội bộ (client-side), responsive, print CSS.
+- [ ] Nội dung tĩnh: không gọi AI, không phụ thuộc dữ liệu live.
+- [ ] Nguồn nội dung: `docs/huong-dan-nguoi-moi.md`, version hoá cùng UI.
+- [ ] Test: route render, anchor, E2E mở Help, không có `undefined`/`NaN`.
+
+### Bước 5.6 — QA & gate Phase 5
 
 **Tham chiếu:** §14.9 Security checklist (2878–2897) · §14.10 Acceptance MVP (2898–2918) · §15.8 Security checklist (3075–3095)  
 **→ đọc khi:** kiểm tra AI/evidence, settings rollback, bảo mật.
@@ -604,8 +645,11 @@
 - [ ] Rollback hoạt động + audit log.
 - [ ] Login sai 6 lần bị rate limit.
 - [ ] Backup restore thành công.
+- [ ] Ranking 3 bảng đọc đúng snapshot + `config_version`; không trộn version.
+- [ ] Trang Help render đủ 8 mục, anchor hoạt động, không lỗi console.
+- [ ] Banner “Mới bắt đầu?” dismiss được và không hiện lại sau reload.
 
-**Gate:** AI không sửa score; settings version hóa; backup restore OK.
+**Gate:** AI không sửa score; settings version hóa; backup restore OK; Ranking dùng được; Help đủ nội dung cho người mới.
 
 ---
 

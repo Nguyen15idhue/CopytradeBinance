@@ -46,7 +46,7 @@ frontend/pages/RiskMonitorPage.tsx    filter, list, evidence
 ## 5. Vấn đề đã biết
 
 1. `excess_return` null do thiếu benchmark.
-2. Ranking UI chưa có (mới có service + snapshot); nằm ngoài checklist 4.x.
+2. Ranking UI/API đã chuyển sang Phase 5 (bước 5.4); Phase 4 chỉ có service + snapshot.
 3. Saved views chưa hỗ trợ chia sẻ giữa user (đúng thiết kế Phase 3).
 4. Chart dùng chartItems có thể lệch khi nạp/rút lớn.
 

@@ -59,6 +59,7 @@ docker compose exec backend python -m app.collector_cli audit
 ```
 
 UI: `/screener`, `/traders/:id`, `/compare?ids=a,b`, `/risk`, `/data-health`.
+Phase 5 sẽ bổ sung `/ranking` và `/help` (hướng dẫn người mới).
 
 ```bash
 # Chạy tay từng tầng
