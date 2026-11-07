@@ -360,3 +360,21 @@ cd frontend; npm run build
 - UI `/screener`: filter bar, funnel badge, count preview, bảng 13 cột, sort, phân trang,
   breakdown drawer, saved views, CSV, empty state, toggle excluded.
 - Test: 4 integration test pass; E2E “Screener render: OK”.
+
+### 10.7. QA & gate Phase 3
+
+| Kiểm tra | Kết quả |
+|---|---|
+| Golden dataset | 12 archetype, 2 excluded; 5 test pass |
+| Excluded không lọt top | top 5 không chứa archetype excluded |
+| Missing không chấm 0 | score vẫn có, breakdown ghi missing |
+| Hard filter tier | 20/50/100 đúng |
+| Audit false negative | 50 excluded → **0%** |
+| p95 shortlist | **97ms** (median 78ms, page_size 100) |
+| Breakdown vs score | max diff **0,0051** |
+| MDD ≤ 15 | 10/10 dòng khớp SQL |
+| Full suite container | **81 passed** |
+| Build + E2E | Pass |
+| Báo cáo | `docs/kehoach/PHASE3-REPORT.md` |
+
+**Gate Phase 3: ĐẠT.**

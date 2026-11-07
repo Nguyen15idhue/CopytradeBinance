@@ -19,7 +19,7 @@
 | 0 — Data spike & pre-filter | `[x]` hoàn thành | 3–5 ngày | GO có điều kiện | `phase0/PHASE0_REPORT.md` |
 | 1 — Foundation + vertical slice | `[x]` hoàn thành | 5–7 ngày | 1 trader chạy E2E | §5.2 (417–439), §10.1 (1615–1921), §13.4 (2345–2456) |
 | 2 — Collector 2 tầng | `[x]` hoàn thành | 4–6 ngày | Scan 11.124 ≥ 99%, Watch 400–700 | §6 (528–973), §12 (2105–2219) |
-| 3 — Quant + Scoring + Screener | `[ ]` | 7–9 ngày | Screener dùng được, score breakdown đúng | §8 (1187–1449), §9 (1450–1612) |
+| 3 — Quant + Scoring + Screener | `[x]` hoàn thành | 7–9 ngày | Screener dùng được, score breakdown đúng | §8 (1187–1449), §9 (1450–1612) |
 | 4 — Detail + Compare + Risk | `[ ]` | 5–7 ngày | Detail sâu, compare 4 trader, risk evidence | §11.2–11.3 (2009–2057), §13.4–13.5 (2345–2489) |
 | 5 — AI + Settings + Hardening | `[ ]` | 5–7 ngày | AI không sửa score, config version/rollback | §11.5 (2071–2084), §13.6–13.7 (2490–2543), §15.8 (3075–3095) |
 | 6 — Testing + Deploy + Beta | `[ ]` | 4–6 ngày | Uptime 7 ngày, beta 3–5 user | §14 (2617–2918), §15 (2919–3128) |
@@ -345,7 +345,7 @@
 
 ---
 
-## Phase 3 — Quant + Scoring + Screener
+## Phase 3 — Quant + Scoring + Screener — HOÀN THÀNH
 
 **Mục tiêu:** tính đủ chỉ số MVP, scoring v1.0, màn hình Screener dùng được.  
 **Thời lượng:** 7–9 ngày.
@@ -445,14 +445,14 @@
 **Tham chiếu:** §14.2 Golden dataset (2632–2648) · §14.3 Regression fixture (2649–2670) · §14.4 Unit test (2671–2748) · §14.10 Acceptance MVP (2898–2918)  
 **→ đọc khi:** viết test công thức/scoring, kiểm tra gate.
 
-- [ ] Golden dataset 12 archetype (gồm 2 excluded).
-- [ ] Test trader mẫu → Excluded.
-- [ ] Test missing data → không chấm 0.
-- [ ] Test hard filter theo tier.
-- [ ] Test pre-filter false negative.
-- [ ] Test p95 shortlist ~700 (< 1s).
-- [ ] Score breakdown khớp tổng điểm (sai số ≤ 0,01).
-- [ ] Filter MDD ≤ 15 trả đúng (kiểm tra tay 10 dòng).
+- [x] Golden dataset 12 archetype (gồm 2 excluded). → Bằng chứng: `tests/fixtures/golden_traders.json` + `test_golden_dataset.py` (5 test).
+- [x] Test trader mẫu → Excluded. → Bằng chứng: `test_golden_top_never_contains_excluded_archetypes`; excluded không vào top 5.
+- [x] Test missing data → không chấm 0. → Bằng chứng: `test_missing_components_are_not_zero`.
+- [x] Test hard filter theo tier. → Bằng chứng: `test_hard_flags_tier_thresholds` (20/50/100) + 6 flag.
+- [x] Test pre-filter false negative. → Bằng chứng: audit live 50 excluded = **0%**, 0 lỗi.
+- [x] Test p95 shortlist ~700 (< 1s). → Bằng chứng: 30 request page_size 100 → **p95 97ms**, median 78ms, max 142ms.
+- [x] Score breakdown khớp tổng điểm (sai số ≤ 0,01). → Bằng chứng: SQL max diff **0,0051** trên 511 dòng.
+- [x] Filter MDD ≤ 15 trả đúng (kiểm tra tay 10 dòng). → Bằng chứng: API sort MDD asc khớp 10/10 với SQL (0,0000–0,6344).
 
 **Gate:** Screener shortlist ~700 dùng được; trader mẫu excluded không top; breakdown khớp.
 
