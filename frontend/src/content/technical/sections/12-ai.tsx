@@ -53,6 +53,15 @@ export default function AiSection() {
         đầu vào.
       </p>
 
+      <h3 id="ai-agent" className="scroll-mt-24 text-base font-semibold text-strong">
+        AI Agent chat (Phase 6b)
+      </h3>
+      <p className="text-sm text-body">
+        Chat SSE admin-only góc phải dưới. Orchestrator chạy tool loop tối đa 8 bước, timeout 120
+        giây, verifier kiểm tra số có evidence và chặn lời khuyên đầu tư. Hội thoại, tool call và
+        citation lưu vào bảng agent_sessions/messages/tool_calls/citations.
+      </p>
+
       <Source>backend/app/services/ai/, docs/kehoach/PHASE5-REPORT.md, docs/api.md</Source>
     </div>
   );

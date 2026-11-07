@@ -54,6 +54,13 @@ class Settings(BaseSettings):
     # Ops (Phase 5)
     api_rate_limit_per_min: int = 100
 
+    # Agent (Phase 6b)
+    agent_enabled: bool = True
+    agent_max_steps: int = 8
+    agent_timeout_seconds: int = 120
+    agent_rate_limit_per_min: int = 20
+    agent_retention_days: int = 90
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [item.strip() for item in self.cors_origins.split(",") if item.strip()]

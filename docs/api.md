@@ -99,6 +99,23 @@ Response analyze có `cached`, `ai_configured`, `errors`; không bao giờ trả
 
 Lỗi: 403 viewer, 404 trader/report, 409 `NO_METRICS`/`AI_DISABLED`, 429 `AI_BUDGET_EXCEEDED`.
 
+## AI Agent (admin-only)
+
+| Method | Endpoint | Quyền | Mô tả |
+|---|---|---|---|
+| POST | `/agent/chat` | admin | Chat SSE: `token/tool_call/tool_result/citation/warning/done/error` |
+| GET | `/agent/sessions` | admin | Danh sách đoạn chat (50 gần nhất) |
+| GET | `/agent/sessions/{id}` | admin | Chi tiết session + message (tối đa 200) |
+| PATCH | `/agent/sessions/{id}` | admin | Đổi `title`, `archived` |
+| DELETE | `/agent/sessions/{id}` | admin | Xóa session (cascade message/tool/citation) |
+| POST | `/agent/feedback` | admin | Đánh giá `message_id` (rating 1–5) |
+| GET | `/agent/health` | user | Trạng thái `enabled`, `max_steps` |
+
+Tool loop tối đa 8 bước, timeout 120s/request, tool 10s, rate limit 20/phút/admin.
+Budget dùng `ai_usage.feature='agent'`; model từ `AI_MODEL_PRIMARY`, fallback `AI_MODEL_FALLBACK`
+(resolve qua Settings override). Không gọi live trong test — mock transport OpenRouter.
+Lỗi: 403 viewer, 404 session/message, 409 `AGENT_DISABLED`, 429 `AGENT_RATE_LIMITED`/`AGENT_BUDGET_EXCEEDED`.
+
 ## Risk Monitor
 
 | Method | Endpoint | Mô tả |

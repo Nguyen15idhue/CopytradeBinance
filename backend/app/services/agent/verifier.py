@@ -1,0 +1,77 @@
+"""Verifier: chặn bịa số, chặn lời khuyên đầu tư, kiểm tra trader_id/đơn vị."""
+
+import re
+
+DISCLAIMER = "Thông tin chỉ mang tính tham khảo, không phải lời khuyên đầu tư."
+
+ADVICE_PATTERNS = [
+    r"nên (mua|bán|copy|đầu tư|tham gia|rút|nắm giữ|chốt)",
+    r"khuyên (bạn|anh|chị) (nên|mua|bán|copy|đầu tư)",
+    r"mua ngay|bán ngay|copy ngay|đầu tư ngay",
+    r"lời khuyên đầu tư",
+    r"you should (buy|sell|copy|invest)",
+    r"financial advice",
+    r"guaranteed (profit|return)",
+    r"cam kết (lợi nhuận|sinh lời)",
+    r"chắc chắn (có lãi|sinh lời|lợi nhuận)",
+]
+
+INVESTMENT_ADVICE_RE = re.compile("|".join(ADVICE_PATTERNS), re.IGNORECASE)
+
+NUMBER_RE = re.compile(r"-?\d+(?:[.,]\d+)?\s*(?:%|USDT|\bx\b)?", re.IGNORECASE)
+TRADER_ID_RE = re.compile(r"\b\d{10,25}\b")
+
+
+def contains_advice(text: str) -> bool:
+    return INVESTMENT_ADVICE_RE.search(text or "") is not None
+
+
+def extract_numbers(text: str) -> list[str]:
+    return [m.group(0).strip() for m in NUMBER_RE.finditer(text or "")]
+
+
+def _norm_number(raw: str) -> str:
+    return raw.replace(",", ".").replace(" ", "").lower()
+
+
+def extract_trader_ids(text: str) -> list[str]:
+    return TRADER_ID_RE.findall(text or "")
+
+
+def verify_answer(
+    answer: str,
+    facts: list[dict],
+    row_ids: list[str] | None = None,
+) -> dict:
+    """Trả {answer, warnings, blocked, unverified_numbers, unknown_ids}."""
+    warnings: list[str] = []
+    text = answer or ""
+    fact_values = {_norm_number(str(f.get("value", ""))) for f in facts}
+    fact_blob = _norm_number(" ".join(str(f.get("value", "")) for f in facts))
+    unverified: list[str] = []
+    for num in extract_numbers(text):
+        norm = _norm_number(num)
+        bare = re.sub(r"(%|usdt|x)$", "", norm)
+        if norm in fact_values or bare in fact_values or bare in fact_blob:
+            continue
+        unverified.append(num)
+    if unverified:
+        warnings.append(f"Số chưa có nguồn evidence: {', '.join(unverified[:5])}")
+    unknown_ids: list[str] = []
+    if row_ids is not None:
+        for tid in extract_trader_ids(text):
+            if tid not in set(row_ids):
+                unknown_ids.append(tid)
+        if unknown_ids:
+            warnings.append(f"Mã trader chưa xác thực: {', '.join(unknown_ids[:5])}")
+    if contains_advice(text):
+        warnings.append("Phát hiện lời khuyên đầu tư — đã gắn tuyên bố miễn trừ.")
+        if DISCLAIMER not in text:
+            text = f"{text}\n\n_{DISCLAIMER}_".strip()
+    return {
+        "answer": text,
+        "warnings": warnings,
+        "blocked": False,
+        "unverified_numbers": unverified,
+        "unknown_ids": unknown_ids,
+    }

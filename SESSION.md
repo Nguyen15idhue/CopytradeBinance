@@ -592,3 +592,4 @@ Lưu ý: ranking/help cases (K/H) chỉ chạy được sau khi hoàn thành bư
 ## 17. Phase 6b — AI Agent chat (07/11/2026, docs/0/03-ke-hoach-ai-agent.md)
 
 - B1: schema agent 5 bảng (`agent_sessions/messages/tool_calls/citations/feedback`) + `ai_usage.feature` default `report`; migration `0015_agent_tables` up/down OK trên DB thật; `test_agent_schema` 4 pass; ruff pass.
+- B2: orchestrator + tool protocol + model client (primary → fallback, native tool calling + JSON fallback, reasoning dùng chung `build_reasoning`) + verifier (số/advice/trader_id) + API `/agent/*` admin-only + SSE skeleton; test `test_agent_core` 11 pass (container); docs api/12-ai + section TSX.

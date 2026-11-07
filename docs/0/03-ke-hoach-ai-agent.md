@@ -606,3 +606,4 @@ Timeout: 120s/request, tool 10s, SQL 5s.
 ## 20. Tiến độ triển khai (Phase 6b)
 
 - [x] B1 (0015): schema agent 5 bảng + `ai_usage.feature`; migration up/down OK; `test_agent_schema` 4 pass.
+- [x] B2 (orchestrator + SSE): `services/agent/` (schema/verifier/model_client/tools/orchestrator), API `/agent/*` admin-only, budget/rate-limit/timeout, test RBAC + SSE pass.

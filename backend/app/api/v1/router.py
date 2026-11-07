@@ -3,6 +3,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.admin import router as admin_router
+from app.api.v1.agent import router as agent_router
 from app.api.v1.ai import router as ai_router
 from app.api.v1.auth import router as auth_router
 from app.api.v1.collector import router as collector_router
@@ -21,6 +22,7 @@ router = APIRouter()
 
 router.include_router(auth_router)
 router.include_router(admin_router)
+router.include_router(agent_router)
 router.include_router(ai_router)
 router.include_router(collector_router)
 router.include_router(compare_router)

@@ -17,6 +17,22 @@ class AIError(Exception):
     pass
 
 
+def build_reasoning(model: str) -> dict[str, object]:
+    """Quy tắc reasoning dùng chung report/agent (AI_REASONING_EFFORT=auto).
+
+    GLM 5.3 Flash bắt buộc reasoning.low; DeepSeek và các model khác tắt
+    để tránh reasoning ăn hết token trước khi trả nội dung.
+    """
+    effort = get_settings().ai_reasoning_effort.strip().lower()
+    if effort in {"off", "none", "false"}:
+        return {"enabled": False}
+    if effort == "auto":
+        # GLM 5.3 Flash bắt buộc reasoning; các model report khác nên tắt
+        # để tránh reasoning ăn hết token trước khi trả JSON.
+        return {"effort": "low"} if "glm-5.3-flash" in model else {"enabled": False}
+    return {"effort": effort}
+
+
 @dataclass
 class AIResult:
     payload: AIReportPayload
@@ -61,17 +77,7 @@ async def call_model(
         raise AIError("Model id trống")
     if not api_key:
         raise AIError("Thiếu OPENROUTER_API_KEY")
-    effort = get_settings().ai_reasoning_effort.strip().lower()
-    if effort in {"off", "none", "false"}:
-        reasoning = {"enabled": False}
-    elif effort == "auto":
-        # GLM 5.3 Flash bắt buộc reasoning; các model report khác nên tắt
-        # để tránh reasoning ăn hết token trước khi trả JSON.
-        reasoning = (
-            {"effort": "low"} if "glm-5.3-flash" in model else {"enabled": False}
-        )
-    else:
-        reasoning = {"effort": effort}
+    reasoning = build_reasoning(model)
     started = time.perf_counter()
     payload = {
         "model": model,
