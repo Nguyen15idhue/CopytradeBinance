@@ -757,6 +757,9 @@ Nguồn: `docs/0/05-ke-hoach-do-tuoi-du-lieu-va-data-health.md`.
   `/traders/{id}`, `/traders/{id}/performance` trả `freshness`; agent có evidence
   `freshness_minutes`, warning khi stale/very_stale, `missing_data` khi thiếu;
   `FreshnessChip` ở Screener và Detail. Test 3 pass; E2E chip PASS.
+- B5.0.9: `as_of` của dữ liệu published lấy từ `metrics.provenance.performance_at`
+  (agent profile/search, screener, API detail), `computed_at` trả riêng; evidence dùng as_of nguồn.
+  `test_as_of` pass (hai mốc khác nhau, as_of == performance_at).
 
 Hiện tượng: hỏi "các nhóm a b c và bị loại là gì" → "Hết 8 bước tool mà chưa có đáp án."
 Bằng chứng: `knowledge_chunks = 0`; `agent_tool_calls` của phiên 126 gọi `search_knowledge`

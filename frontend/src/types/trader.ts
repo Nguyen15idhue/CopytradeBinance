@@ -48,6 +48,8 @@ export interface TraderDetail {
         as_of?: string | null;
       }
     | null;
+  as_of?: string | null;
+  computed_at?: string | null;
   disclaimer: string;
   generated_at: string;
 }
@@ -130,6 +132,7 @@ export interface ScreenerItem {
   avg_leverage: number | null;
   position_win_rate: number | null;
   risk_score: number | null;
+  as_of?: string | null;
   freshness?:
     | {
         minutes: number | null;
@@ -156,7 +159,7 @@ export interface ScreenerItem {
     >;
     missing?: string[];
   };
-  computed_at: string | null;
+  computed_at?: string | null;
   top_symbol: string | null;
 }
 

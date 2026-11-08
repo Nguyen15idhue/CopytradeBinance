@@ -205,6 +205,12 @@ async def get_trader(
                 "published": metric is not None,
             },
             "freshness": freshness,
+            "as_of": (trader_metric.metrics or {}).get("provenance", {}).get(
+                "performance_at"
+            ) if trader_metric else None,
+            "computed_at": trader_metric.computed_at.isoformat()
+            if trader_metric and trader_metric.computed_at
+            else None,
             "disclaimer": (
                 "Công cụ phân tích dữ liệu công khai, không phải tư vấn đầu tư. "
                 "Copy trading có rủi ro mất toàn bộ vốn."

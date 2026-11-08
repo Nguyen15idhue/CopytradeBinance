@@ -145,6 +145,7 @@ async def search_traders(db: AsyncSession, args: dict[str, Any]) -> ToolResult:
         as_of = metric.computed_at.isoformat() if metric and metric.computed_at else None
         metrics_blob = (metric.metrics if metric else None) or {}
         published = metrics_blob.get("published") or {}
+        source_as_of = (metrics_blob.get("provenance") or {}).get("performance_at") or as_of
         items.append(
             {
                 "id": tid,
@@ -172,7 +173,8 @@ async def search_traders(db: AsyncSession, args: dict[str, Any]) -> ToolResult:
                     for window in ("7D", "30D", "90D", "180D")
                 } if metric else {},
                 "freshness": freshness_from_metrics(metrics_blob) if metric else None,
-                "as_of": as_of,
+                "as_of": source_as_of,
+                "computed_at": as_of,
             }
         )
         if len(items) >= limit:
@@ -276,6 +278,8 @@ async def get_trader_profile(db: AsyncSession, args: dict[str, Any]) -> ToolResu
         )
     ).scalars().all()
     as_of = metric.computed_at.isoformat() if metric and metric.computed_at else None
+    computed_at = as_of
+    source_as_of = (metrics_blob.get("provenance") or {}).get("performance_at") or as_of
     profile = {
         "id": trader_id,
         "nickname": trader.nickname if trader else None,
@@ -334,7 +338,8 @@ async def get_trader_profile(db: AsyncSession, args: dict[str, Any]) -> ToolResu
             for e in events
         ],
         "has_slot": await _has_slot(db, trader_id),
-        "as_of": as_of,
+        "as_of": source_as_of,
+        "computed_at": computed_at,
     }
     evidence = [
         _ev(trader_id, "score", profile["score"], None, as_of),
@@ -385,9 +390,12 @@ async def get_trader_profile(db: AsyncSession, args: dict[str, Any]) -> ToolResu
             if value is not None:
                 evidence.append(_ev(trader_id, key, value, unit, as_of))
     evidence = [item for item in evidence if item.value is not None]
+    for item in evidence:
+        item.as_of = source_as_of or item.as_of
     return ToolResult(
         data=profile,
-        meta={"source": "database", "as_of": as_of or utcnow_iso(), "row_ids": [trader_id]},
+        meta={"source": "database", "as_of": source_as_of or utcnow_iso(),
+              "computed_at": computed_at, "row_ids": [trader_id]},
         evidence=evidence,
     )
 

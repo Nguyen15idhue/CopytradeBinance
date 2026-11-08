@@ -735,3 +735,8 @@ Quy tắc:
   `missing_data=["freshness_unknown"]` khi thiếu; `FreshnessChip` hiện ở Screener + Detail.
   → Bằng chứng: `test_freshness` 3 pass (biên 149/150/151/1440/1441/None; API; agent evidence);
   E2E assert chip "Độ mới dữ liệu" ở Detail, PASS.
+- [x] B5.0.9 `as_of` đúng mốc — `get_trader_profile`/`search_traders` lấy
+  `provenance.performance_at` cho `as_of`, trả riêng `computed_at`; evidence dùng as_of nguồn;
+  `/traders` và `/traders/{id}` trả `as_of` + `computed_at`.
+  → Bằng chứng: `test_as_of` pass — trader có `computed_at` mới hơn `performance_at`
+  vẫn trả hai mốc khác nhau và `as_of == performance_at` (agent, screener, API detail).

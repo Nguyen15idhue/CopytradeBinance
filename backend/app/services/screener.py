@@ -368,6 +368,7 @@ def serialize_row(row) -> dict[str, Any]:
         "filter_reasons": universe.filter_reasons or [],
         "breakdown": (score.breakdown if score else None) or {},
         "computed_at": metric.computed_at.isoformat() if metric else None,
+        "as_of": (metrics.get("provenance") or {}).get("performance_at"),
         "freshness": freshness_from_metrics(metrics) if metric else None,
         "top_symbol": derived.get("top_symbol"),
     }

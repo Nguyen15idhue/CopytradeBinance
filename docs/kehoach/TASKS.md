@@ -929,6 +929,6 @@ Tóm tắt: không auto-trading, không realtime WebSocket, không Paper Copy tr
 - [x] B5.0.6 Job thủ công lưu DB. → Bằng chứng: migration `0020`; job queued→success thật; RBAC + kill switch test pass.
 - [x] B5.0.7 UI loading/progress. → Bằng chứng: skeleton + elapsed + countdown; E2E route chậm/500 PASS.
 - [x] B5.0.8 Freshness hiển thị + cảnh báo AI (V7). → Bằng chứng: `services/freshness.py`; API + agent warning; E2E chip PASS.
-- [ ] B5.0.9 `as_of` = `provenance.performance_at`, tách khỏi `computed_at` (V8).
+- [x] B5.0.9 `as_of` = `provenance.performance_at`, tách khỏi `computed_at` (V8). → Bằng chứng: `test_as_of` pass.
 - [ ] B5.0.10 Backfill `risk_score` 531/531 + `meta.risk_score_missing` khi thiếu (V9).
 - [ ] B5.0.11 QA + docs.
