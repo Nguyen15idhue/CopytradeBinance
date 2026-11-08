@@ -706,3 +706,9 @@ Quy tắc:
   (50 manifest gần nhất + tổng + theo ngày).
   → Bằng chứng: `test_collector_status` 4 pass (rglob bị chặn vẫn 200; p95 < 300ms; shape;
   manifest lỗi → stale); đo thực tế: **p50 40ms, p95 76ms, max 102ms**.
+- [x] B5.0.5 Scheduler last_success — `last_success = max(collection_logs.finished_at)` theo layer
+  L0/L2/L3/L4 (bỏ log `detail.test=true`); `next_due()` + jitter ±5 phút cho deep job;
+  startup chạy bù job quá hạn; retry 15 phút × 3; timeout `COLLECTOR_JOB_TIMEOUT_MIN=60`.
+  → Bằng chứng: `test_scheduler_freshness` 7 pass + `test_scheduler_last_success` 1 pass +
+  `test_scheduler` 3 pass; log worker khởi động đọc `last_success` thật từ DB
+  (scan 03:36, perf/detail/trades 02:38) và chạy `retention` ngay vì chưa từng chạy.

@@ -26,6 +26,16 @@ keywords: "data health, collector, L0, L2, L3, L4, lock, retry, kill switch, fre
 
 Có thể đổi trong Settings; worker đọc lại mỗi vòng 60 giây.
 
+## 2b. Cách tính "đến hạn"
+
+- `last_success` = `max(collection_logs.finished_at)` theo layer tương ứng và `status='success'`;
+  bỏ qua log do test tạo (`detail.test = true`).
+- Job đến hạn khi `now - last_success >= interval` (deep job cộng jitter ±5 phút cố định theo job).
+- Chưa từng chạy → chạy ngay khi worker khởi động.
+- Job lỗi/timeout → thử lại sau 15 phút, tối đa 3 lần rồi chờ interval tiếp theo.
+- Timeout mỗi job: `COLLECTOR_JOB_TIMEOUT_MIN` (mặc định 60 phút).
+- Nhờ vậy restart worker không còn đẩy deep fetch lùi 6/12/24 giờ.
+
 ## 3. Lock và retry
 
 - Redis lock + fallback advisory lock.

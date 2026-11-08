@@ -25,6 +25,13 @@ from app.services.funnel import apply_total_order_demotion
 
 logger = logging.getLogger(__name__)
 
+
+def _test_detail() -> dict | None:
+    from app.services.test_run import is_test_run
+
+    return {"test": True} if is_test_run() else None
+
+
 WINDOWS = ("7D", "30D", "90D", "180D")
 WATCH_TIERS = ("watch", "qualified_upper", "high_upper")
 DETAIL_TIERS = ("qualified_upper", "high_upper")
@@ -80,7 +87,7 @@ async def fetch_performance_for_watch(
         statement = statement.where(TraderUniverse.lead_portfolio_id.in_(portfolio_ids))
     targets = (await db.execute(statement)).all()
 
-    log = CollectionLog(layer="L2", status="running")
+    log = CollectionLog(layer="L2", status="running", detail=_test_detail())
     db.add(log)
     await db.commit()
     log_id = log.id
@@ -320,7 +327,7 @@ async def fetch_detail_and_history(
         ).scalars().all()
         target_ids = list(qualified) + list(top_watch)
 
-    log = CollectionLog(layer="L3", status="running")
+    log = CollectionLog(layer="L3", status="running", detail=_test_detail())
     db.add(log)
     await db.commit()
     log_id = log.id
@@ -481,7 +488,7 @@ async def fetch_full_trades(
         ).scalars().all()
         target_ids = list(high) + list(top_qualified_ids)
 
-    log = CollectionLog(layer="L4", status="running")
+    log = CollectionLog(layer="L4", status="running", detail=_test_detail())
     db.add(log)
     await db.commit()
     log_id = log.id

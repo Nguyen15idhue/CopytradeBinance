@@ -738,6 +738,10 @@ Nguồn: `docs/0/05-ke-hoach-do-tuoi-du-lieu-va-data-health.md`.
 - B5.0.4: `/collector/status` đọc manifest + cache Redis 60s (không rglob), manifest lỗi →
   `source=stale`; thêm `/collector/archive-stats`. Đo thực tế p50 40ms / p95 76ms / max 102ms.
   `test_collector_status` 4 pass.
+- B5.0.5: scheduler tính `last_success` từ `collection_logs` theo layer (bỏ log test), `next_due` +
+  jitter ±5 phút cho deep job, startup chạy bù, retry 15 phút ×3, timeout 60 phút; log do test
+  tạo được đánh dấu `detail.test=true` để không làm lệch lịch.
+  Test: `test_scheduler_freshness` 7, `test_scheduler_last_success` 1, `test_scheduler` 3 pass.
 
 Hiện tượng: hỏi "các nhóm a b c và bị loại là gì" → "Hết 8 bước tool mà chưa có đáp án."
 Bằng chứng: `knowledge_chunks = 0`; `agent_tool_calls` của phiên 126 gọi `search_knowledge`

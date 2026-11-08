@@ -149,6 +149,10 @@ async def scan_universe(
     result = ScanResult()
 
     log = CollectionLog(layer=LAYER, status="running", started_at=collected_at)
+    from app.services.test_run import is_test_run
+
+    if is_test_run():
+        log.detail = {"test": True}
     db.add(log)
     await db.commit()
     log_id = log.id

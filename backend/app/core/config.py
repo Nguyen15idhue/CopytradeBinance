@@ -40,6 +40,7 @@ class Settings(BaseSettings):
     raw_archive_hot_versions: int = 2
     raw_archive_compress_after_days: int = 1
     raw_archive_audit_retention_days: int = 90
+    collector_job_timeout_min: int = 60
 
     # AI (Phase 5)
     ai_enabled: bool = True
