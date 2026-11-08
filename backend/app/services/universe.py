@@ -5,6 +5,7 @@ import time
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
+from uuid import uuid4
 
 from sqlalchemy import and_, func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -154,9 +155,11 @@ async def scan_universe(
 
     try:
         seen_ids: set[str] = set()
+        scan_id = uuid4()
         for portfolio_type in portfolio_types:
             page = 1
             fetched_type = 0
+            raw_items: list[dict[str, Any]] = []
             while page <= max_pages:
                 if settings.collector_kill_switch:
                     result.skipped = True
@@ -181,24 +184,28 @@ async def scan_universe(
 
                 await _upsert_traders(db, fresh_items)
                 await _insert_snapshots(db, fresh_items, collected_at)
-                archive.append(
-                    f"list-{portfolio_type.lower()}",
-                    f"page-{page:04d}",
-                    page_data.items,
-                    meta={
-                        "endpoint": "/home-page/query-list",
-                        "portfolio_type": portfolio_type,
-                        "page": page,
-                        "total": page_data.total,
-                        "collected_at": collected_at.isoformat(),
-                    },
-                    at=collected_at,
-                )
+                raw_items.extend(page_data.items)
                 await db.commit()
 
                 if not page_data.items or fetched_type >= page_data.total:
                     break
                 page += 1
+            if raw_items:
+                await archive.write_bundle(
+                    db,
+                    f"list-{portfolio_type.lower()}",
+                    raw_items,
+                    meta={
+                        "endpoint": "/home-page/query-list",
+                        "portfolio_type": portfolio_type,
+                        "total": fetched_type,
+                        "pages": result.pages,
+                        "collected_at": collected_at.isoformat(),
+                    },
+                    at=collected_at,
+                    scan_id=scan_id,
+                    layer=LAYER,
+                )
             if result.skipped:
                 break
 

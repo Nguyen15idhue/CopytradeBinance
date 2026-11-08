@@ -65,7 +65,7 @@ async def status(
             )
         ).all()
     )
-    archive = RawArchive().stats()
+    archive = await RawArchive().manifest_stats(db)
     return ok(
         {
             "enabled": await collector_enabled(db),

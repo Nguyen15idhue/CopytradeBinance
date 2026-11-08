@@ -727,6 +727,11 @@ Nguồn: `docs/0/05-ke-hoach-do-tuoi-du-lieu-va-data-health.md`.
   `raw_archive_manifests` (migration `0019`) với index `created_at DESC` +
   `(layer,status)`; model `RawArchiveManifest`.
   → up/down OK; psql xác nhận index; `test_models` 5 pass; ruff pass.
+- B5.0.2: `RawArchive.write_bundle()` (gzip + `.tmp` + `os.replace`, rotate latest→previous,
+  manifest writing→success/failed), `manifest_stats()` đọc manifest; scan ghi 1 bundle/endpoint
+  thay vì 373 file. Config mới: `RAW_ARCHIVE_MODE/HOT_VERSIONS/COMPRESS_AFTER_DAYS/AUDIT_RETENTION_DAYS`.
+  Chạy thật 2 scan: latest 8.926 + 2.181 records (~6,5 MB tổng), lần 2 sinh `previous` (03:20);
+  manifest 4 dòng success. `test_raw_archive` 4 pass.
 
 Hiện tượng: hỏi "các nhóm a b c và bị loại là gì" → "Hết 8 bước tool mà chưa có đáp án."
 Bằng chứng: `knowledge_chunks = 0`; `agent_tool_calls` của phiên 126 gọi `search_knowledge`

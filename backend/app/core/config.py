@@ -36,6 +36,10 @@ class Settings(BaseSettings):
     deep_interval_hours_qualified: int = 12
     deep_interval_hours_high: int = 24
     raw_archive_dir: str = "data/raw"
+    raw_archive_mode: str = "latest_previous"
+    raw_archive_hot_versions: int = 2
+    raw_archive_compress_after_days: int = 1
+    raw_archive_audit_retention_days: int = 90
 
     # AI (Phase 5)
     ai_enabled: bool = True

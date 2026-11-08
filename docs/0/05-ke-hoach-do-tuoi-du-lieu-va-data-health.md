@@ -687,3 +687,11 @@ Quy tắc:
   → Bằng chứng: `alembic upgrade head → downgrade -1 → upgrade head` OK; psql xác nhận
   `ix_raw_manifest_created (created_at DESC)` + `ix_raw_manifest_layer_status`;
   `test_models` 5 pass; ruff pass.
+- [x] B5.0.2 Refactor RawArchive — `write_bundle()` gzip + tmp + `os.replace`, rotate
+  `latest→previous`, manifest `writing→success/failed`; `manifest_stats()` đọc manifest;
+  scan gom tất cả trang rồi ghi 1 bundle/endpoint (không còn 373 file/lần).
+  Config `RAW_ARCHIVE_MODE/HOT_VERSIONS/COMPRESS_AFTER_DAYS/AUDIT_RETENTION_DAYS`.
+  → Bằng chứng: `test_raw_archive` 4 pass (2 scan cùng giờ chỉ latest/previous; lỗi giữ latest,
+  không còn `.tmp`; stats không gọi `rglob`; audit ghi bundle theo ngày).
+  Chạy thật 2 lần scan: `list-public` 8.926 records / 5,3 MB; `list-signal` 2.181 / 1,2 MB;
+  lần 2 tạo `previous.jsonl.gz` (03:20) + `latest` (03:23); manifest 4 dòng success.
