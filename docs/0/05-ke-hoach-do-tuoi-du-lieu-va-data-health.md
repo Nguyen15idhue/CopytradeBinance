@@ -712,3 +712,12 @@ Quy tắc:
   → Bằng chứng: `test_scheduler_freshness` 7 pass + `test_scheduler_last_success` 1 pass +
   `test_scheduler` 3 pass; log worker khởi động đọc `last_success` thật từ DB
   (scan 03:36, perf/detail/trades 02:38) và chạy `retention` ngay vì chưa từng chạy.
+- [x] B5.0.6 Job thủ công lưu DB — migration `0020_collector_jobs` + model; API tạo job
+  `queued` rồi đẩy Redis `queue:collector:jobs`; worker consume, cập nhật
+  `running/success/failed/skipped` + `result/error`; thêm `GET /collector/jobs` và
+  `GET /collector/jobs/{uuid}`; job `queued/running` được requeue khi worker restart;
+  UI Data Health hiện 10 job + nút “Chạy scan/deep” cho admin.
+  → Bằng chứng: `test_collector_jobs` 2 pass (job trong DB, list/get/404), `test_collector_api`
+  pass (RBAC viewer 403, kill switch 409, UUID sai → 404); chạy thật: job `deep` được worker
+  nhận (queued→running) và job `scan` hoàn tất **queued→success** lúc 03:56 (371 trang, 11.108 trader);
+  E2E PASS thêm “Data Health ẩn nút job với viewer”.

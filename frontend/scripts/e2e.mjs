@@ -154,6 +154,10 @@ try {
     "Thiếu trạng thái bộ thu thập",
   );
   assert(health.includes("L0 — Quét universe"), "Thiếu bảng lần chạy");
+  assert(
+    (await page.getByRole("button", { name: "Chạy scan" }).count()) === 1,
+    "Admin thiếu nút chạy scan",
+  );
   console.log("Data Health render: OK");
 
   await page.getByRole("link", { name: "Bộ lọc trader" }).click();
@@ -468,6 +472,14 @@ try {
     "Viewer vẫn thấy icon agent",
   );
   console.log("Agent ẩn với viewer: OK");
+
+  await page.goto(`${base}/data-health`, { waitUntil: "domcontentloaded" });
+  await page.getByRole("heading", { name: "Sức khỏe dữ liệu" }).waitFor();
+  assert(
+    (await page.getByRole("button", { name: "Chạy scan" }).count()) === 0,
+    "Viewer vẫn thấy nút chạy job",
+  );
+  console.log("Data Health ẩn nút job với viewer: OK");
 
   assert(consoleErrors.length === 0, `Console error: ${consoleErrors.join(" | ")}`);
   console.log("E2E frontend: PASS");

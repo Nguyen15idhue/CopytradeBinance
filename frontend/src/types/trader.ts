@@ -66,12 +66,32 @@ export interface CollectorStatus {
     id: string;
     kind: string;
     status: string;
-    started_at: string;
+    requested_at?: string | null;
+    started_at: string | null;
     finished_at: string | null;
     error: string | null;
+    result?: Record<string, unknown> | null;
   }>;
-  raw_archive: { files: number; bytes: number };
+  raw_archive: {
+    files: number;
+    bytes: number;
+    records?: number;
+    mode?: string;
+    latest_at?: string | null;
+    source?: string;
+  };
   generated_at: string;
+}
+
+export interface CollectorJob {
+  id: string;
+  kind: string;
+  status: string;
+  requested_at: string | null;
+  started_at: string | null;
+  finished_at: string | null;
+  result: Record<string, unknown> | null;
+  error: string | null;
 }
 
 export interface ScreenerItem {

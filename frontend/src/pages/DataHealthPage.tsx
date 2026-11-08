@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { getCollectorStatus } from "../lib/api";
+import { getCollectorStatus, runCollectorJob } from "../lib/api";
+import { getStoredUser } from "../lib/auth";
 import {
   JOB_KIND_LABELS,
   JOB_STATUS_LABELS,
@@ -26,6 +27,7 @@ export default function DataHealthPage() {
     queryFn: getCollectorStatus,
     refetchInterval: 30_000,
   });
+  const isAdmin = getStoredUser()?.role === "admin";
 
   if (query.isLoading) {
     return <div className="h-40 animate-pulse rounded-2xl bg-panel" />;
@@ -155,26 +157,50 @@ export default function DataHealthPage() {
         </section>
 
         <section className="rounded-2xl border border-line bg-panel p-5">
-          <h2 className="text-sm font-medium uppercase tracking-wide text-faint">
-            Job thủ công
-          </h2>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-sm font-medium uppercase tracking-wide text-faint">
+              Job thủ công
+            </h2>
+            {isAdmin ? (
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await runCollectorJob("scan");
+                    await query.refetch();
+                  }}
+                  className="rounded-lg border border-line px-3 py-1.5 text-sm text-body"
+                >
+                  Chạy scan
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await runCollectorJob("deep");
+                    await query.refetch();
+                  }}
+                  className="rounded-lg border border-line px-3 py-1.5 text-sm text-body"
+                >
+                  Chạy deep
+                </button>
+              </div>
+            ) : null}
+          </div>
           {data.jobs.length === 0 ? (
-            <p className="mt-3 text-sm text-muted">Chưa có job nào trong phiên này.</p>
+            <p className="mt-3 text-sm text-muted">Chưa có job nào.</p>
           ) : (
             <ul className="mt-3 space-y-2 text-sm">
-              {data.jobs
-                .slice()
-                .reverse()
-                .slice(0, 5)
-                .map((job) => (
-                  <li key={job.id} className="flex items-center justify-between gap-3">
-                    <span className="text-body">
-                      {label(JOB_KIND_LABELS, job.kind, job.kind)} ·{" "}
-                      {label(JOB_STATUS_LABELS, job.status, job.status)}
-                    </span>
-                    <span className="text-xs text-faint">{formatDate(job.started_at)}</span>
-                  </li>
-                ))}
+              {data.jobs.slice(0, 10).map((job) => (
+                <li key={job.id} className="flex items-center justify-between gap-3">
+                  <span className="text-body">
+                    {label(JOB_KIND_LABELS, job.kind, job.kind)} ·{" "}
+                    {label(JOB_STATUS_LABELS, job.status, job.status)}
+                  </span>
+                  <span className="text-xs text-faint">
+                    {formatDate(job.finished_at ?? job.started_at ?? job.requested_at ?? null)}
+                  </span>
+                </li>
+              ))}
             </ul>
           )}
         </section>

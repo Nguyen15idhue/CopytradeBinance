@@ -3,6 +3,7 @@ import type {
   AIReportsResponse,
   AIReportItem,
   CollectorStatus,
+  CollectorJob,
   CompareResponse,
   FunnelSummary,
   LoginResult,
@@ -88,6 +89,29 @@ export async function getTrader(id: string): Promise<TraderDetail> {
 
 export async function getCollectorStatus(): Promise<CollectorStatus> {
   return request<CollectorStatus>("/collector/status");
+}
+
+export async function runCollectorJob(kind: "scan" | "deep"): Promise<{
+  job_id: string;
+  kind: string;
+  status: string;
+}> {
+  return request(`/collector/run-${kind}`, { method: "POST" });
+}
+
+export async function getCollectorJobs(): Promise<{
+  items: CollectorJob[];
+  total: number;
+}> {
+  return request("/collector/jobs?limit=10");
+}
+
+export async function getArchiveStats(): Promise<{
+  items: Array<Record<string, unknown>>;
+  totals: { files: number; bytes: number; records: number };
+  by_day: Array<{ day: string; files: number; bytes: number; records: number }>;
+}> {
+  return request("/collector/archive-stats");
 }
 
 export function toQuery(filters: Record<string, unknown>): string {

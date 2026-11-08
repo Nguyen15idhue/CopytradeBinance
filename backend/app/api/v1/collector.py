@@ -1,6 +1,7 @@
 import json
 from datetime import UTC, datetime
 from typing import Any
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, Request, Response
 from pydantic import BaseModel
@@ -17,7 +18,12 @@ from app.models.raw_manifest import RawArchiveManifest
 from app.models.universe import TraderUniverse
 from app.models.user import User
 from app.services.config_store import KILL_SWITCH_KEY, collector_enabled, set_setting
-from app.services.jobs import get_job, recent_jobs, start_deep_job, start_scan_job
+from app.services.jobs import (
+    create_job,
+    enqueue_job,
+    get_job,
+    recent_jobs,
+)
 from app.services.storage.raw import RawArchive
 
 router = APIRouter(prefix="/collector", tags=["collector"])
@@ -120,7 +126,7 @@ async def status(
             "kill_switch_key": KILL_SWITCH_KEY,
             "tiers": tiers,
             "latest_runs": latest,
-            "jobs": recent_jobs(),
+            "jobs": await recent_jobs(db),
             "raw_archive": archive,
             "generated_at": datetime.now(UTC).isoformat(),
         },
@@ -191,9 +197,10 @@ async def run_scan(
 ) -> dict[str, Any]:
     if not await collector_enabled(db):
         raise ApiError(409, "COLLECTOR_DISABLED", "Collector đang bị tắt (kill switch)")
-    job_id = start_scan_job()
+    job = await create_job(db, "scan", user.id)
+    await enqueue_job(job.id)
     response.status_code = 202
-    return ok({"job_id": job_id, "kind": "scan", "status": "running"}, request)
+    return ok({"job_id": str(job.id), "kind": "scan", "status": job.status}, request)
 
 
 @router.post("/run-deep")
@@ -205,21 +212,34 @@ async def run_deep(
 ) -> dict[str, Any]:
     if not await collector_enabled(db):
         raise ApiError(409, "COLLECTOR_DISABLED", "Collector đang bị tắt (kill switch)")
-    job_id = start_deep_job()
+    job = await create_job(db, "deep", user.id)
+    await enqueue_job(job.id)
     response.status_code = 202
-    return ok({"job_id": job_id, "kind": "deep", "status": "running"}, request)
+    return ok({"job_id": str(job.id), "kind": "deep", "status": job.status}, request)
+
+
+@router.get("/jobs")
+async def jobs(
+    request: Request,
+    limit: int = 10,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict[str, Any]:
+    items = await recent_jobs(db, max(1, min(limit, 50)))
+    return ok({"items": items, "total": len(items)}, request)
 
 
 @router.get("/jobs/{job_id}")
 async def job_status(
-    job_id: str,
+    job_id: UUID,
     request: Request,
+    db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> dict[str, Any]:
-    job = get_job(job_id)
+    job = await get_job(db, job_id)
     if job is None:
         raise ApiError(404, "JOB_NOT_FOUND", "Không tìm thấy job")
-    return ok(job, request)
+    return ok(job.as_dict(), request)
 
 
 @router.post("/kill-switch")

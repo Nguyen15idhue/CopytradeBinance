@@ -58,5 +58,8 @@ async def test_kill_switch_and_rbac() -> None:
         viewer_status = await client.get("/api/v1/collector/status", headers=viewer)
         assert viewer_status.status_code == 200
 
-        missing_job = await client.get("/api/v1/collector/jobs/khong-ton-tai", headers=admin)
+        missing_job = await client.get(
+            "/api/v1/collector/jobs/00000000-0000-0000-0000-000000000000",
+            headers=admin,
+        )
         assert missing_job.status_code == 404

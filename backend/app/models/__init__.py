@@ -10,6 +10,7 @@ from app.models.app_setting import AppSetting
 from app.models.audit_log import AuditLog
 from app.models.base import Base
 from app.models.collection_log import CollectionLog
+from app.models.collector_job import CollectorJob
 from app.models.data_quality_flag import DataQualityFlag
 from app.models.knowledge_chunk import KnowledgeChunk
 from app.models.performance import PerformanceMetric
@@ -42,6 +43,7 @@ __all__ = [
     "AuditLog",
     "Base",
     "CollectionLog",
+    "CollectorJob",
     "DataQualityFlag",
     "KnowledgeChunk",
     "PerformanceMetric",

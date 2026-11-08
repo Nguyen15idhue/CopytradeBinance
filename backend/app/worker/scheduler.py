@@ -36,6 +36,37 @@ DEEP_JOBS = {"perf", "detail", "trades"}
 RETRY_DELAY = timedelta(minutes=15)
 MAX_RETRIES = 3
 JITTER_MINUTES = 5
+RETENTION_MARKER = "collector:last_retention"
+
+
+async def _read_retention_marker() -> datetime | None:
+    try:
+        from redis.asyncio import Redis
+
+        client = Redis.from_url(get_settings().redis_url)
+        try:
+            raw = await client.get(RETENTION_MARKER)
+        finally:
+            await client.aclose()
+        if not raw:
+            return None
+        value = raw.decode("utf-8") if isinstance(raw, bytes) else str(raw)
+        return datetime.fromisoformat(value)
+    except Exception:  # noqa: BLE001 - thiếu marker thì coi như chưa chạy
+        return None
+
+
+async def _write_retention_marker(moment: datetime) -> None:
+    try:
+        from redis.asyncio import Redis
+
+        client = Redis.from_url(get_settings().redis_url)
+        try:
+            await client.set(RETENTION_MARKER, moment.isoformat())
+        finally:
+            await client.aclose()
+    except Exception:  # noqa: BLE001
+        pass
 
 
 def intervals_from(values: dict[str, int]) -> dict[str, timedelta]:
@@ -129,6 +160,7 @@ async def _run_retention() -> None:
             async with SessionLocal() as db:
                 result = await run_retention(db)
                 logger.info("retention xong: %s", result)
+                await _write_retention_marker(datetime.now(UTC))
     except LockUnavailable:
         logger.info("Job retention bỏ qua vì khóa đang được giữ")
     except Exception:  # noqa: BLE001 - không làm chết scheduler
@@ -172,8 +204,14 @@ async def main() -> None:
     running: dict[str, asyncio.Task] = {}
     retry_at: dict[str, datetime] = {}
 
+    from app.services.jobs import consume_queue, requeue_orphans
+
+    await requeue_orphans()
+    consumer = asyncio.create_task(consume_queue())
+
     async with SessionLocal() as db:
         last_success = await load_last_success(db)
+    last_success["retention"] = await _read_retention_marker()
     logger.info(
         "Scheduler khởi động, interval=%s, last_success=%s",
         await load_intervals(),
@@ -197,6 +235,10 @@ async def main() -> None:
                 running.pop(kind, None)
                 async with SessionLocal() as db:
                     last_success = await load_last_success(db)
+                last_success["retention"] = await _read_retention_marker()
+        if consumer.done():
+            logger.error("Consumer job dừng bất thường, khởi động lại")
+            consumer = asyncio.create_task(consume_queue())
         await asyncio.sleep(60)
 
 

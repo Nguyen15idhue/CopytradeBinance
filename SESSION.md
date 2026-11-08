@@ -742,6 +742,13 @@ Nguồn: `docs/0/05-ke-hoach-do-tuoi-du-lieu-va-data-health.md`.
   jitter ±5 phút cho deep job, startup chạy bù, retry 15 phút ×3, timeout 60 phút; log do test
   tạo được đánh dấu `detail.test=true` để không làm lệch lịch.
   Test: `test_scheduler_freshness` 7, `test_scheduler_last_success` 1, `test_scheduler` 3 pass.
+- B5.0.6: migration `0020_collector_jobs` + model `CollectorJob`; `services/jobs.py` chuyển sang
+  DB là nguồn sự thật (tạo queued → Redis `queue:collector:jobs` → worker consume → cập nhật
+  running/success/failed/skipped + result/error); API `POST run-*`, `GET /collector/jobs`,
+  `GET /collector/jobs/{uuid}`; requeue job kẹt khi worker restart; UI có 10 job + nút chạy (admin).
+  Evidence: job `scan` thật chạy **queued→success** trong 132s (371 trang, 11.108 trader);
+  `test_collector_jobs` 2 pass; E2E PASS (viewer không thấy nút chạy).
+  Fix phụ: retention lặp mỗi phút vì không có layer → thêm marker Redis `collector:last_retention`.
 
 Hiện tượng: hỏi "các nhóm a b c và bị loại là gì" → "Hết 8 bước tool mà chưa có đáp án."
 Bằng chứng: `knowledge_chunks = 0`; `agent_tool_calls` của phiên 126 gọi `search_knowledge`
