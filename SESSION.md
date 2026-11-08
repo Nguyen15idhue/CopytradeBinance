@@ -827,3 +827,8 @@ B6.1.2: `copy_plan/policy.py` (safe/balanced/aggressive/custom),
 tổng cắt lỗ, TP/SL, symbol/TradFi, margin/leverage, advanced),
 `copy_plan/validate.py` (biên, evidence, nhất quán). `test_copy_plan_planner` 18 pass,
 `test_copy_plan_limits` 4 pass; ruff pass.
+
+B6.1.3: `copy_plan/data.py` nạp constraints/metrics, suy margin mode đa số từ
+`positions.isolated` + confidence, symbol stats từ positions/trades (notional, share,
+TradFi estimated), `low_liquidity = null`. `test_copy_plan_data` 3 unit pass +
+integration trader thật pass; ruff pass.
