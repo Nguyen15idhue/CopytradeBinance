@@ -847,3 +847,9 @@ system prompt có nhánh “x USDT copy trader y”; session API trả plan. Tes
 B6.1.6: `verify_copy_plan(plan, facts)` gọi `validate_plan` với fact ids thật; orchestrator
 gộp warning plan vào answer, hạ confidence khi có warning, không tự sửa số. Test
 `test_agent_verifier` 9 pass + flow/agent copy plan 16 pass integration.
+
+B6.1.7: `CopyPlanCard` hiển thị 4 nhóm (bắt buộc/ký hiệu/rủi ro/nâng cao), chip
+nguồn + trạng thái, cảnh báo/missing, disclaimer, copy JSON; `AgentPanel` render card
+từ `done.copy_plan`; types `AgentCopyPlan`. `npm run build` pass; E2E checkpoint
+"Agent copy plan card" PASS (desktop + mobile 375). Agent panel hiện dùng chuỗi tiếng Việt
+inline (không sửa `i18n/vi.ts` đang có thay đổi của người dùng).

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { getStoredUser } from "../../lib/auth";
+import CopyPlanCard from "./CopyPlanCard";
 import Markdown from "./Markdown";
 import {
   deleteAgentSession,
@@ -326,7 +327,7 @@ export default function AgentPanel({ onClose }: { onClose: () => void }) {
               ),
             );
           },
-          onDone: (answer, _usage, messageId, sessionId) => {
+          onDone: (answer, _usage, messageId, sessionId, copyPlan) => {
             if (sessionId) {
               setSessionId(sessionId);
               storeAgentSession(sessionId);
@@ -334,7 +335,13 @@ export default function AgentPanel({ onClose }: { onClose: () => void }) {
             setMessages((prev) =>
               prev.map((item) =>
                 item.id === assistantMessage.id
-                  ? { ...item, content: answer, pending: false, serverId: messageId }
+                  ? {
+                      ...item,
+                      content: answer,
+                      copy_plan: copyPlan,
+                      pending: false,
+                      serverId: messageId,
+                    }
                   : item,
               ),
             );
@@ -512,6 +519,7 @@ export default function AgentPanel({ onClose }: { onClose: () => void }) {
                 </div>
                 {item.role === "assistant" ? (
                   <>
+                    {item.copy_plan ? <CopyPlanCard plan={item.copy_plan} /> : null}
                     <TraceBox traces={item.traces ?? []} />
                     <CitationChips items={item.citations ?? []} />
                     {item.serverId ? <FeedbackButtons messageId={item.serverId} /> : null}

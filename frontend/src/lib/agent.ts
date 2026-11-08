@@ -1,5 +1,5 @@
 import { getAccessToken, refreshSession } from "./auth";
-import type { AgentMessageItem, AgentSessionItem } from "../types/agent";
+import type { AgentCopyPlan, AgentMessageItem, AgentSessionItem } from "../types/agent";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "/api/v1";
 
@@ -87,7 +87,13 @@ export interface AgentStreamHandlers {
   onTrace: (tool: string, summary: string | undefined, ok: boolean | undefined) => void;
   onCitation: (items: { source_type: string; ref: string }[]) => void;
   onWarning: (message: string) => void;
-  onDone: (answer: string, usage: unknown, messageId: number, sessionId: number) => void;
+  onDone: (
+    answer: string,
+    usage: unknown,
+    messageId: number,
+    sessionId: number,
+    copyPlan: AgentCopyPlan | null,
+  ) => void;
   onError: (message: string) => void;
 }
 
@@ -153,6 +159,7 @@ export async function streamAgentChat(
         data.usage,
         Number(data.message_id ?? 0),
         Number(data.session_id ?? 0),
+        (data.copy_plan as AgentCopyPlan | null | undefined) ?? null,
       );
     } else if (event === "error") {
       handlers.onError(String(data.message ?? "Trợ lý AI gặp lỗi"));

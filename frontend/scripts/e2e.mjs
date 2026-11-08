@@ -530,6 +530,155 @@ try {
   await page.getByRole("button", { name: "Mở trợ lý AI" }).waitFor();
   console.log("Agent giữ phiên sau đóng/reload: OK");
 
+  const copyPlan = {
+    version: 1,
+    trader_id: "5143921081414022657",
+    limits_version: "2026-11-binance-copy-form-v1",
+    copy_mode: {
+      value: "fixed_amount",
+      source: "computed",
+      status: "ok",
+      eligible_modes: ["fixed_amount"],
+      blocked_modes: [],
+    },
+    copy_amount_usd: {
+      value: 24.84,
+      unit: "USDT",
+      source: "computed",
+      status: "ok",
+      min: 10,
+      max: 300000,
+    },
+    cost_per_order_usd: {
+      value: 10,
+      unit: "USDT",
+      source: "computed",
+      status: "defaulted",
+      min: 10,
+      max: 50000,
+      note: "đã nâng để đạt lệnh tối thiểu",
+    },
+    max_cost_per_order_pct: {
+      value: 41,
+      unit: "%",
+      source: "default",
+      status: "defaulted",
+      min: 5,
+      max: 95,
+      note: "theo chính sách balanced",
+    },
+    total_stop_loss_usd: {
+      value: 8.69,
+      unit: "USDT",
+      source: "computed",
+      status: "ok",
+    },
+    symbols: {
+      value: null,
+      source: "default",
+      status: "user_choice",
+      mode: "all",
+      top: [
+        { symbol: "BTCUSDT", share_pct: 40 },
+        { symbol: "XAUUSDT", share_pct: 10 },
+      ],
+      tradfi: ["XAUUSDT"],
+      low_liquidity: null,
+    },
+    copy_existing_positions: {
+      value: null,
+      source: "default",
+      status: "user_choice",
+    },
+    better_entry_price: {
+      value: null,
+      source: "default",
+      status: "user_choice",
+    },
+    margin_mode: {
+      value: "copy_lead",
+      source: "derived",
+      status: "ok",
+      lead_mode: "isolated",
+      confidence: 0.8,
+    },
+    leverage: {
+      value: "copy_lead",
+      source: "derived",
+      status: "ok",
+      lead_max: 20,
+      lead_avg: 8,
+      effective: null,
+    },
+    max_slippage_pct: {
+      value: null,
+      source: "missing",
+      status: "missing",
+      unit: "%",
+      note: "hệ thống không có dữ liệu slippage; dùng mặc định Binance",
+    },
+    take_profit_pct: {
+      value: null,
+      source: "default",
+      status: "user_choice",
+      unit: "%",
+      min: 0,
+      max: 2000,
+    },
+    stop_loss_pct: {
+      value: 35,
+      unit: "%",
+      source: "computed",
+      status: "ok",
+      min: 0,
+      max: 95,
+    },
+    close_all_at_take_profit: {
+      value: null,
+      source: "default",
+      status: "user_choice",
+    },
+    auto_invest: {
+      value: null,
+      source: "default",
+      status: "user_choice",
+    },
+    can_copy: true,
+    used_capital_usd: 24.84,
+    warnings: ["Vốn khai báo 100 USDT lớn hơn khả dụng 24.84 USDT; dùng 24.84 USDT."],
+    missing_fields: ["max_slippage_pct"],
+    assumptions: ["balanced: max cost/order 10%."],
+  };
+  await page.route("**/api/v1/agent/chat", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "text/event-stream",
+      body: `event: done\ndata: ${JSON.stringify({
+        session_id: 1,
+        message_id: 3,
+        answer: "Cấu hình tham chiếu từ dữ liệu hiện có. Không phải lời khuyên đầu tư.",
+        copy_plan: copyPlan,
+        copy_plan_version: 1,
+        model: "mock",
+        usage: {},
+      })}\n\n`,
+    }),
+  );
+  await page.getByRole("button", { name: "Mở trợ lý AI" }).click();
+  const planDialog = page.getByRole("dialog", { name: "Trợ lý AI" });
+  await planDialog.waitFor();
+  await planDialog.getByPlaceholder(/Nhập câu hỏi/).fill("Tôi có 100 USDT copy trader này thế nào?");
+  await planDialog.getByPlaceholder(/Nhập câu hỏi/).press("Control+Enter");
+  await planDialog.getByText("Cấu hình tham chiếu", { exact: true }).waitFor();
+  await planDialog.getByText("24,84 USDT", { exact: false }).first().waitFor();
+  await planDialog.getByText("8,69 USDT", { exact: false }).first().waitFor();
+  await planDialog.getByText("Copy JSON", { exact: true }).waitFor();
+  await planDialog.getByText("max_slippage_pct", { exact: false }).waitFor();
+  await page.setViewportSize({ width: 375, height: 800 });
+  await planDialog.getByText("Cấu hình tham chiếu", { exact: true }).waitFor();
+  await page.setViewportSize({ width: 1440, height: 900 });
+  console.log("Agent copy plan card: OK");
+
   await page.getByRole("button", { name: "Đăng xuất" }).click();
   await page.getByRole("heading", { name: "Đăng nhập" }).waitFor();
   console.log("Đăng xuất: OK");
