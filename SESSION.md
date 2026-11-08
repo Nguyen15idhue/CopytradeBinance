@@ -857,3 +857,8 @@ inline (không sửa `i18n/vi.ts` đang có thay đổi của người dùng).
 B6.1.8: TradFi đã triển khai trong `copy_plan/data.py` (prefix XAU/XAG/EUR/GBP/...,
 `tradfi_confidence=estimated`). Volume 24h để lọc thanh khoản thấp **không làm** theo Q3
 (cần nguồn ngoài/secret mới); `low_liquidity = null`, ghi vào `missing_fields`.
+
+B6.1.9: QA cuối plan 06 — backend **320 pass** (`RUN_INTEGRATION=1`), ruff pass;
+`npm run build` pass; E2E **25 checkpoint PASS** (gồm Agent copy plan card desktop +
+mobile 375); migration head `0021_agent_copy_plan` (up/down/up); check_refs 174/0;
+check_tech_docs 20/20. Kết quả chi tiết + hash từng bước ở `docs/0/06-...` §17.

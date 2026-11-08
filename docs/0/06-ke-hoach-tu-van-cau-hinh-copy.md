@@ -1,6 +1,6 @@
 # 06 — Kế hoạch: Tư vấn cấu hình copy theo vốn và trader
 
-> Trạng thái: **kế hoạch**, chưa triển khai.
+> Trạng thái: **đã triển khai** (08/11/2026), xem §17 kết quả.
 > Phạm vi: agent chat trả lời câu hỏi dạng “Tôi có x USDT, muốn copy trader y thì cấu hình thế nào?”
 > bằng một **copy_plan có cấu trúc**, đối chiếu đúng dữ liệu Binance đang có và giới hạn form của Binance.
 > Người dùng: admin (theo RBAC của agent hiện tại).
@@ -782,3 +782,35 @@ Tổng: **6–7,5 ngày** (chưa gồm 6.1.8 optional).
 - `docs/api.md`, `docs/ky-thuat/12-ai.md`, `docs/kehoach/TASKS.md`, `SESSION.md` cập nhật.
 - `ruff`, `npm run build`, `check_refs.py` pass.
 - Commit theo bước `feat(phase6): 6.1.x ...`; báo cáo 1–3 dòng kèm hash.
+
+
+---
+
+## 17. Kết quả triển khai (08/11/2026)
+
+| Bước | Kết quả | Commit |
+|---|---|---|
+| B6.1.1 | `copy_plan/limits.py`, Settings override, migration `0021_agent_copy_plan` | `1af6cdf` |
+| B6.1.2 | `policy.py`, `planner.py`, `validate.py`; 18 unit case | `4540626` |
+| B6.1.3 | `data.py`: constraints, margin mode đa số, symbol stats, TradFi estimated | `56464c1` |
+| B6.1.4 | Tool `build_copy_plan` + evidence + meta | `dbc249d` |
+| B6.1.5 | `AgentAnswer.copy_plan`, SSE `done`, lưu DB, session API, fallback template | `131820b` |
+| B6.1.6 | `verify_copy_plan` + warning/confidence | `f402127` |
+| B6.1.7 | `CopyPlanCard`, types, E2E desktop + mobile 375 | `aaca92a` |
+| B6.1.8 | TradFi có; volume 24h không làm theo Q3 (`low_liquidity=null`) | `edbfe08` |
+| B6.1.9 | QA + docs + eval | (commit QA) |
+
+Bằng chứng QA cuối:
+- Backend: **320 passed** (`RUN_INTEGRATION=1`), ruff pass.
+- Frontend: `npm run build` pass; E2E **PASS** 25 checkpoint (gồm “Agent copy plan card”).
+- Migration head: `0021_agent_copy_plan`; up/down/up OK.
+- Tài liệu: `check_refs` 174/0; `check_tech_docs` 20/20.
+- Không có secret/file rác trong commit.
+
+Khác biệt so với kế hoạch:
+- `max_cost_per_order_pct` lấy từ policy (safe 5 / balanced 10 / aggressive 20) và có thể
+  bị nâng để đạt lệnh tối thiểu 10 USDT; trả `status=defaulted` + note.
+- `copy_amount_usd` cap theo `min(capital, available, max)` và cap thêm `copy_amount` khi
+  tính tổng cắt lỗ (không vượt phần vốn thực dùng).
+- `i18n/vi.ts` không sửa vì đang có thay đổi của người dùng; card dùng chuỗi tiếng Việt
+  inline giống phần còn lại của AgentPanel.
