@@ -721,3 +721,10 @@ Quy tắc:
   pass (RBAC viewer 403, kill switch 409, UUID sai → 404); chạy thật: job `deep` được worker
   nhận (queued→running) và job `scan` hoàn tất **queued→success** lúc 03:56 (371 trang, 11.108 trader);
   E2E PASS thêm “Data Health ẩn nút job với viewer”.
+- [x] B5.0.7 UI loading/progress — `keepPreviousData` (placeholderData), `staleTime/refetchInterval`
+  60s, `refetchOnWindowFocus=false`, `refetchIntervalInBackground=false`; skeleton từng section
+  (`aria-busy`); đồng hồ "Cập nhật Ns trước · tự làm mới sau Ms"; "Đang cập nhật…" khi fetching;
+  lỗi khi đã có dữ liệu → banner + Thử lại và giữ nội dung cũ; lỗi khi chưa có dữ liệu →
+  trang lỗi + Thử lại; card raw archive hiện mode/records/source.
+  → Bằng chứng: build pass; E2E thêm route chậm 2,5s (thấy skeleton) và route 500
+  (thấy trang lỗi + Thử lại); toàn bộ E2E PASS, 0 console error.

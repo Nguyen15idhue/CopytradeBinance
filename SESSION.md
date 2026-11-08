@@ -749,6 +749,10 @@ Nguồn: `docs/0/05-ke-hoach-do-tuoi-du-lieu-va-data-health.md`.
   Evidence: job `scan` thật chạy **queued→success** trong 132s (371 trang, 11.108 trader);
   `test_collector_jobs` 2 pass; E2E PASS (viewer không thấy nút chạy).
   Fix phụ: retention lặp mỗi phút vì không có layer → thêm marker Redis `collector:last_retention`.
+- B5.0.7: Data Health dùng `placeholderData` giữ dữ liệu cũ, `staleTime/refetchInterval` 60s,
+  tắt refetch nền/focus; skeleton từng section `aria-busy`; đồng hồ "Cập nhật Ns · tự làm mới sau Ms";
+  banner lỗi + Thử lại (giữ dữ liệu) và trang lỗi riêng khi chưa có dữ liệu; card archive hiện
+  mode/records/source. E2E thêm route chậm 2,5s + route 500 → PASS.
 
 Hiện tượng: hỏi "các nhóm a b c và bị loại là gì" → "Hết 8 bước tool mà chưa có đáp án."
 Bằng chứng: `knowledge_chunks = 0`; `agent_tool_calls` của phiên 126 gọi `search_knowledge`

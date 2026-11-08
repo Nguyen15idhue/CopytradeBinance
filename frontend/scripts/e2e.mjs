@@ -158,7 +158,35 @@ try {
     (await page.getByRole("button", { name: "Chạy scan" }).count()) === 1,
     "Admin thiếu nút chạy scan",
   );
+  await page.getByText(/tự làm mới sau/).waitFor();
+  const healthText = await page.locator("body").innerText();
+  assert(!healthText.includes("undefined") && !healthText.includes("NaN"), "Data Health có undefined/NaN");
   console.log("Data Health render: OK");
+
+  // Route chậm: phải thấy skeleton, không màn hình trắng.
+  await page.route("**/api/v1/collector/status", async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 2500));
+    await route.continue();
+  });
+  await page.goto(`${base}/data-health`, { waitUntil: "domcontentloaded" });
+  await page.locator('[aria-busy="true"]').waitFor();
+  await page.getByRole("heading", { name: "Sức khỏe dữ liệu" }).waitFor();
+  await page.unroute("**/api/v1/collector/status");
+
+  // Lỗi khi chưa có dữ liệu: trang lỗi có nút thử lại.
+  await page.route("**/api/v1/collector/status", (route) =>
+    route.fulfill({ status: 500, contentType: "application/json", body: "{}" }),
+  );
+  await page.goto(`${base}/data-health`, { waitUntil: "domcontentloaded" });
+  await page.getByText("Không tải được Sức khỏe dữ liệu").waitFor();
+  await page.getByRole("button", { name: "Thử lại" }).waitFor();
+  await page.unroute("**/api/v1/collector/status");
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.getByRole("heading", { name: "Sức khỏe dữ liệu" }).waitFor();
+  // 500 ở trên là chủ đích của test lỗi — loại khỏi bộ đếm console error.
+  for (let index = consoleErrors.length - 1; index >= 0; index -= 1) {
+    if (consoleErrors[index].includes("status of 500")) consoleErrors.splice(index, 1);
+  }
 
   await page.getByRole("link", { name: "Bộ lọc trader" }).click();
   await page.getByRole("heading", { name: "Bộ lọc trader" }).waitFor();
