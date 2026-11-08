@@ -166,7 +166,7 @@ def position_metrics(positions: list[dict[str, Any]]) -> dict[str, Any]:
         "best_position_pnl": max(pnls) if pnls else None,
         "worst_position_pnl": min(pnls) if pnls else None,
         "worst_position_roi": round(min(rois) * 100, 4) if rois else None,
-        "near_liquidation_count": sum(1 for value in rois if value <= -0.8),
+        "near_liquidation_count": sum(1 for value in rois if -0.8 < value <= -0.5),
         "long_short_ratio": round(longs / shorts, 4) if shorts else None,
         "top_symbol": top_symbols[0][0] if top_symbols else None,
         "top_symbol_share": round(shares[0] * 100, 4) if shares else None,

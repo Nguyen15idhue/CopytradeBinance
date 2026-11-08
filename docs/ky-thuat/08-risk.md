@@ -31,7 +31,7 @@ Từ `_value()` trong `backend/app/services/risk_rules.py`:
 | R03 | MDD > 30% | critical |
 | R04 | max leverage > 10x | high |
 | R05 | max leverage > 20x | critical |
-| R06 | worst position ROI ≤ −80% | critical |
+| R06 | vị thế đã đóng lỗ ≤ −80% | critical |
 | R07 | totalOrder < 20 | low_sample |
 | R08 | Sharpe null | confidence_penalty |
 | R09 | freshness > 150 phút | medium |
@@ -39,7 +39,7 @@ Từ `_value()` trong `backend/app/services/risk_rules.py`:
 | R11 | Copy AUM ratio < 5% | medium |
 | R12 | fee drag > 20%; fee âm bỏ qua | medium |
 | R13 | HHI > 0.4 hoặc top symbol > 50% | medium |
-| R14 | near-liquidation count ≥ 1 | high |
+| R14 | số vị thế đã đóng lỗ sâu (−80%, −50%] ≥ 1 | high |
 | R15 | profit factor < 1 khi positions ≥ 5 | medium |
 | R16 | Calmar < 0 | high |
 | R17 | confidence < 0.5 hoặc freshness null | medium |

@@ -1,4 +1,4 @@
-import { clearSession, getAccessToken } from "./auth";
+import { clearSession, getAccessToken, refreshSession } from "./auth";
 import type {
   AIReportsResponse,
   AIReportItem,
@@ -49,13 +49,24 @@ interface ApiErrorBody {
   error: { code: string; message: string; details?: unknown };
 }
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+async function request<T>(
+  path: string,
+  options: RequestInit = {},
+  retried = false,
+): Promise<T> {
   const token = getAccessToken();
   const headers = new Headers(options.headers);
   headers.set("Content-Type", "application/json");
   if (token) headers.set("Authorization", `Bearer ${token}`);
 
   const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
+
+  if (response.status === 401 && !retried && !path.startsWith("/auth/")) {
+    if (await refreshSession()) {
+      return request<T>(path, options, true);
+    }
+  }
+
   const body = (await response.json().catch(() => null)) as
     | ApiResponse<T>
     | ApiErrorBody

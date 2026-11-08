@@ -196,3 +196,31 @@ async def test_screener_null_window_not_zero() -> None:
         # API phải khớp DB tuyệt đối: null giữ null, không bị đổi thành 0.
         for item in items:
             assert item["windows"]["180D"]["roi"] == db_values[item["id"]]
+
+
+@pytest.mark.asyncio
+async def test_search_by_name_and_id() -> None:
+    await seed_admin()
+    async with await _client() as client:
+        headers = await _login(client)
+
+        by_id = await client.get(
+            "/api/v1/traders", params={"q": "4954939000240529664"}, headers=headers
+        )
+        assert by_id.status_code == 200
+        items = by_id.json()["data"]["items"]
+        assert items
+        assert any(item["id"] == "4954939000240529664" for item in items)
+
+        partial = await client.get(
+            "/api/v1/traders", params={"q": "4954939000"}, headers=headers
+        )
+        assert partial.status_code == 200
+        assert any(item["id"] == "4954939000240529664" for item in partial.json()["data"]["items"])
+
+        nickname = await client.get(
+            "/api/v1/traders", params={"q": "CIC"}, headers=headers
+        )
+        assert nickname.status_code == 200
+        for item in nickname.json()["data"]["items"]:
+            assert "cic" in (item["nickname"] or "").lower() or "cic" in item["id"].lower()

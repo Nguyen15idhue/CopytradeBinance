@@ -63,11 +63,26 @@ def test_position_metrics_profit_factor_payoff_and_concentration() -> None:
     assert result["profit_factor"] == pytest.approx(160 / 55, rel=1e-4)
     assert result["payoff_ratio"] == pytest.approx((160 / 3) / (55 / 3), rel=1e-4)
     assert result["worst_position_roi"] == pytest.approx(-90.0)
-    assert result["near_liquidation_count"] == 1
+    # -90% thuộc R06 (≤ -80%), không còn bị đếm trùng ở R14.
+    assert result["near_liquidation_count"] == 0
     assert result["top_symbol"] == "BTCUSDT"
     assert result["top_symbol_share"] == pytest.approx(900 / 1150 * 100, rel=1e-4)
     assert result["median_holding_hours"] == 10
     assert result["position_win_rate"] == pytest.approx(3 / 6 * 100)
+
+
+def test_near_liquidation_band_does_not_duplicate_r06() -> None:
+    # R14 chỉ đếm vị thế lỗ sâu trong khoảng (-80%, -50%]; -85% và -100% thuộc R06.
+    positions = [
+        _pos(-100, -1.0),
+        _pos(-85, -0.85),
+        _pos(-60, -0.6),
+        _pos(-50, -0.5),
+        _pos(-40, -0.4),
+    ]
+    result = position_metrics(positions)
+    assert result["worst_position_roi"] == pytest.approx(-100.0)
+    assert result["near_liquidation_count"] == 2
 
 
 def test_position_metrics_empty_is_null_not_zero() -> None:

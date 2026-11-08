@@ -1,4 +1,4 @@
-import { getAccessToken } from "./auth";
+import { getAccessToken, refreshSession } from "./auth";
 import type { AgentMessageItem, AgentSessionItem } from "../types/agent";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "/api/v1";
@@ -97,16 +97,25 @@ export async function streamAgentChat(
   handlers: AgentStreamHandlers,
   signal: AbortSignal,
 ): Promise<void> {
-  const token = getAccessToken();
-  const response = await fetch(`${API_BASE}/agent/chat`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: JSON.stringify({ message, session_id: sessionId }),
-    signal,
-  });
+  const send = async (): Promise<Response> => {
+    const token = getAccessToken();
+    return fetch(`${API_BASE}/agent/chat`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ message, session_id: sessionId }),
+      signal,
+    });
+  };
+
+  let response = await send();
+  if (response.status === 401) {
+    if (await refreshSession()) {
+      response = await send();
+    }
+  }
   if (!response.ok || !response.body) {
     throw new Error("Không kết nối được trợ lý AI");
   }

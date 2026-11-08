@@ -11,7 +11,9 @@ keywords: "api, jwt, argon2id, rbac, pagination, rate limit, csp, fernet, respon
 ## 1. Auth
 
 - Access token JWT 15 phút.
-- Refresh token 7 ngày.
+- Refresh token 7 ngày (rotate mỗi lần dùng; token cũ bị thu hồi).
+- Frontend tự gọi `/auth/refresh` khi gặp 401 rồi retry request một lần
+  (single-flight); hết hạn cả refresh mới đưa về trang đăng nhập.
 - Mật khẩu hash Argon2id.
 - RBAC kiểm tra server-side; `require_admin`.
 

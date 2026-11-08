@@ -722,6 +722,24 @@ Test: `test_agent_knowledge_base` 16 pass (14 câu + 2 integration), `test_agent
 2 pass, full backend 254 pass. Smoke live cùng câu hỏi: trả đủ 4 nhóm A/B/C/bị loại,
 có citation `docs/ky-thuat/05-pheu-va-tier.md`.
 
+## 23. Fix R14 trùng R06 + giữ phiên đăng nhập + tìm theo ID (08/11/2026)
+
+- **R14 trùng R06:** `near_liquidation_count` trước đây đếm `roi <= -0.8`, trùng ngưỡng R06
+  (`worst_position_roi <= -80`) nên một vị thế GUSDT −100% sinh cả R06 (critical) và R14 (high).
+  Đổi sang band riêng `(-0.8, -0.5]`; nhãn R06 = "Vị thế đã đóng lỗ ≤ −80%",
+  R14 = "Vị thế lỗ sâu (−50% đến −80%)". Prompt agent nói rõ hệ thống chỉ có vị thế đã đóng,
+  không có open positions → không dùng "đang".
+  Sau `metrics → risk → score → rank`: trader `4954939000240529664` chỉ còn R06, `veto=["R06"]`,
+  `near_liquidation_count=0`.
+- **Phiên đăng nhập:** access token 15 phút, refresh 7 ngày nhưng frontend không bao giờ gọi
+  `/auth/refresh` → mọi request sau 15 phút trả 401 và bị đá ra ("Thiếu access token").
+  Thêm `refreshSession()` single-flight trong `lib/auth.ts`; `request()` và SSE agent tự refresh
+  rồi retry một lần; chỉ khi refresh fail mới `clearSession`.
+  `test_auth_refresh` pass (rotate refresh, refresh cũ bị 401, access rác → 401).
+- **Tìm kiếm Screener:** `q` khớp biệt danh, biệt danh dịch và mã trader (một phần).
+  `test_screener_api` thêm case ID đầy đủ / một phần / tên; E2E "Tìm trader theo ID" PASS.
+- QA: backend **285 pass**, ruff pass, build pass, E2E 24 checkpoint PASS.
+
 ## 22. Phase 6e — Kế hoạch 05: raw archive & Data Health (08/11/2026)
 
 Nguồn: `docs/0/05-ke-hoach-do-tuoi-du-lieu-va-data-health.md`.

@@ -25,7 +25,9 @@ SYSTEM_PROMPT = (
     "Bạn là trợ lý AI của hệ thống CopytradeBinance. Trả lời tiếng Việt, "
     "chỉ dùng số liệu từ tool, ghi rõ nguồn. Không đưa lời khuyên đầu tư. "
     "Khi câu hỏi liên quan ngắn hạn hay dài hạn, nêu rõ khung 7D/30D/90D/180D và "
-    "hiển thị đủ các khung liên quan. Khung thiếu dữ liệu thì ghi unknown, không bịa số."
+    "hiển thị đủ các khung liên quan. Khung thiếu dữ liệu thì ghi unknown, không bịa số. "
+    "Hệ thống chỉ có dữ liệu vị thế ĐÃ ĐÓNG (position-history); không có vị thế đang mở, "
+    "không có funding, không có PnL từng copier — không được nói 'đang' cho vị thế."
 )
 
 _RATE: dict[str, list[float]] = {}

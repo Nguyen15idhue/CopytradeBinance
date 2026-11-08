@@ -131,6 +131,8 @@ Không có dữ liệu open positions từ Binance; UI ghi rõ, không mô phỏ
 
 ## Screener
 
+`q` tìm theo **biệt danh, biệt danh dịch và mã trader** (khớp một phần, không phân biệt hoa thường).
+
 Tham số mới (4.0.4):
 - `window` = `7D|30D|90D|180D` (mặc định 90D) — quyết định cột dùng cho `min_roi`, `max_roi`,
   `max_mdd`, `min_sharpe`, `max_sharpe`, `min_win_rate`, `max_win_rate`, `min_copier_pnl`,

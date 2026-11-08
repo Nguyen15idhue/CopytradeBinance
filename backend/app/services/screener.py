@@ -3,7 +3,20 @@
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
-from sqlalchemy import Numeric, Select, and_, asc, cast, column, desc, exists, func, select, table
+from sqlalchemy import (
+    Numeric,
+    Select,
+    and_,
+    asc,
+    cast,
+    column,
+    desc,
+    exists,
+    func,
+    or_,
+    select,
+    table,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.scoring_config import ScoringConfig
@@ -182,7 +195,16 @@ def apply_filters(statement: Select, filters: ScreenerFilters) -> Select:
     elif not filters.include_excluded:
         statement = statement.where(TraderUniverse.potential_tier != "excluded")
     if filters.q:
-        statement = statement.where(Trader.nickname.ilike(f"%{filters.q}%"))
+        term = filters.q.strip()
+        if term:
+            pattern = f"%{term}%"
+            statement = statement.where(
+                or_(
+                    Trader.nickname.ilike(pattern),
+                    Trader.nickname_translate.ilike(pattern),
+                    Trader.lead_portfolio_id.ilike(pattern),
+                )
+            )
     if filters.portfolio_type:
         statement = statement.where(Trader.portfolio_type == filters.portfolio_type.upper())
     if filters.status:

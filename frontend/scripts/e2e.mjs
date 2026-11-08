@@ -199,6 +199,20 @@ try {
   }
   console.log("Screener render: OK");
 
+  // Tìm theo ID trader (không chỉ tên).
+  await page.getByLabel("Nhóm").selectOption("");
+  await page.getByLabel("Tìm kiếm").fill("4954939000240529664");
+  await page.waitForResponse((response) => response.url().includes("q=4954939000240529664"));
+  await page.waitForTimeout(300);
+  assert(
+    (await page.locator('a[href="/traders/4954939000240529664"]').count()) === 1,
+    "Tìm theo ID không ra trader",
+  );
+  await page.getByLabel("Tìm kiếm").fill("");
+  await page.getByRole("button", { name: "Xóa tất cả" }).click();
+  await page.getByRole("heading", { name: "Bộ lọc trader" }).waitFor();
+  console.log("Tìm trader theo ID: OK");
+
   // 4.0.1 — Screener giữ trạng thái qua điều hướng, F5 và URL
   await page.getByLabel("MDD ≤").fill("20");
   await page.waitForResponse((response) => response.url().includes("max_mdd=20"));
@@ -265,6 +279,22 @@ try {
   await page.reload({ waitUntil: "domcontentloaded" });
   await page.getByRole("heading", { name: "Bộ lọc trader" }).waitFor();
   console.log("Screener mobile 390: OK");
+
+  // Access token hết hạn nhưng refresh còn hạn → tự làm mới, không bị đá ra.
+  await page.evaluate(() => localStorage.setItem("ct_access_token", "expired.token.value"));
+  await page.goto(`${base}/screener`, { waitUntil: "domcontentloaded" });
+  await page.getByRole("heading", { name: "Bộ lọc trader" }).waitFor();
+  await page.waitForFunction(() => {
+    const token = localStorage.getItem("ct_access_token");
+    return Boolean(token) && token !== "expired.token.value";
+  });
+  await page.getByText(/trader khớp/).waitFor();
+  assert(!page.url().includes("/login"), "Bị đá về login khi access token hết hạn");
+  // 401 ở trên là chủ đích của test refresh — loại khỏi bộ đếm console error.
+  for (let index = consoleErrors.length - 1; index >= 0; index -= 1) {
+    if (consoleErrors[index].includes("status of 401")) consoleErrors.splice(index, 1);
+  }
+  console.log("Tự làm mới phiên đăng nhập: OK");
 
   const banner = page.getByText("Mới bắt đầu?");
   if (await banner.count()) {
