@@ -946,5 +946,5 @@ Tóm tắt: không auto-trading, không realtime WebSocket, không Paper Copy tr
 - [x] B6.1.5 Agent routing/prompt + `AgentAnswer.copy_plan` + SSE `done` + lưu DB. → Bằng chứng: `schema.py`; `orchestrator.py` (prompt, capture, template, SSE); `api/v1/agent.py` session; `test_agent_copy_plan_flow` 3 pass + `test_agent_copy_plan` 4 pass; docs/api + 12-ai.
 - [x] B6.1.6 Verifier `verify_copy_plan` + confidence/warning. → Bằng chứng: `verifier.py` gọi `validate_plan`; orchestrator gộp warning + hạ confidence; `test_agent_verifier` 9 pass + flow/agent copy plan 16 pass integration.
 - [x] B6.1.7 Frontend `CopyPlanCard` + i18n + trạng thái. → Bằng chứng: `components/agent/CopyPlanCard.tsx`; types `AgentCopyPlan`; chat hiển thị 4 nhóm + chip nguồn + copy JSON; `npm run build` pass; E2E "Agent copy plan card" PASS (desktop + mobile 375).
-- [ ] B6.1.8 (Optional) Nguồn volume 24h để lọc thanh khoản thấp + bảng TradFi.
+- [x] B6.1.8 (Optional) Nguồn volume 24h để lọc thanh khoản thấp + bảng TradFi. → Bằng chứng: TradFi đã có trong `copy_plan/data.py` (prefix + confidence estimated); volume 24h **không làm** theo Q3 vì cần nguồn ngoài/secret mới; `low_liquidity = null` + missing.
 - [ ] B6.1.9 QA + docs (`docs/api.md`, `docs/ky-thuat/12-ai.md`) + eval đầy đủ.

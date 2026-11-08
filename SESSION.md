@@ -853,3 +853,7 @@ nguồn + trạng thái, cảnh báo/missing, disclaimer, copy JSON; `AgentPanel
 từ `done.copy_plan`; types `AgentCopyPlan`. `npm run build` pass; E2E checkpoint
 "Agent copy plan card" PASS (desktop + mobile 375). Agent panel hiện dùng chuỗi tiếng Việt
 inline (không sửa `i18n/vi.ts` đang có thay đổi của người dùng).
+
+B6.1.8: TradFi đã triển khai trong `copy_plan/data.py` (prefix XAU/XAG/EUR/GBP/...,
+`tradfi_confidence=estimated`). Volume 24h để lọc thanh khoản thấp **không làm** theo Q3
+(cần nguồn ngoài/secret mới); `low_liquidity = null`, ghi vào `missing_fields`.
