@@ -85,9 +85,12 @@ async def test_profile_full_payload_and_windows() -> None:
         }
         assert "breakdown" in full.data
         assert "flags" in full.data
+        assert "data_quality" in full.data
+        assert "symbol_stats" in full.data
         labels = {item.id for item in full.evidence}
         assert f"{trader_id}:roi_7d" in labels
         assert f"{trader_id}:roi_180d" in labels
+        assert f"{trader_id}:data_reliability_score" in labels
 
         summary = await get_trader_profile(
             db, {"trader_id": trader_id, "detail": "summary"}
@@ -96,6 +99,34 @@ async def test_profile_full_payload_and_windows() -> None:
         assert summary.data["derived"] == {}
         assert summary.data["profile"] == {}
         assert summary.data["windows"]["7D"]["roi"] == windows["7D"]["roi"]
+
+
+@pytest.mark.asyncio
+async def test_profile_flags_mdd_suspect_and_missing_trades() -> None:
+    trader_id = "5235238076957499648"
+    async with SessionLocal() as db:
+        profile = await get_trader_profile(db, {"trader_id": trader_id})
+        assert profile.error is None
+        quality = profile.data["data_quality"]
+        assert quality["mdd_suspect"] is True
+        assert quality["missing_trades"] is True
+        assert quality["trade_count"] == 0
+        assert quality["position_count"] > 0
+        assert quality["reliability_score"] is not None
+        assert profile.data["derived"]["active_days"] is None
+        assert profile.data["derived"]["total_fills"] is None
+        assert profile.data["symbol_stats"]["top"]
+        assert any("MDD" in note for note in quality["notes"])
+
+        fit = await run_tool(
+            db,
+            "analyze_portfolio_fit",
+            {"trader_id": trader_id, "capital_usd": 20},
+        )
+        assert fit.error is None
+        assert fit.data["data_quality"]["mdd_suspect"] is True
+        assert any("MDD" in warning for warning in fit.data["warnings"])
+        assert fit.data["risk"]["level"] in ("high", "critical")
 
 
 @pytest.mark.asyncio

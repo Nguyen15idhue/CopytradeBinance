@@ -43,6 +43,8 @@ def test_summarize_symbols_share_and_tradfi() -> None:
     assert top["ETHUSDT"]["share_pct"] == 9.09
     assert stats["tradfi"] == ["XAUUSDT"]
     assert stats["tradfi_confidence"] == "estimated"
+    assert stats["position_count"] == 3
+    assert stats["trade_count"] == 15
     assert stats["low_liquidity"] is None
 
 

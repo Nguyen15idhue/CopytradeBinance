@@ -19,6 +19,7 @@ from app.models.universe import TraderUniverse
 from app.services.agent.schema import EvidenceItem, ToolResult, utcnow_iso
 from app.services.agent.tools import register_tool
 from app.services.compare import build_compare
+from app.services.copy_plan.data import load_activity_stats
 from app.services.freshness import from_metrics as freshness_from_metrics
 from app.services.screener import (
     ScreenerFilters,
@@ -280,6 +281,50 @@ async def get_trader_profile(db: AsyncSession, args: dict[str, Any]) -> ToolResu
     as_of = metric.computed_at.isoformat() if metric and metric.computed_at else None
     computed_at = as_of
     source_as_of = (metrics_blob.get("provenance") or {}).get("performance_at") or as_of
+    activity = await load_activity_stats(db, trader_id)
+    flags = list(metrics_blob.get("flags") or [])
+    derived = dict(metrics_blob.get("derived") or {})
+    missing_trades = "missing_trades" in flags or activity.get("trade_count", 0) == 0
+    if missing_trades:
+        for key in (
+            "active_days",
+            "total_fills",
+            "fills_per_day",
+            "avg_fill_notional",
+            "max_fill_notional",
+            "realized_pnl_fills",
+            "total_fees",
+        ):
+            derived[key] = None
+    mdd_value = _float(metric.mdd_90d) if metric else None
+    mdd_suspect = mdd_value is not None and 0 < mdd_value < 0.01
+    components = ((score_row.breakdown or {}).get("components") or {}) if score_row else {}
+    reliability = components.get("data_reliability") or {}
+    data_notes: list[str] = []
+    if missing_trades:
+        data_notes.append(
+            "Không có trades: active_days/total_fills/avg_fill_notional trả null, không phải 0."
+        )
+    if mdd_suspect:
+        data_notes.append(
+            "MDD published gần 0 (<0.01%) dù ROI dương; coi là bất thường, "
+            "không dùng để kết luận rủi ro thấp. Calmar cũng bị méo."
+        )
+    if "missing_benchmark" in flags:
+        data_notes.append("Thiếu benchmark: không tính excess return.")
+    data_quality = {
+        "confidence": _float(score_row.confidence) if score_row else None,
+        "reliability_score": _float(reliability.get("score")),
+        "reliability_weight": reliability.get("weight"),
+        "flags": flags,
+        "missing_trades": missing_trades,
+        "missing_benchmark": "missing_benchmark" in flags,
+        "position_count": activity.get("position_count"),
+        "trade_count": activity.get("trade_count"),
+        "mdd_published": mdd_value,
+        "mdd_suspect": mdd_suspect,
+        "notes": data_notes,
+    }
     profile = {
         "id": trader_id,
         "nickname": trader.nickname if trader else None,
@@ -316,7 +361,8 @@ async def get_trader_profile(db: AsyncSession, args: dict[str, Any]) -> ToolResu
             }
             for window in ("7D", "30D", "90D", "180D")
         },
-        "derived": (metrics_blob.get("derived") or {}) if include_full else {},
+        "derived": derived if include_full else {},
+        "symbol_stats": activity if include_full else {},
         "profile": {
             "aum": (metrics_blob.get("profile") or {}).get("aum"),
             "copy_aum": (metrics_blob.get("profile") or {}).get("copy_aum"),
@@ -331,7 +377,8 @@ async def get_trader_profile(db: AsyncSession, args: dict[str, Any]) -> ToolResu
             "portfolio_type": (metrics_blob.get("profile") or {}).get("portfolio_type"),
             "status": (metrics_blob.get("profile") or {}).get("status"),
         } if include_full else {},
-        "flags": metrics_blob.get("flags") or [],
+        "flags": flags,
+        "data_quality": data_quality,
         "freshness": freshness_from_metrics(metrics_blob),
         "risk_events": [
             {"code": e.code, "severity": e.severity, "label": e.label, "evidence": e.evidence}
@@ -343,6 +390,28 @@ async def get_trader_profile(db: AsyncSession, args: dict[str, Any]) -> ToolResu
     }
     evidence = [
         _ev(trader_id, "score", profile["score"], None, as_of),
+        _ev(
+            trader_id,
+            "data_reliability_score",
+            profile["data_quality"].get("reliability_score"),
+            None,
+            as_of,
+        ),
+        _ev(trader_id, "confidence", profile["confidence"], None, as_of),
+        _ev(
+            trader_id,
+            "position_count",
+            profile["data_quality"].get("position_count"),
+            None,
+            as_of,
+        ),
+        _ev(
+            trader_id,
+            "trade_count",
+            profile["data_quality"].get("trade_count"),
+            None,
+            as_of,
+        ),
         _ev(
             trader_id,
             "freshness_minutes",

@@ -34,12 +34,14 @@ SYSTEM_PROMPT = (
     "Hệ thống chỉ có dữ liệu vị thế ĐÃ ĐÓNG (position-history); không có vị thế đang mở, "
     "không có funding, không có PnL từng copier — không được nói 'đang' cho vị thế. "
     "Khi người dùng hỏi 'có x USDT copy trader y thì cấu hình thế nào': gọi "
-    "get_trader_profile và build_copy_plan; trả lời theo đúng copy_plan, không tự tính lại "
-    "số, không đổi null thành 0. Plan đã tự chọn mode, SL/TP, symbol scope và cài đặt "
-    "nâng cao theo policy; KHÔNG hỏi người dùng chọn từng mục, chỉ nêu ngắn gọn có thể "
-    "yêu cầu đổi sau. Nêu rõ mode, số tiền copy, min/max, tổng cắt lỗ và các mục dùng "
-    "mặc định Binance. Dùng 'cấu hình tham chiếu', không dùng 'nên copy/đầu tư'. "
-    "Nếu thiếu capital/available/risk_policy thì hỏi lại thay vì giả định."
+    "get_trader_profile và build_copy_plan ngay nếu đã có capital. Plan đã tự chọn mode, "
+    "SL/TP, symbol scope và cài đặt nâng cao theo policy; KHÔNG hỏi người dùng chọn từng mục, "
+    "chỉ nêu ngắn gọn có thể yêu cầu đổi sau. Nếu thiếu available_usd thì dùng capital_usd; "
+    "nếu thiếu risk_policy thì mặc định balanced và ghi assumption. Chỉ hỏi lại khi thiếu "
+    "capital_usd hoặc trader_id. Nêu rõ mode, số tiền copy, min/max, tổng cắt lỗ và các mục "
+    "dùng mặc định Binance. Dùng 'cấu hình tham chiếu', không dùng 'nên copy/đầu tư'. "
+    "Nếu profile có data_quality.mdd_suspect hoặc missing_trades, phải nêu rõ dữ liệu bất "
+    "thường/thiếu và không coi MDD gần 0 là rủi ro thấp."
 )
 
 _RATE: dict[str, list[float]] = {}

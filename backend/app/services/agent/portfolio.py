@@ -132,8 +132,22 @@ async def analyze_portfolio_fit(db: AsyncSession, args: dict[str, Any]) -> ToolR
     slot = await _has_slot(db, trader_id)
     as_of = row.get("as_of")
     as_of_iso = as_of.isoformat() if hasattr(as_of, "isoformat") else (as_of or utcnow_iso())
+    flags = list((metric.metrics or {}).get("flags") or []) if metric else []
+    mdd_value = metrics["mdd_90d"]
+    mdd_suspect = mdd_value is not None and 0 < mdd_value < 0.01
+    warnings = list(fit.get("warnings") or [])
+    if mdd_suspect:
+        warnings.append(
+            "MDD published gần 0 (<0.01%) dù ROI dương; không dùng để kết luận rủi ro thấp."
+        )
+    if metrics["veto"] or metrics["risk_level"] in ("high", "critical"):
+        warnings.append(
+            f"Risk {metrics['risk_level']} / veto {metrics['veto']}; can_copy chỉ là "
+            "điều kiện kỹ thuật, không phải khuyến nghị."
+        )
     data = {
         **fit,
+        "warnings": warnings,
         "trader_id": trader_id,
         "profit_sharing_rate": row.get("profit_sharing_rate"),
         "fee_drag_pct": metrics["fee_drag_pct"],
@@ -141,6 +155,12 @@ async def analyze_portfolio_fit(db: AsyncSession, args: dict[str, Any]) -> ToolR
         "slot_available": slot,
         "risk": {"level": metrics["risk_level"], "score": metrics["risk_score"],
                  "veto": metrics["veto"]},
+        "data_quality": {
+            "flags": flags,
+            "missing_trades": "missing_trades" in flags,
+            "mdd_published": mdd_value,
+            "mdd_suspect": mdd_suspect,
+        },
         "risk_policy": args.get("risk_policy"),
         "as_of": as_of_iso,
     }

@@ -56,6 +56,31 @@ async def test_build_copy_plan_live_trader() -> None:
 
 
 @pytest.mark.asyncio
+async def test_build_copy_plan_20usd_complete() -> None:
+    async with SessionLocal() as db:
+        result = await run_tool(
+            db,
+            "build_copy_plan",
+            {
+                "trader_id": "5235238076957499648",
+                "capital_usd": 20,
+                "available_usd": 20,
+                "risk_policy": "balanced",
+            },
+        )
+        assert result.error is None
+        plan = result.data
+        assert plan["copy_mode"]["value"] == "fixed_ratio"
+        assert plan["copy_mode"]["auto_selected"] is True
+        assert plan["copy_amount_usd"]["value"] == 20.0
+        assert plan["stop_loss_pct"]["value"] == 12.0
+        assert plan["total_stop_loss_usd"]["value"] == 2.37
+        assert plan["max_slippage_pct"]["value"] == 0.5
+        assert plan["take_profit_pct"]["status"] == "defaulted"
+        assert plan["missing_fields"] == []
+
+
+@pytest.mark.asyncio
 async def test_build_copy_plan_missing_trader() -> None:
     async with SessionLocal() as db:
         result = await run_tool(

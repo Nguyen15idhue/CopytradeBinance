@@ -76,6 +76,8 @@ def summarize_symbols(
         )
     total_notional = sum(item["notional_usdt"] for item in enriched)
     total_count = sum(item["trade_count"] + item["position_count"] for item in enriched)
+    total_count_positions = sum(item["position_count"] for item in enriched)
+    total_count_trades = sum(item["trade_count"] for item in enriched)
     for item in enriched:
         if total_notional > 0:
             item["share_pct"] = round(item["notional_usdt"] / total_notional * 100, 2)
@@ -92,8 +94,41 @@ def summarize_symbols(
         "tradfi": tradfi,
         "tradfi_confidence": TRADFI_CONFIDENCE,
         "symbol_count": len(enriched),
+        "position_count": total_count_positions,
+        "trade_count": total_count_trades,
         "low_liquidity": None,
     }
+
+
+async def load_activity_stats(db: AsyncSession, trader_id: str) -> dict[str, Any]:
+    """Đếm positions/trades và tổng hợp symbol; dùng chung profile + copy plan."""
+    position_rows = (
+        await db.execute(
+            text(
+                "SELECT symbol, count(*) AS cnt,"
+                " coalesce(sum(max_open_interest), 0) AS notional"
+                " FROM positions WHERE lead_portfolio_id = :tid"
+                " AND symbol IS NOT NULL GROUP BY symbol"
+            ),
+            {"tid": trader_id},
+        )
+    ).mappings().all()
+    trade_rows = (
+        await db.execute(
+            text(
+                "SELECT symbol, count(*) AS cnt,"
+                " coalesce(sum(price * quantity), 0) AS notional"
+                " FROM trades WHERE lead_portfolio_id = :tid"
+                " AND symbol IS NOT NULL GROUP BY symbol"
+            ),
+            {"tid": trader_id},
+        )
+    ).mappings().all()
+    stats = summarize_symbols(
+        [dict(row) for row in position_rows],
+        [dict(row) for row in trade_rows],
+    )
+    return stats
 
 
 async def load_copy_context(db: AsyncSession, trader_id: str) -> dict[str, Any] | None:
@@ -148,30 +183,7 @@ async def load_copy_context(db: AsyncSession, trader_id: str) -> dict[str, Any] 
         mode, count = max(margin_counts.items(), key=lambda item: item[1])
         margin_mode = {"mode": mode, "confidence": round(count / total_margin, 3)}
 
-    position_rows = (
-        await db.execute(
-            text(
-                "SELECT symbol, count(*) AS cnt,"
-                " coalesce(sum(max_open_interest), 0) AS notional"
-                " FROM positions WHERE lead_portfolio_id = :tid"
-                " AND symbol IS NOT NULL GROUP BY symbol"
-            ),
-            {"tid": trader_id},
-        )
-    ).mappings().all()
-    trade_rows = (
-        await db.execute(
-            text(
-                "SELECT symbol, count(*) AS cnt,"
-                " coalesce(sum(price * quantity), 0) AS notional"
-                " FROM trades WHERE lead_portfolio_id = :tid"
-                " AND symbol IS NOT NULL GROUP BY symbol"
-            ),
-            {"tid": trader_id},
-        )
-    ).mappings().all()
-    symbol_stats = summarize_symbols([dict(row) for row in position_rows],
-                                     [dict(row) for row in trade_rows])
+    symbol_stats = await load_activity_stats(db, trader_id)
 
     as_of: datetime | str | None = constraints.get("as_of") if constraints else None
     if as_of is None and metric is not None:

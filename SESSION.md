@@ -868,3 +868,11 @@ hợp lệ, fallback `fixed_amount` nếu preferred không hợp lệ; SL cap po
 balanced 35 / aggressive 50%), tổng SL cap 20/30/50% vốn, slippage 0.3/0.5/1%,
 TP defaulted (không đặt), advanced false/true/false/false, symbol scope all + warning
 tập trung ≥60%. Prompt không hỏi từng mục, chỉ nêu có thể đổi sau. Kế hoạch 06 §18.
+
+B6.1.11 (rà soát tool, trader 马丁一号 `5235238076957499648`): MDD published thật là
+`0.00000003%` (Binance trả vậy, chart cũng ~0), không phải tool làm tròn; thêm
+`data_quality.mdd_suspect` + warning, không bịa MDD khác. Trades rỗng (0) nhưng có 108
+positions → `active_days/total_fills/avg_fill_notional` trả **null** thay vì 0; thêm
+`data_quality` (reliability 35.1898, flags, counts) và `symbol_stats`. Fit thêm warning
+risk high/veto. Prompt mặc định `balanced`, dùng capital thay available nếu thiếu, không
+hỏi risk_policy. Plan 20 USDT: fixed_ratio, SL 12%, tổng SL 2.37 USDT, missing_fields=[].

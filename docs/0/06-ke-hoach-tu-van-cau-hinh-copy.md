@@ -853,3 +853,55 @@ Quy tắc trả lời mới:
 Test bổ sung: `test_small_capital_plan_is_complete_no_questions` (20 USDT, worst −179.6%):
 mode `fixed_ratio`, SL 35%, tổng SL 6 USDT, slippage 0.5%, TP null/defaulted,
 advanced defaults, warning tập trung 1000PEPE 73.67%, `missing_fields=[]`.
+
+
+---
+
+## 19. Rà soát dữ liệu tool — trader 马丁一号 (08/11/2026)
+
+Hiện tượng: chat trả MDD ~0, `active_days=0`, `total_fills=0`, data reliability 35.2
+và vẫn hỏi `risk_policy`, dù trader có 108 positions.
+
+Đối chiếu DB:
+
+| Nguồn | Giá trị |
+|---|---|
+| `performance_metrics.mdd` 7D/30D/90D/180D | `0.00000001` / `0.00000004` / `0.00000003` / `0.00000003` |
+| `trader_metrics.mdd_90d` | `0.00000003` |
+| `positions` | 108 bản ghi |
+| `trades` | **0 bản ghi** |
+| `metrics.flags` | `missing_benchmark`, `missing_trades` |
+| `score.breakdown.data_reliability` | **35.1898** (model đọc đúng, không bịa) |
+| `derived.worst_position_roi` | `-11.8364%` |
+| `derived.active_days`, `total_fills` | `0` do trades rỗng — **sai bản chất** |
+
+Kết luận:
+- MDD gần 0 là **giá trị Binance công bố**, không phải tool làm tròn. ChartItems cũng
+  đơn điệu tăng nên MDD tính từ chart cũng ~0. Không được tự bịa MDD lớn hơn.
+- Lỗi thật: tool trả `active_days=0`, `total_fills=0`, `avg_fill_notional=null` như số thật
+  trong khi trades rỗng; thiếu cảnh báo MDD bất thường; thiếu `data_quality` và
+  `symbol_stats` để model giải thích.
+- Prompt còn hỏi `risk_policy` dù Q1 đã chốt mặc định `balanced`.
+
+Đã sửa:
+- `copy_plan/data.py`: `load_activity_stats()` dùng chung; trả `position_count`,
+  `trade_count`, `symbol_stats` (top/TradFi) từ positions + trades.
+- `agent/db_tools.py` (`get_trader_profile`): thêm `data_quality` gồm `confidence`,
+  `reliability_score` (35.1898), `flags`, `missing_trades`, `position_count`,
+  `trade_count`, `mdd_published`, `mdd_suspect`, `notes`; khi `missing_trades` thì
+  `active_days/total_fills/fills_per_day/avg_fill_notional/max_fill_notional/realized_pnl_fills`
+  = `null` (không phải 0); thêm evidence `data_reliability_score`, `confidence`,
+  `position_count`, `trade_count`.
+- `agent/portfolio.py` (`analyze_portfolio_fit`): thêm `data_quality`, warning MDD suspect,
+  warning risk high/veto (can_copy chỉ là điều kiện kỹ thuật).
+- `orchestrator.py`: nếu thiếu `available_usd` dùng `capital_usd`; thiếu `risk_policy`
+  mặc định `balanced`; chỉ hỏi khi thiếu capital/trader_id; bắt buộc nêu
+  `mdd_suspect`/`missing_trades`.
+
+Bằng chứng:
+- Integration trader `5235238076957499648`: `mdd_suspect=true`, `missing_trades=true`,
+  `trade_count=0`, `position_count=108`, `reliability_score=35.1898`,
+  `active_days=null`, `total_fills=null`; fit 20 USDT có warning MDD + risk high/veto.
+- `build_copy_plan` 20 USDT: mode `fixed_ratio`, SL **12%** (worst ROI −11.84%),
+  tổng SL **2.37 USDT**, slippage 0.5%, `missing_fields=[]`.
+- Backend 323 pass; E2E PASS; ruff/build/check_refs pass.
