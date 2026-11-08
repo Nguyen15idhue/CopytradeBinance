@@ -632,3 +632,9 @@ Timeout: 120s/request, tool 10s, SQL 5s.
   fallback không bao giờ rỗng.
   Test: `test_agent_knowledge_base` (14 câu) + `test_agent_loop_guard` 2 case; full 254 pass;
   smoke live câu "các nhóm a b c và bị loại là gì" trả đúng 4 nhóm kèm citation.
+- [x] Cải thiện UI chat (08/11): header gọn còn 3 nút icon (phóng to / + mới / đóng);
+  bỏ dải chip phiên ở chế độ thường; chế độ mở rộng chia 2 cột 1:4 — sidebar trái nhóm phiên
+  theo ngày (Hôm nay/Hôm qua/7 ngày qua/Cũ hơn) có nút thu gọn/mở lại, phải là nội dung chat;
+  ô nhập + nút gửi chung 1 khung để tăng diện tích nội dung.
+  → Bằng chứng: build pass; E2E assert compact không có sidebar, mở rộng có "Đoạn chat",
+  thu gọn/mở lại và trở về compact PASS; ảnh kiểm tra thủ công compact + expanded.

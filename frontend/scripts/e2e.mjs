@@ -466,7 +466,16 @@ try {
   await dialog.getByText("Dữ liệu:").waitFor();
   await dialog.getByRole("button", { name: "Đánh giá hữu ích" }).click();
   await dialog.getByText("Đã ghi nhận đánh giá.").waitFor();
+  assert(
+    (await dialog.getByText("Đoạn chat", { exact: true }).count()) === 0,
+    "Chế độ thu gọn vẫn hiện sidebar phiên",
+  );
   await dialog.getByRole("button", { name: "Phóng to toàn màn hình" }).click();
+  await dialog.getByText("Đoạn chat", { exact: true }).waitFor();
+  await dialog.getByRole("button", { name: "Thu gọn danh sách đoạn chat" }).click();
+  await dialog.getByRole("button", { name: "Mở danh sách đoạn chat" }).waitFor();
+  await dialog.getByRole("button", { name: "Mở danh sách đoạn chat" }).click();
+  await dialog.getByText("Đoạn chat", { exact: true }).waitFor();
   await dialog.getByRole("button", { name: "Thu nhỏ" }).click();
   body = await page.locator("body").innerText();
   assert(!body.includes("undefined") && !body.includes("NaN"), "Agent UI có undefined/NaN");

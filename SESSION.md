@@ -699,6 +699,10 @@ Kết quả refresh (`collector_cli`):
 - Chỉ nút "+ Mới" mới bỏ ghim; xoá phiên đang mở cũng bỏ ghim. Phiên bị xoá/không còn quyền
   → tự bỏ ghim và hiện gợi ý câu hỏi, không lỗi.
 - E2E thêm checkpoint "Agent giữ phiên sau đóng/reload" (mock `GET /agent/sessions/1`), PASS.
+- Cải thiện UI (08/11): header 3 nút icon gọn; bỏ dải chip phiên ở chế độ thường;
+  mở rộng chia 2 cột 1:4 với sidebar phiên nhóm theo ngày + nút thu gọn/mở;
+  ô nhập và nút gửi chung một khung (nút gửi nằm trong ô) để tăng vùng nội dung.
+  Build + E2E PASS; kiểm tra ảnh compact/expanded.
 
 ## 21. Fix câu hỏi khái niệm bị "Hết 8 bước tool" (08/11/2026)
 

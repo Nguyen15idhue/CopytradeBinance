@@ -15,6 +15,7 @@ import {
 import type {
   AgentCitation,
   AgentMessageItem,
+  AgentSessionItem,
   AgentStatus,
   AgentTrace,
 } from "../../types/agent";
@@ -24,6 +25,39 @@ const SUGGESTED = [
   "Dữ liệu collector có mới không?",
   "Hệ thống tính Sharpe và risk_score thế nào?",
 ];
+
+function startOfDay(value: Date): Date {
+  const copy = new Date(value);
+  copy.setHours(0, 0, 0, 0);
+  return copy;
+}
+
+function groupSessions(items: AgentSessionItem[]): Array<[string, AgentSessionItem[]]> {
+  const today = startOfDay(new Date());
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  const week = new Date(today);
+  week.setDate(today.getDate() - 7);
+  const buckets: Record<string, AgentSessionItem[]> = {
+    "Hôm nay": [],
+    "Hôm qua": [],
+    "7 ngày qua": [],
+    "Cũ hơn": [],
+  };
+  for (const item of items) {
+    const raw = item.updated_at ?? item.created_at;
+    if (!raw) {
+      buckets["Cũ hơn"].push(item);
+      continue;
+    }
+    const date = new Date(raw);
+    if (date >= today) buckets["Hôm nay"].push(item);
+    else if (date >= yesterday) buckets["Hôm qua"].push(item);
+    else if (date >= week) buckets["7 ngày qua"].push(item);
+    else buckets["Cũ hơn"].push(item);
+  }
+  return Object.entries(buckets).filter(([, list]) => list.length > 0);
+}
 
 interface ChatMessage extends AgentMessageItem {
   traces?: AgentTrace[];
@@ -133,6 +167,7 @@ export default function AgentPanel({ onClose }: { onClose: () => void }) {
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [restoring, setRestoring] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [status, setStatus] = useState<AgentStatus>("idle");
@@ -324,27 +359,96 @@ export default function AgentPanel({ onClose }: { onClose: () => void }) {
   }
 
   const items = sessionsQuery.data?.items ?? [];
+  const groups = groupSessions(items);
 
   const panelClass = expanded
     ? "fixed inset-0 z-50 flex flex-col bg-panel"
-    : "fixed inset-0 z-50 flex flex-col bg-panel md:inset-auto md:bottom-20 md:right-6 md:h-[70vh] md:w-[440px] md:rounded-2xl md:border md:border-line md:shadow-2xl";
+    : "fixed inset-0 z-50 flex flex-col bg-panel md:inset-auto md:bottom-20 md:right-6 md:h-[76vh] md:w-[460px] md:rounded-2xl md:border md:border-line md:shadow-2xl";
+
+  const sidebar = expanded && sidebarOpen ? (
+    <aside className="hidden w-1/4 min-w-[180px] max-w-[320px] shrink-0 flex-col border-r border-line bg-app/40 md:flex">
+      <div className="flex items-center justify-between border-b border-line px-3 py-2">
+        <span className="text-xs font-semibold uppercase tracking-wide text-faint">
+          Đoạn chat
+        </span>
+        <button
+          type="button"
+          onClick={() => setSidebarOpen(false)}
+          aria-label="Thu gọn danh sách đoạn chat"
+          title="Thu gọn"
+          className="rounded-md px-1.5 py-0.5 text-sm text-muted hover:bg-elevated"
+        >
+          «
+        </button>
+      </div>
+      <div className="min-h-0 flex-1 overflow-y-auto p-2">
+        {items.length === 0 ? (
+          <p className="px-2 py-3 text-xs text-muted">Chưa có đoạn chat nào.</p>
+        ) : (
+          groups.map(([label, list]) => (
+            <div key={label} className="mb-3">
+              <p className="px-2 pb-1 text-[11px] font-medium uppercase tracking-wide text-faint">
+                {label}
+              </p>
+              <ul className="space-y-0.5">
+                {list.map((session) => (
+                  <li key={session.id} className="group flex items-center">
+                    <button
+                      type="button"
+                      onClick={() => openSession(session.id)}
+                      className={`min-w-0 flex-1 truncate rounded-md px-2 py-1.5 text-left text-sm ${
+                        session.id === sessionId
+                          ? "bg-emerald-500/10 text-accent"
+                          : "text-body hover:bg-elevated"
+                      }`}
+                    >
+                      {session.title || `Chat ${session.id}`}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeSession(session.id)}
+                      aria-label={`Xóa ${session.title || session.id}`}
+                      className="shrink-0 rounded px-1 text-xs text-faint opacity-0 hover:text-danger group-hover:opacity-100"
+                    >
+                      ×
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))
+        )}
+      </div>
+    </aside>
+  ) : null;
 
   return (
     <div role="dialog" aria-label="Trợ lý AI" className={panelClass}>
-      <div className="flex items-center justify-between border-b border-line px-4 py-3">
-        <div>
-          <p className="font-semibold text-strong">Trợ lý AI</p>
-          <p className="text-xs text-muted">
-            {status === "streaming" ? `Đang trả lời… (${elapsed}s)` : "Hỏi đáp copy trading, hệ thống, mã nguồn"}
-          </p>
+      <header className="flex h-12 shrink-0 items-center justify-between gap-2 border-b border-line px-3">
+        <div className="flex min-w-0 items-center gap-2">
+          {expanded && !sidebarOpen ? (
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Mở danh sách đoạn chat"
+              title="Danh sách đoạn chat"
+              className="rounded-md px-1.5 py-0.5 text-sm text-muted hover:bg-elevated"
+            >
+              ☰
+            </button>
+          ) : null}
+          <p className="truncate text-sm font-semibold text-strong">Trợ lý AI</p>
+          <span className="truncate text-xs text-muted">
+            {status === "streaming" ? `Đang trả lời… ${elapsed}s` : ""}
+          </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1">
           <button
             type="button"
             onClick={() => setExpanded((value) => !value)}
             aria-label={expanded ? "Thu nhỏ" : "Phóng to toàn màn hình"}
             title={expanded ? "Thu nhỏ" : "Phóng to"}
-            className="rounded-lg border border-line px-2 py-1 text-sm text-body"
+            className="flex h-8 w-8 items-center justify-center rounded-md border border-line text-sm text-body hover:bg-elevated"
           >
             {expanded ? "🗗" : "⛶"}
           </button>
@@ -352,132 +456,120 @@ export default function AgentPanel({ onClose }: { onClose: () => void }) {
             type="button"
             onClick={newChat}
             aria-label="Đoạn chat mới"
-            className="rounded-lg border border-line px-2 py-1 text-sm text-body"
+            title="Đoạn chat mới"
+            className="flex h-8 w-8 items-center justify-center rounded-md border border-line text-base text-body hover:bg-elevated"
           >
-            + Mới
+            +
           </button>
           <button
             type="button"
             onClick={onClose}
             aria-label="Đóng trợ lý AI"
-            className="rounded-lg border border-line px-2 py-1 text-body"
+            title="Đóng"
+            className="flex h-8 w-8 items-center justify-center rounded-md border border-line text-body hover:bg-elevated"
           >
             ×
           </button>
         </div>
-      </div>
+      </header>
 
-      {items.length > 0 ? (
-        <div className="flex gap-2 overflow-x-auto border-b border-line px-4 py-2 text-xs">
-          {items.slice(0, 10).map((session) => (
-            <div
-              key={session.id}
-              className={`flex shrink-0 items-center gap-1 rounded-full border px-2 py-1 ${
-                session.id === sessionId ? "border-accent text-accent" : "border-line text-muted"
-              }`}
-            >
-              <button type="button" onClick={() => openSession(session.id)} className="max-w-32 truncate">
-                {session.title || `Chat ${session.id}`}
-              </button>
-              <button
-                type="button"
-                onClick={() => removeSession(session.id)}
-                aria-label={`Xóa ${session.title || session.id}`}
-                className="text-faint"
-              >
-                ×
-              </button>
-            </div>
-          ))}
-        </div>
-      ) : null}
-
-      <div ref={listRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-3">
-        {messages.length === 0 && restoring ? (
-          <p className="text-sm text-muted">Đang mở lại đoạn chat…</p>
-        ) : null}
-        {messages.length === 0 && !restoring ? (
-          <div className="space-y-2">
-            <p className="text-sm text-muted">Gợi ý câu hỏi:</p>
-            {SUGGESTED.map((prompt) => (
-              <button
-                key={prompt}
-                type="button"
-                onClick={() => send(prompt)}
-                className="block w-full rounded-lg border border-line px-3 py-2 text-left text-sm text-body hover:bg-elevated"
-              >
-                {prompt}
-              </button>
-            ))}
-          </div>
-        ) : null}
-        {messages.map((item) => (
-          <div key={item.id} className={item.role === "user" ? "text-right" : "text-left"}>
-            <div
-              className={`inline-block max-w-full rounded-xl px-3 py-2 text-sm ${
-                item.role === "user" ? "bg-emerald-500/15 text-strong" : "bg-elevated text-body"
-              }`}
-            >
-              {item.role === "assistant" && !item.pending ? (
-                <Markdown text={item.content} />
-              ) : (
-                <span className="whitespace-pre-wrap">
-                  {item.pending && !item.content ? "Đang suy nghĩ…" : item.content}
-                </span>
-              )}
-            </div>
-            {item.role === "assistant" ? (
-              <>
-                <TraceBox traces={item.traces ?? []} />
-                <CitationChips items={item.citations ?? []} />
-                {item.serverId ? <FeedbackButtons messageId={item.serverId} /> : null}
-                {(item.warnings ?? []).map((warning, index) => (
-                  <p key={index} className="mt-1 text-xs text-warn">
-                    ⚠ {warning}
-                  </p>
+      <div className="flex min-h-0 flex-1">
+        {sidebar}
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div ref={listRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto px-3 py-3">
+            {messages.length === 0 && restoring ? (
+              <p className="text-sm text-muted">Đang mở lại đoạn chat…</p>
+            ) : null}
+            {messages.length === 0 && !restoring ? (
+              <div className="space-y-2">
+                <p className="text-sm text-muted">Gợi ý câu hỏi:</p>
+                {SUGGESTED.map((prompt) => (
+                  <button
+                    key={prompt}
+                    type="button"
+                    onClick={() => send(prompt)}
+                    className="block w-full rounded-lg border border-line px-3 py-2 text-left text-sm text-body hover:bg-elevated"
+                  >
+                    {prompt}
+                  </button>
                 ))}
-              </>
+              </div>
+            ) : null}
+            {messages.map((item) => (
+              <div key={item.id} className={item.role === "user" ? "text-right" : "text-left"}>
+                <div
+                  className={`inline-block max-w-full rounded-xl px-3 py-2 text-sm ${
+                    item.role === "user" ? "bg-emerald-500/15 text-strong" : "bg-elevated text-body"
+                  }`}
+                >
+                  {item.role === "assistant" && !item.pending ? (
+                    <Markdown text={item.content} />
+                  ) : (
+                    <span className="whitespace-pre-wrap">
+                      {item.pending && !item.content ? "Đang suy nghĩ…" : item.content}
+                    </span>
+                  )}
+                </div>
+                {item.role === "assistant" ? (
+                  <>
+                    <TraceBox traces={item.traces ?? []} />
+                    <CitationChips items={item.citations ?? []} />
+                    {item.serverId ? <FeedbackButtons messageId={item.serverId} /> : null}
+                    {(item.warnings ?? []).map((warning, index) => (
+                      <p key={index} className="mt-1 text-xs text-warn">
+                        ⚠ {warning}
+                      </p>
+                    ))}
+                  </>
+                ) : null}
+              </div>
+            ))}
+            {error ? (
+              <p className="rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger">
+                {error}
+              </p>
             ) : null}
           </div>
-        ))}
-        {error ? (
-          <p className="rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger">
-            {error}
-          </p>
-        ) : null}
-      </div>
 
-      <div className="border-t border-line p-3">
-        <textarea
-          ref={inputRef}
-          value={input}
-          onChange={(event) => setInput(event.target.value)}
-          onKeyDown={(event) => {
-            if ((event.ctrlKey || event.metaKey) && event.key === "Enter") send(input);
-          }}
-          rows={2}
-          aria-label="Nhập câu hỏi cho trợ lý AI"
-          placeholder="Nhập câu hỏi… (Ctrl+Enter để gửi)"
-          className="w-full rounded-lg border border-line bg-app px-3 py-2 text-sm text-strong"
-        />
-        <div className="mt-2 flex justify-end gap-2">
-          {status === "streaming" ? (
-            <button
-              type="button"
-              onClick={() => abortRef.current?.abort()}
-              className="rounded-lg border border-line px-3 py-1.5 text-sm text-body"
-            >
-              Dừng
-            </button>
-          ) : null}
-          <button
-            type="button"
-            onClick={() => send(input)}
-            disabled={status === "streaming" || !input.trim()}
-            className="rounded-lg bg-emerald-500 px-4 py-1.5 text-sm font-medium text-white disabled:opacity-50"
-          >
-            Gửi
-          </button>
+          <div className="shrink-0 p-3 pt-0">
+            <div className="relative rounded-xl border border-line bg-app focus-within:border-accent">
+              <textarea
+                ref={inputRef}
+                value={input}
+                onChange={(event) => setInput(event.target.value)}
+                onKeyDown={(event) => {
+                  if ((event.ctrlKey || event.metaKey) && event.key === "Enter") send(input);
+                }}
+                rows={2}
+                aria-label="Nhập câu hỏi cho trợ lý AI"
+                placeholder="Nhập câu hỏi… (Ctrl+Enter để gửi)"
+                className="max-h-40 w-full resize-none rounded-xl bg-transparent px-3 py-2 pr-24 text-sm text-strong outline-none placeholder:text-faint"
+              />
+              <div className="absolute bottom-2 right-2 flex items-center gap-1">
+                {status === "streaming" ? (
+                  <button
+                    type="button"
+                    onClick={() => abortRef.current?.abort()}
+                    aria-label="Dừng trả lời"
+                    title="Dừng"
+                    className="flex h-8 items-center justify-center rounded-lg border border-line px-2 text-xs text-body"
+                  >
+                    Dừng
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => send(input)}
+                  disabled={status === "streaming" || !input.trim()}
+                  aria-label="Gửi"
+                  title="Gửi"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500 text-sm font-semibold text-white disabled:opacity-40"
+                >
+                  ➤
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
