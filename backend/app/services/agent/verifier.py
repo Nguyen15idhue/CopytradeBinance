@@ -2,6 +2,8 @@
 
 import re
 
+from app.services.copy_plan.validate import validate_plan
+
 DISCLAIMER = "Thông tin chỉ mang tính tham khảo, không phải lời khuyên đầu tư."
 
 ADVICE_PATTERNS = [
@@ -117,6 +119,12 @@ def verify_answer(
         "unverified_numbers": unverified,
         "unknown_ids": unknown_ids,
     }
+
+
+def verify_copy_plan(plan: dict | None, facts: list[dict]) -> list[str]:
+    """Kiểm tra copy_plan với evidence thật; không tự sửa số."""
+    fact_ids = {str(item.get("id")) for item in facts if item.get("id")}
+    return validate_plan(plan, fact_ids)
 
 
 def check_units(answer: str, facts: list[dict]) -> list[str]:

@@ -843,3 +843,7 @@ B6.1.5: `AgentAnswer` thêm `copy_plan/copy_plan_version`; orchestrator capture 
 lưu `agent_messages.copy_plan`, SSE `done` trả kèm, fallback `template_from_copy_plan`;
 system prompt có nhánh “x USDT copy trader y”; session API trả plan. Test
 `test_agent_copy_plan_flow` 3 pass + `test_agent_copy_plan` 4 pass; docs/api + `12-ai`.
+
+B6.1.6: `verify_copy_plan(plan, facts)` gọi `validate_plan` với fact ids thật; orchestrator
+gộp warning plan vào answer, hạ confidence khi có warning, không tự sửa số. Test
+`test_agent_verifier` 9 pass + flow/agent copy plan 16 pass integration.

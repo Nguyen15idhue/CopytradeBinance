@@ -18,7 +18,12 @@ from app.models.agent import AgentCitation, AgentMessage, AgentSession, AgentToo
 from app.services.agent.model_client import call_agent_model
 from app.services.agent.schema import AgentAnswer, SseEvent, to_jsonable, utcnow_iso
 from app.services.agent.tools import check_agent_budget, record_agent_usage, run_tool, tool_specs
-from app.services.agent.verifier import build_answer_contract, check_units, verify_answer
+from app.services.agent.verifier import (
+    build_answer_contract,
+    check_units,
+    verify_answer,
+    verify_copy_plan,
+)
 from app.services.freshness import STALE_MINUTES, VERY_STALE_MINUTES
 
 SYSTEM_PROMPT = (
@@ -399,6 +404,9 @@ async def run_chat(
 
         checked = verify_answer(assistant_text, facts, row_ids or None)
         all_warnings = list(checked["warnings"]) + check_units(checked["answer"], facts)
+        if copy_plan:
+            all_warnings.extend(verify_copy_plan(copy_plan, facts))
+        all_warnings = list(dict.fromkeys(all_warnings))
         for warning in all_warnings:
             yield SseEvent("warning", {"message": warning})
         missing = [] if facts else ["chưa có dữ liệu từ tool"]
