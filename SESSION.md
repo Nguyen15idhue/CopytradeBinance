@@ -821,3 +821,9 @@ B6.1.1: tạo `services/copy_plan/limits.py` (`COPY_LIMITS_VERSION`), Settings o
 trong `core/config.py`, migration `0021_agent_copy_plan` thêm `agent_messages.copy_plan`
 + `copy_plan_version`; `test_copy_plan_limits` 4 pass, `test_agent_schema` 4 pass;
 alembic up/down/up OK, head `0021_agent_copy_plan`.
+
+B6.1.2: `copy_plan/policy.py` (safe/balanced/aggressive/custom),
+`copy_plan/planner.py` (mode, copy amount, cost/order xử lý xung đột lệnh tối thiểu,
+tổng cắt lỗ, TP/SL, symbol/TradFi, margin/leverage, advanced),
+`copy_plan/validate.py` (biên, evidence, nhất quán). `test_copy_plan_planner` 18 pass,
+`test_copy_plan_limits` 4 pass; ruff pass.
