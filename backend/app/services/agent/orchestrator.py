@@ -19,6 +19,7 @@ from app.services.agent.model_client import call_agent_model
 from app.services.agent.schema import AgentAnswer, SseEvent, to_jsonable, utcnow_iso
 from app.services.agent.tools import check_agent_budget, record_agent_usage, run_tool, tool_specs
 from app.services.agent.verifier import build_answer_contract, check_units, verify_answer
+from app.services.freshness import STALE_MINUTES, VERY_STALE_MINUTES
 
 SYSTEM_PROMPT = (
     "Bạn là trợ lý AI của hệ thống CopytradeBinance. Trả lời tiếng Việt, "
@@ -346,6 +347,37 @@ async def run_chat(
         for warning in all_warnings:
             yield SseEvent("warning", {"message": warning})
         missing = [] if facts else ["chưa có dữ liệu từ tool"]
+        freshness_values = [
+            float(fact["value"])
+            for fact in facts
+            if str(fact.get("id", "")).endswith(":freshness_minutes")
+            and isinstance(fact.get("value"), (int, float))
+        ]
+        if not freshness_values:
+            missing.append("freshness_unknown")
+        else:
+            worst = max(freshness_values)
+            if worst > VERY_STALE_MINUTES:
+                missing.append("freshness_very_stale")
+                yield SseEvent(
+                    "warning",
+                    {
+                        "message": (
+                            f"Dữ liệu cũ hơn 1 ngày ({worst:.0f} phút). Không nên kết luận "
+                            "xu hướng ngắn hạn; số liệu chỉ đúng tại mốc as_of."
+                        )
+                    },
+                )
+            elif worst > STALE_MINUTES:
+                yield SseEvent(
+                    "warning",
+                    {
+                        "message": (
+                            f"Dữ liệu cũ {worst:.0f} phút (ngưỡng {STALE_MINUTES}). "
+                            "Nêu rõ mốc as_of khi trả lời."
+                        )
+                    },
+                )
         assumptions = (
             ["Số liệu từ snapshot DB, có độ trễ so với dữ liệu live"] if facts else []
         )

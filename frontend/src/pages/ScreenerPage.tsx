@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useSearchParams } from "react-router-dom";
 
 import OnboardingBanner from "../components/OnboardingBanner";
+import FreshnessChip from "../components/FreshnessChip";
 import {
   FILTER_GROUPS,
   SCREENER_TEXTS,
@@ -830,6 +831,11 @@ export default function ScreenerPage() {
           <span className="ml-2 rounded-full border border-line px-2 py-0.5 text-xs">
             Khung {WINDOW_LABELS[windowKey]}
           </span>
+          {data ? (
+            <span className="ml-2">
+              <FreshnessChip value={data.items[0]?.freshness ?? null} />
+            </span>
+          ) : null}
         </span>
         {data ? (
           <span>

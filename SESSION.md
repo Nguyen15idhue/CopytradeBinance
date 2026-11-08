@@ -753,6 +753,10 @@ Nguồn: `docs/0/05-ke-hoach-do-tuoi-du-lieu-va-data-health.md`.
   tắt refetch nền/focus; skeleton từng section `aria-busy`; đồng hồ "Cập nhật Ns · tự làm mới sau Ms";
   banner lỗi + Thử lại (giữ dữ liệu) và trang lỗi riêng khi chưa có dữ liệu; card archive hiện
   mode/records/source. E2E thêm route chậm 2,5s + route 500 → PASS.
+- B5.0.8: `services/freshness.py` (150/1440 phút, 4 mức); `/traders`,
+  `/traders/{id}`, `/traders/{id}/performance` trả `freshness`; agent có evidence
+  `freshness_minutes`, warning khi stale/very_stale, `missing_data` khi thiếu;
+  `FreshnessChip` ở Screener và Detail. Test 3 pass; E2E chip PASS.
 
 Hiện tượng: hỏi "các nhóm a b c và bị loại là gì" → "Hết 8 bước tool mà chưa có đáp án."
 Bằng chứng: `knowledge_chunks = 0`; `agent_tool_calls` của phiên 126 gọi `search_knowledge`

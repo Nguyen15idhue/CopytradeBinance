@@ -12,8 +12,10 @@ from app.core.errors import ApiError
 from app.models.performance import PerformanceMetric
 from app.models.snapshot import PortfolioSnapshot
 from app.models.trader import Trader
+from app.models.trader_metric import TraderMetric
 from app.models.universe import TraderUniverse
 from app.models.user import User
+from app.services.freshness import from_metrics as freshness_from_metrics
 
 router = APIRouter(prefix="/traders", tags=["traders"])
 
@@ -105,6 +107,14 @@ async def get_trader(
         .limit(1)
     )
     metric = metric_result.scalar_one_or_none()
+    trader_metric = (
+        await db.execute(
+            select(TraderMetric).where(TraderMetric.lead_portfolio_id == portfolio_id)
+        )
+    ).scalars().first()
+    freshness = freshness_from_metrics(
+        trader_metric.metrics if trader_metric else None
+    )
 
     tier = universe.potential_tier if universe else "unknown"
     reasons = universe.filter_reasons if universe else ["not_in_universe"]
@@ -194,6 +204,7 @@ async def get_trader(
                 "window": "90D",
                 "published": metric is not None,
             },
+            "freshness": freshness,
             "disclaimer": (
                 "Công cụ phân tích dữ liệu công khai, không phải tư vấn đầu tư. "
                 "Copy trading có rủi ro mất toàn bộ vốn."

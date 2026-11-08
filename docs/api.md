@@ -143,7 +143,11 @@ Tham số mới (4.0.4):
   (`min_sharpe`/`min_win_rate` nay theo `window`).
 
 Response thêm: mỗi item có `windows` (`7D/30D/90D/180D` × `roi/mdd/sharpe/copier_pnl/win_rate`),
-`avg_leverage`, `position_win_rate`, `risk_score`; meta có `window` và `window_missing`.
+`avg_leverage`, `position_win_rate`, `risk_score`, `freshness`; meta có `window` và `window_missing`.
+
+`freshness` = `{minutes, level, as_of, stale_minutes, very_stale_minutes}` với level
+`ok ≤150'`, `stale ≤1440'`, `very_stale`, `unknown`; `as_of` lấy từ
+`metrics.provenance.performance_at`.
 
 ## Trader Detail — hiệu suất đa khung
 

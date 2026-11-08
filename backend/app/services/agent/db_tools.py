@@ -19,6 +19,7 @@ from app.models.universe import TraderUniverse
 from app.services.agent.schema import EvidenceItem, ToolResult, utcnow_iso
 from app.services.agent.tools import register_tool
 from app.services.compare import build_compare
+from app.services.freshness import from_metrics as freshness_from_metrics
 from app.services.screener import (
     ScreenerFilters,
     apply_filters,
@@ -170,6 +171,7 @@ async def search_traders(db: AsyncSession, args: dict[str, Any]) -> ToolResult:
                     }
                     for window in ("7D", "30D", "90D", "180D")
                 } if metric else {},
+                "freshness": freshness_from_metrics(metrics_blob) if metric else None,
                 "as_of": as_of,
             }
         )
@@ -326,6 +328,7 @@ async def get_trader_profile(db: AsyncSession, args: dict[str, Any]) -> ToolResu
             "status": (metrics_blob.get("profile") or {}).get("status"),
         } if include_full else {},
         "flags": metrics_blob.get("flags") or [],
+        "freshness": freshness_from_metrics(metrics_blob),
         "risk_events": [
             {"code": e.code, "severity": e.severity, "label": e.label, "evidence": e.evidence}
             for e in events
@@ -335,6 +338,13 @@ async def get_trader_profile(db: AsyncSession, args: dict[str, Any]) -> ToolResu
     }
     evidence = [
         _ev(trader_id, "score", profile["score"], None, as_of),
+        _ev(
+            trader_id,
+            "freshness_minutes",
+            profile["freshness"].get("minutes"),
+            None,
+            as_of,
+        ),
         _ev(trader_id, "roi_90d", profile["roi_90d"], "%", as_of),
         _ev(trader_id, "mdd_90d", profile["mdd_90d"], "%", as_of),
         _ev(trader_id, "sharpe", profile["sharpe"], None, as_of),

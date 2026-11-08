@@ -11,6 +11,7 @@ from app.models.trader import Trader
 from app.models.trader_metric import TraderMetric
 from app.models.trader_score import TraderScore
 from app.models.universe import TraderUniverse
+from app.services.freshness import from_metrics as freshness_from_metrics
 
 TIER_ALIASES = {
     "qualified": "qualified_upper",
@@ -367,6 +368,7 @@ def serialize_row(row) -> dict[str, Any]:
         "filter_reasons": universe.filter_reasons or [],
         "breakdown": (score.breakdown if score else None) or {},
         "computed_at": metric.computed_at.isoformat() if metric else None,
+        "freshness": freshness_from_metrics(metrics) if metric else None,
         "top_symbol": derived.get("top_symbol"),
     }
 

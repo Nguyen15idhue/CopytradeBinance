@@ -25,6 +25,7 @@ import {
   getTransfers,
 } from "../lib/api";
 import AIReportPanel from "../components/AIReportPanel";
+import FreshnessChip from "../components/FreshnessChip";
 import {
   BAND_LABELS,
   FILTER_REASON_LABELS as REASON_LABELS,
@@ -237,6 +238,7 @@ export default function TraderDetailPage() {
               <span className="rounded-full border border-line px-2.5 py-0.5 text-xs text-muted">
                 {label(TRADER_STATUS_LABELS, data.trader.status, "Chưa rõ")}
               </span>
+              <FreshnessChip value={data.freshness ?? null} />
               {risk.data?.risk_level ? (
                 <span className="rounded-full border border-orange-500/40 bg-orange-500/10 px-2.5 py-0.5 text-xs text-warn">
                   rủi ro {label(RISK_LEVEL_LABELS, risk.data.risk_level)}

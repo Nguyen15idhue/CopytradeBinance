@@ -19,6 +19,7 @@ from app.models.trader_metric import TraderMetric
 from app.models.trader_score import TraderScore
 from app.models.transfer import Transfer
 from app.models.user import User
+from app.services.freshness import from_metrics as freshness_from_metrics
 
 router = APIRouter(prefix="/traders", tags=["trader-detail"])
 
@@ -78,6 +79,11 @@ async def performance(
         )
     ).scalars().first()
     chart = (snapshot.raw or {}).get("chartItems", []) if snapshot else []
+    metric = (
+        await db.execute(
+            select(TraderMetric).where(TraderMetric.lead_portfolio_id == portfolio_id)
+        )
+    ).scalars().first()
     return ok(
         {
             "windows": {window: windows.get(window) for window in WINDOWS},
@@ -92,6 +98,7 @@ async def performance(
             ),
             "benchmark": None,
             "benchmark_note": "Chưa có nguồn klines; benchmark để null, không nội suy.",
+            "freshness": freshness_from_metrics(metric.metrics if metric else None),
         },
         request,
     )

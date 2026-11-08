@@ -359,6 +359,10 @@ try {
   );
   await page.goto(`${base}/traders/${qualifiedId}`, { waitUntil: "domcontentloaded" });
   await page.getByRole("heading", { name: "10 chỉ số cốt lõi" }).waitFor();
+  assert(
+    (await page.getByLabel("Độ mới dữ liệu").count()) >= 1,
+    "Detail thiếu chip độ mới dữ liệu",
+  );
   await page.getByRole("heading", { name: "Hiệu suất theo khung" }).waitFor();
   const windowRows = await page.locator("section", { hasText: "Hiệu suất theo khung" })
     .locator("tbody tr").count();

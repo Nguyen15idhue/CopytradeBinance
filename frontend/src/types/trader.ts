@@ -41,6 +41,13 @@ export interface TraderDetail {
     window: string;
     published: boolean;
   };
+  freshness?:
+    | {
+        minutes: number | null;
+        level: "ok" | "stale" | "very_stale" | "unknown";
+        as_of?: string | null;
+      }
+    | null;
   disclaimer: string;
   generated_at: string;
 }
@@ -123,6 +130,13 @@ export interface ScreenerItem {
   avg_leverage: number | null;
   position_win_rate: number | null;
   risk_score: number | null;
+  freshness?:
+    | {
+        minutes: number | null;
+        level: "ok" | "stale" | "very_stale" | "unknown";
+        as_of?: string | null;
+      }
+    | null;
   windows: Record<
     string,
     {

@@ -728,3 +728,10 @@ Quy tắc:
   trang lỗi + Thử lại; card raw archive hiện mode/records/source.
   → Bằng chứng: build pass; E2E thêm route chậm 2,5s (thấy skeleton) và route 500
   (thấy trang lỗi + Thử lại); toàn bộ E2E PASS, 0 console error.
+- [x] B5.0.8 Freshness hiển thị + cảnh báo AI — `services/freshness.py`
+  (`STALE_MINUTES=150`, `VERY_STALE_MINUTES=1440`, `level/payload/from_metrics`);
+  `/traders`, `/traders/{id}`, `/traders/{id}/performance` trả `freshness {minutes, level, as_of}`;
+  agent thêm evidence `freshness_minutes`, `warning` khi stale/very_stale và
+  `missing_data=["freshness_unknown"]` khi thiếu; `FreshnessChip` hiện ở Screener + Detail.
+  → Bằng chứng: `test_freshness` 3 pass (biên 149/150/151/1440/1441/None; API; agent evidence);
+  E2E assert chip "Độ mới dữ liệu" ở Detail, PASS.
