@@ -924,7 +924,7 @@ Tóm tắt: không auto-trading, không realtime WebSocket, không Paper Copy tr
 - [x] B5.0.1 Chốt spec + migration manifest. → Bằng chứng: `RAW-ARCHIVE-SPEC.md`; migration `0019` + 2 index; `test_models` 5 pass.
 - [x] B5.0.2 Refactor RawArchive (`latest_previous`, gzip, atomic). → Bằng chứng: 2 bundle/lần scan; rotate latest/previous; `test_raw_archive` 4 pass.
 - [x] B5.0.3 Retention + CLI dry-run. → Bằng chứng: `test_raw_retention` 2 pass; CLI `archive-retention --dry-run` chạy được.
-- [ ] B5.0.4 API status nhanh + archive-stats.
+- [x] B5.0.4 API status nhanh + archive-stats. → Bằng chứng: p95 76ms; `test_collector_status` 4 pass.
 - [ ] B5.0.5 Scheduler freshness (last_success từ DB, không `last_run = now`).
 - [ ] B5.0.6 Job thủ công lưu DB.
 - [ ] B5.0.7 UI loading/progress.

@@ -188,7 +188,8 @@ Sharpe, WinRate, Số lệnh, Số ngày hoạt động, Số copier, Copy AUM, 
 
 | Method | Endpoint | Quyền | Mô tả |
 |---|---|---|---|
-| GET | `/collector/status` | user | Tier counts, lần chạy gần nhất theo tầng, jobs, raw archive, kill switch |
+| GET | `/collector/status` | user | Tier counts, lần chạy gần nhất theo tầng, jobs, raw archive (manifest + cache 60s), kill switch |
+| GET | `/collector/archive-stats` | user | 50 manifest gần nhất, tổng files/bytes/records, thống kê theo ngày |
 | POST | `/collector/run-scan` | admin | 202 + `job_id`; scan + recompute |
 | POST | `/collector/run-deep` | admin | 202 + `job_id`; performance → detail/positions/transfers → trades |
 | GET | `/collector/jobs/{job_id}` | user | Trạng thái job trong process |
@@ -196,6 +197,8 @@ Sharpe, WinRate, Số lệnh, Số ngày hoạt động, Số copier, Copy AUM, 
 
 - Kill switch: env `COLLECTOR_KILL_SWITCH` hoặc `app_settings['collector.enabled']`; khi tắt, run-* trả **409** `COLLECTOR_DISABLED`.
 - Job chạy nền trong process API; restart sẽ mất trạng thái job (Phase 5 chuyển sang queue/DB).
+- `raw_archive` đọc từ bảng `raw_archive_manifests`; response có `{mode, files, bytes, records,
+  latest_at, source}` với `source` = `manifest|empty|stale`. Cache Redis 60 giây, không quét filesystem.
 - Khóa chống chạy song song: Redis `lock:collector:scan` / `lock:collector:deep`, TTL 30 phút.
 
 ## Universe

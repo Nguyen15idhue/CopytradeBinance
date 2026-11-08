@@ -1,3 +1,4 @@
+import json
 from datetime import UTC, datetime
 from typing import Any
 
@@ -8,9 +9,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, require_admin
 from app.api.response import ok
+from app.core.config import get_settings
 from app.core.database import get_db
 from app.core.errors import ApiError
 from app.models.collection_log import CollectionLog
+from app.models.raw_manifest import RawArchiveManifest
 from app.models.universe import TraderUniverse
 from app.models.user import User
 from app.services.config_store import KILL_SWITCH_KEY, collector_enabled, set_setting
@@ -24,6 +27,51 @@ LAYERS = ("L0", "L2", "L3", "L4")
 
 class KillSwitchRequest(BaseModel):
     active: bool
+
+
+ARCHIVE_CACHE_KEY = "cache:collector:archive"
+ARCHIVE_CACHE_TTL = 60
+
+
+async def _cached_archive_stats(db: AsyncSession) -> dict[str, Any]:
+    try:
+        from redis.asyncio import Redis
+
+        client = Redis.from_url(get_settings().redis_url)
+        try:
+            raw = await client.get(ARCHIVE_CACHE_KEY)
+            if raw:
+                cached = json.loads(raw)
+                cached["cached"] = True
+                return cached
+        finally:
+            await client.aclose()
+    except Exception:  # noqa: BLE001 - Redis lỗi thì bỏ cache
+        pass
+
+    try:
+        stats = await RawArchive().manifest_stats(db)
+    except Exception as exc:  # noqa: BLE001 - manifest lỗi không làm sập status
+        return {
+            "mode": get_settings().raw_archive_mode,
+            "files": 0,
+            "bytes": 0,
+            "records": 0,
+            "latest_at": None,
+            "source": "stale",
+            "error": str(exc)[:200],
+        }
+    try:
+        from redis.asyncio import Redis
+
+        client = Redis.from_url(get_settings().redis_url)
+        try:
+            await client.setex(ARCHIVE_CACHE_KEY, ARCHIVE_CACHE_TTL, json.dumps(stats))
+        finally:
+            await client.aclose()
+    except Exception:  # noqa: BLE001
+        pass
+    return stats
 
 
 @router.get("/status")
@@ -65,7 +113,7 @@ async def status(
             )
         ).all()
     )
-    archive = await RawArchive().manifest_stats(db)
+    archive = await _cached_archive_stats(db)
     return ok(
         {
             "enabled": await collector_enabled(db),
@@ -75,6 +123,60 @@ async def status(
             "jobs": recent_jobs(),
             "raw_archive": archive,
             "generated_at": datetime.now(UTC).isoformat(),
+        },
+        request,
+    )
+
+
+@router.get("/archive-stats")
+async def archive_stats(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict[str, Any]:
+    rows = (
+        await db.execute(
+            select(RawArchiveManifest)
+            .order_by(RawArchiveManifest.created_at.desc())
+            .limit(50)
+        )
+    ).scalars().all()
+    items = [
+        {
+            "id": row.id,
+            "scan_id": str(row.scan_id),
+            "layer": row.layer,
+            "endpoint": row.endpoint,
+            "mode": row.mode,
+            "status": row.status,
+            "files": row.files,
+            "bytes": row.bytes,
+            "records": row.records,
+            "created_at": row.created_at.isoformat() if row.created_at else None,
+            "purged_at": row.purged_at.isoformat() if row.purged_at else None,
+        }
+        for row in rows
+    ]
+    by_day: dict[str, dict[str, int]] = {}
+    for row in rows:
+        if row.created_at is None:
+            continue
+        day = row.created_at.date().isoformat()
+        bucket = by_day.setdefault(day, {"files": 0, "bytes": 0, "records": 0})
+        bucket["files"] += row.files
+        bucket["bytes"] += row.bytes
+        bucket["records"] += row.records
+    return ok(
+        {
+            "items": items,
+            "totals": {
+                "files": sum(item["files"] for item in items),
+                "bytes": sum(item["bytes"] for item in items),
+                "records": sum(item["records"] for item in items),
+            },
+            "by_day": [
+                {"day": day, **values} for day, values in sorted(by_day.items())
+            ],
         },
         request,
     )

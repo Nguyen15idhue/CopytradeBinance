@@ -701,3 +701,8 @@ Quy tắc:
   CLI `python -m app.collector_cli archive-retention [--dry-run]`.
   → Bằng chứng: `test_raw_retention` 2 pass (latest/previous không bị xoá; dry-run không xoá,
   chạy thật xoá + purged manifest); CLI dry-run in đúng mode hiện tại.
+- [x] B5.0.4 API status nhanh + archive-stats — `/collector/status` đọc manifest + cache Redis 60s,
+  không quét filesystem; manifest lỗi → `source=stale` (không 500); thêm `/collector/archive-stats`
+  (50 manifest gần nhất + tổng + theo ngày).
+  → Bằng chứng: `test_collector_status` 4 pass (rglob bị chặn vẫn 200; p95 < 300ms; shape;
+  manifest lỗi → stale); đo thực tế: **p50 40ms, p95 76ms, max 102ms**.
