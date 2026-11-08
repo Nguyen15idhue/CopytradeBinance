@@ -746,3 +746,47 @@ Quy tắc:
   UI hiện điểm rủi ro từng dòng (`N/A` khi thiếu) + banner cảnh báo.
   → Bằng chứng: `test_risk_score_filter` 3 pass (helper, backfill ≤5% thiếu,
   filter `max_risk_score=40` khớp); E2E PASS.
+- [x] B5.0.11 QA + docs — backend **282 pass** (`RUN_INTEGRATION=1`), ruff pass, build pass,
+  E2E 21 checkpoint PASS (gồm Data Health chậm/500, job RBAC, freshness chip);
+  alembic head `0020_collector_jobs`; `check_refs` 174/0; `check_tech_docs` 20/20;
+  secret scan 0; working tree sạch ngoài 3 file ngoài phạm vi đã biết.
+  Số đo: `/collector/status` p50 **36ms** / p95 **70ms** / max 71ms; archive **4 file .gz / 13 MB**
+  (so với 373 file/lần scan trước đây); freshness: **ok 526 / stale 3 / very_stale 0**;
+  `risk_score` **529/532**.
+
+## 11. Kết quả triển khai
+
+| Bước | Commit | Nội dung |
+|---|---|---|
+| 5.0.1 | `9d9de25` | Spec raw archive + migration `0019` + model manifest |
+| 5.0.2 | `af7dcf0` | `write_bundle` gzip/atomic/latest-previous + manifest |
+| 5.0.3 | `35edebb` | Retention + CLI `archive-retention` |
+| 5.0.4 | `2170152` | `/collector/status` manifest+Redis, `archive-stats` |
+| 5.0.5 | `29dee27` | Scheduler `last_success` từ DB, jitter/retry/timeout |
+| 5.0.6 | `de1600f` | `collector_jobs` DB + Redis queue + UI jobs |
+| 5.0.7 | `48ef983` | Data Health loading/progress/skeleton |
+| 5.0.8 | `9b1b4cd` | Freshness 4 mức + chip + cảnh báo AI |
+| 5.0.9 | `84b26f6` | `as_of` = performance_at, tách computed_at |
+| 5.0.10 | `8204c90` | Backfill risk_score + `risk_score_missing` |
+| 5.0.11 | (commit này) | QA cuối + báo cáo |
+
+### Đóng các vấn đề
+
+| Vấn đề | Trạng thái | Bằng chứng |
+|---|---|---|
+| V1 raw archive tăng vô hạn | ĐÓNG | 4 file .gz/13 MB thay vì 373 file/lần |
+| V2 `stats()` chặn event loop | ĐÓNG | status p95 70ms, không `rglob` |
+| V3 deep fetch trễ sau restart | ĐÓNG | `last_success` từ DB, test restart không reset |
+| V4 job thủ công mất khi restart | ĐÓNG | `collector_jobs` DB + requeue; job thật queued→success |
+| V5 UI không có trạng thái tải | ĐÓNG | skeleton, elapsed, countdown, lỗi + thử lại |
+| V6 rủi ro môi trường | GHI NHẬN | không sửa code; kiểm tra 1 tiến trình compose khi QA |
+| V7 không cảnh báo dữ liệu cũ | ĐÓNG | chip 4 mức + agent warning |
+| V8 `as_of` sai mốc | ĐÓNG | as_of = performance_at, tách computed_at |
+| V9 `risk_score` trống | ĐÓNG | 529/532 có điểm; meta flag khi thiếu |
+
+### Rủi ro còn lại
+
+- 3 trader excluded chưa có dòng `trader_metrics` nên chưa có `risk_score` (đúng thiết kế).
+- 3 trader `stale` do performance nguồn chậm; sẽ tự hết khi worker chạy perf theo lịch mới.
+- Marker retention lưu Redis (không bền qua `FLUSHALL`); nếu mất, retention chạy lại 1 lần — vô hại.
+- Archive cũ theo giờ vẫn còn trong `data/raw/` (không xoá trong kế hoạch này).

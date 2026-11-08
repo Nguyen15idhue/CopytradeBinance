@@ -763,6 +763,11 @@ Nguồn: `docs/0/05-ke-hoach-do-tuoi-du-lieu-va-data-health.md`.
 - B5.0.10: backfill `risk → score → rank` (529/532 có risk_score; 3 excluded không có
   trader_metrics). Screener trả `meta.risk_score_missing`, UI hiện điểm rủi ro từng dòng +
   banner khi thiếu. `test_risk_score_filter` 3 pass; E2E PASS.
+- B5.0.11: QA cuối — backend **282 pass**, ruff/build/E2E 21 checkpoint PASS,
+  alembic `0020_collector_jobs`, check_refs 174/0, check_tech_docs 20/20, secret 0.
+  Số đo: status p95 **70ms**; archive **4 file/13 MB** (trước 373 file/lần);
+  freshness ok 526 / stale 3 / very_stale 0; risk_score 529/532.
+  Bảng commit + đóng V1–V9 ghi ở `docs/0/05-...` §10–§11.
 
 Hiện tượng: hỏi "các nhóm a b c và bị loại là gì" → "Hết 8 bước tool mà chưa có đáp án."
 Bằng chứng: `knowledge_chunks = 0`; `agent_tool_calls` của phiên 126 gọi `search_knowledge`

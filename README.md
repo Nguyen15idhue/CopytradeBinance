@@ -73,6 +73,9 @@ docker compose exec backend python -m app.collector_cli audit
 
 # Retention raw archive (audit mode); --dry-run chỉ in danh sách
 docker compose exec backend python -m app.collector_cli archive-retention --dry-run
+
+# Xem 10 job collector gần nhất (DB)
+curl -s http://localhost:8090/api/v1/collector/jobs
 ```
 
 UI: `/screener`, `/traders/:id`, `/compare?ids=a,b`, `/risk`, `/ranking`, `/settings`,

@@ -56,9 +56,19 @@ Có thể đổi trong Settings; worker đọc lại mỗi vòng 60 giây.
 
 ## 6. Raw archive
 
-- Lưu JSON thô.
-- Nén sau 7 ngày, giữ 90 ngày.
-- Không commit vào git.
+- Mode `latest_previous` (mặc định): mỗi endpoint 1 `latest.jsonl.gz` + 1 `previous.jsonl.gz`,
+  ghi atomic; mode `audit` ghi bundle theo ngày và retention 90 ngày.
+- Manifest `raw_archive_manifests` là nguồn cho `stats()`; **không quét filesystem**.
+- Nén sau 7 ngày, giữ 90 ngày (audit); không commit vào git.
+- CLI: `python -m app.collector_cli archive-retention [--dry-run]`.
+
+## 6b. Job thủ công & độ mới
+
+- Job lưu bảng `collector_jobs`, chạy qua Redis `queue:collector:jobs`; `GET /collector/jobs`
+  xem 10 job gần nhất.
+- `/data-health` có skeleton từng phần, elapsed, countdown tự làm mới 60s, lỗi + thử lại.
+- Chip độ mới (ok ≤150' / stale / very_stale) ở Screener và Detail; `as_of` là mốc thu thập
+  (`performance_at`), không phải `computed_at`.
 
 ## 7. Nguồn
 
