@@ -932,3 +932,19 @@ Tóm tắt: không auto-trading, không realtime WebSocket, không Paper Copy tr
 - [x] B5.0.9 `as_of` = `provenance.performance_at`, tách khỏi `computed_at` (V8). → Bằng chứng: `test_as_of` pass.
 - [x] B5.0.10 Backfill `risk_score` 531/531 + `meta.risk_score_missing` khi thiếu (V9). → Bằng chứng: 529/532 có điểm (3 excluded không có metrics); test 3 pass.
 - [x] B5.0.11 QA + docs. → Bằng chứng: 282 pass, ruff/build/E2E 21 checkpoint, head `0020`, check_refs 174/0, check_tech_docs 20/20.
+
+---
+
+## Phase 6e — Tư vấn cấu hình copy theo vốn (docs/0/06-ke-hoach-tu-van-cau-hinh-copy.md)
+
+> Kế hoạch, chưa triển khai. Checklist sẽ tick kèm bằng chứng khi làm.
+
+- [ ] B6.1.1 Chốt spec + hằng số form Binance + migration `0021_agent_copy_plan`.
+- [ ] B6.1.2 Hàm thuần `copy_plan/planner.py` + `policy.py` + `validate.py` + unit test.
+- [ ] B6.1.3 Adapter dữ liệu: copy constraints, margin mode từ `positions.isolated`, symbol stats.
+- [ ] B6.1.4 Tool `build_copy_plan` + evidence + `meta.as_of`.
+- [ ] B6.1.5 Agent routing/prompt + `AgentAnswer.copy_plan` + SSE `done` + lưu DB.
+- [ ] B6.1.6 Verifier `verify_copy_plan` + confidence/warning.
+- [ ] B6.1.7 Frontend `CopyPlanCard` + i18n + trạng thái.
+- [ ] B6.1.8 (Optional) Nguồn volume 24h để lọc thanh khoản thấp + bảng TradFi.
+- [ ] B6.1.9 QA + docs (`docs/api.md`, `docs/ky-thuat/12-ai.md`) + eval đầy đủ.
