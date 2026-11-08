@@ -6,8 +6,10 @@ import Markdown from "./Markdown";
 import {
   deleteAgentSession,
   getAgentSession,
+  getStoredAgentSession,
   listAgentSessions,
   sendAgentFeedback,
+  storeAgentSession,
   streamAgentChat,
 } from "../../lib/agent";
 import type {
@@ -129,6 +131,7 @@ function TraceBox({ traces }: { traces: AgentTrace[] }) {
 export default function AgentPanel({ onClose }: { onClose: () => void }) {
   const queryClient = useQueryClient();
   const [sessionId, setSessionId] = useState<number | null>(null);
+  const [restoring, setRestoring] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -171,6 +174,7 @@ export default function AgentPanel({ onClose }: { onClose: () => void }) {
     setError(null);
     const detail = await getAgentSession(id);
     setSessionId(id);
+    storeAgentSession(id);
     setMessages(
       detail.messages.map((item) => ({
         ...item,
@@ -182,9 +186,41 @@ export default function AgentPanel({ onClose }: { onClose: () => void }) {
     );
   }
 
+  useEffect(() => {
+    const stored = getStoredAgentSession();
+    if (!stored) return;
+    let cancelled = false;
+    setRestoring(true);
+    getAgentSession(stored)
+      .then((detail) => {
+        if (cancelled) return;
+        setSessionId(stored);
+        setMessages(
+          detail.messages.map((item) => ({
+            ...item,
+            traces: [],
+            citations: [],
+            warnings: [],
+            serverId: item.role === "assistant" ? item.id : undefined,
+          })),
+        );
+      })
+      .catch(() => {
+        // Phiên cũ bị xoá hoặc không còn quyền: bỏ ghim.
+        storeAgentSession(null);
+      })
+      .finally(() => {
+        if (!cancelled) setRestoring(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   function newChat() {
     abortRef.current?.abort();
     setSessionId(null);
+    storeAgentSession(null);
     setMessages([]);
     setError(null);
     setStatus("idle");
@@ -256,7 +292,10 @@ export default function AgentPanel({ onClose }: { onClose: () => void }) {
             );
           },
           onDone: (answer, _usage, messageId, sessionId) => {
-            if (sessionId) setSessionId(sessionId);
+            if (sessionId) {
+              setSessionId(sessionId);
+              storeAgentSession(sessionId);
+            }
             setMessages((prev) =>
               prev.map((item) =>
                 item.id === assistantMessage.id
@@ -354,7 +393,10 @@ export default function AgentPanel({ onClose }: { onClose: () => void }) {
       ) : null}
 
       <div ref={listRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-3">
-        {messages.length === 0 ? (
+        {messages.length === 0 && restoring ? (
+          <p className="text-sm text-muted">Đang mở lại đoạn chat…</p>
+        ) : null}
+        {messages.length === 0 && !restoring ? (
           <div className="space-y-2">
             <p className="text-sm text-muted">Gợi ý câu hỏi:</p>
             {SUGGESTED.map((prompt) => (

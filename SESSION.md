@@ -689,3 +689,13 @@ Kết quả refresh (`collector_cli`):
   `performance_at = 17:00 UTC`.
 - `risk_score` đủ **529/532** (3 trader excluded chưa có dòng `trader_metrics` — đúng thiết kế).
 - Độ mới `performance_metrics` sau refresh: 36 phút.
+
+## 20. Agent chat giữ phiên (08/11/2026)
+
+- Ghim `sessionId` vào `localStorage["ct_agent_session_id"]`; trạng thái mở/đóng panel ở
+  `sessionStorage["ct_agent_open"]`.
+- Đóng bằng X hoặc Esc rồi mở lại → nạp lại đúng phiên (`GET /agent/sessions/{id}`); reload
+  trang khi panel đang mở → panel tự mở và vào đúng phiên.
+- Chỉ nút "+ Mới" mới bỏ ghim; xoá phiên đang mở cũng bỏ ghim. Phiên bị xoá/không còn quyền
+  → tự bỏ ghim và hiện gợi ý câu hỏi, không lỗi.
+- E2E thêm checkpoint "Agent giữ phiên sau đóng/reload" (mock `GET /agent/sessions/1`), PASS.

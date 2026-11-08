@@ -1,11 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { getStoredUser } from "../../lib/auth";
+import { getStoredAgentOpen, storeAgentOpen } from "../../lib/agent";
 import AgentPanel from "./AgentPanel";
 
 export default function AgentLauncher() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(() => getStoredAgentOpen());
   const user = getStoredUser();
+
+  useEffect(() => {
+    storeAgentOpen(open);
+  }, [open]);
+
   if (user?.role !== "admin") return null;
 
   return (

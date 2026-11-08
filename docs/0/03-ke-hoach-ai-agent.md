@@ -619,3 +619,6 @@ Timeout: 120s/request, tool 10s, SQL 5s.
 - [x] B12 (`b7c15ee`, QA Phase 3): full 166 pass + E2E PASS; fix regression search_traders.
 - [x] B13 (`11f2791`, eval/hardening): eval 50 + retention + template fallback + feedback; E2E PASS.
 - [x] B14 (QA cuối): full backend 218 pass, ruff/build/E2E/check_refs (174/0)/check_tech_docs (20/20) pass; alembic head `0017_knowledge_chunks`; test reasoning rule.
+- [x] Bổ sung: giữ phiên chat — `ct_agent_session_id` (localStorage) + `ct_agent_open` (sessionStorage);
+  đóng X rồi mở lại hoặc reload vẫn vào đúng phiên đang chat, nút "+ Mới" mới bỏ ghim;
+  E2E "Agent giữ phiên sau đóng/reload" PASS.

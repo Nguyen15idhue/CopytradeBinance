@@ -3,6 +3,44 @@ import type { AgentMessageItem, AgentSessionItem } from "../types/agent";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "/api/v1";
 
+const SESSION_KEY = "ct_agent_session_id";
+const OPEN_KEY = "ct_agent_open";
+
+export function getStoredAgentSession(): number | null {
+  try {
+    const id = Number(localStorage.getItem(SESSION_KEY));
+    return Number.isFinite(id) && id > 0 ? id : null;
+  } catch {
+    return null;
+  }
+}
+
+export function storeAgentSession(id: number | null): void {
+  try {
+    if (id && id > 0) localStorage.setItem(SESSION_KEY, String(id));
+    else localStorage.removeItem(SESSION_KEY);
+  } catch {
+    // localStorage bị chặn: bỏ qua.
+  }
+}
+
+export function getStoredAgentOpen(): boolean {
+  try {
+    return sessionStorage.getItem(OPEN_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function storeAgentOpen(open: boolean): void {
+  try {
+    if (open) sessionStorage.setItem(OPEN_KEY, "1");
+    else sessionStorage.removeItem(OPEN_KEY);
+  } catch {
+    // sessionStorage bị chặn: bỏ qua.
+  }
+}
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getAccessToken();
   const headers = new Headers(options.headers);

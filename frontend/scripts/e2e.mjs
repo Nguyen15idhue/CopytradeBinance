@@ -391,6 +391,34 @@ try {
       body: JSON.stringify({ data: { message_id: 2, rating: 5 }, meta: {}, error: null }),
     }),
   );
+  await page.route("**/api/v1/agent/sessions/1", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        data: {
+          session: {
+            id: 1,
+            title: "Top 10 trader an toàn",
+            model: "mock",
+            created_at: null,
+            updated_at: null,
+            archived_at: null,
+          },
+          messages: [
+            { id: 1, role: "user", content: "Top 10 trader an toàn" },
+            {
+              id: 2,
+              role: "assistant",
+              content: "**Top 5** theo ROI:\n\n| Trader | ROI |\n|---|---|\n| A | 30% |",
+            },
+          ],
+        },
+        meta: {},
+        error: null,
+      }),
+    }),
+  );
   await page.getByRole("button", { name: "Mở trợ lý AI" }).click();
   const dialog = page.getByRole("dialog", { name: "Trợ lý AI" });
   await dialog.waitFor();
@@ -409,6 +437,23 @@ try {
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Mở trợ lý AI" }).waitFor();
   console.log("Agent chat mock SSE: OK");
+
+  // Đóng rồi mở lại phải vào đúng phiên; reload vẫn giữ phiên và trạng thái mở.
+  await page.getByRole("button", { name: "Mở trợ lý AI" }).click();
+  const reopened = page.getByRole("dialog", { name: "Trợ lý AI" });
+  await reopened.waitFor();
+  await reopened.getByText("Top 5", { exact: false }).waitFor();
+  await page.reload({ waitUntil: "domcontentloaded" });
+  const afterReload = page.getByRole("dialog", { name: "Trợ lý AI" });
+  await afterReload.waitFor();
+  await afterReload.getByText("Top 5", { exact: false }).waitFor();
+  const storedSession = await page.evaluate(() =>
+    localStorage.getItem("ct_agent_session_id"),
+  );
+  assert(storedSession === "1", `Phiên không được ghim (${storedSession})`);
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Mở trợ lý AI" }).waitFor();
+  console.log("Agent giữ phiên sau đóng/reload: OK");
 
   await page.getByRole("button", { name: "Đăng xuất" }).click();
   await page.getByRole("heading", { name: "Đăng nhập" }).waitFor();
