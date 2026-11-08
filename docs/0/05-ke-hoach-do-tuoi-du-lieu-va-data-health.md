@@ -740,3 +740,9 @@ Quy tắc:
   `/traders` và `/traders/{id}` trả `as_of` + `computed_at`.
   → Bằng chứng: `test_as_of` pass — trader có `computed_at` mới hơn `performance_at`
   vẫn trả hai mốc khác nhau và `as_of == performance_at` (agent, screener, API detail).
+- [x] B5.0.10 Backfill `risk_score` + chống rỗng — đã chạy `risk → score → rank`:
+  **529/532** trader có `risk_score` (3 còn lại là excluded chưa có dòng `trader_metrics`);
+  `list_traders` trả `meta.risk_score_missing` khi lọc `max_risk_score` mà cột toàn null;
+  UI hiện điểm rủi ro từng dòng (`N/A` khi thiếu) + banner cảnh báo.
+  → Bằng chứng: `test_risk_score_filter` 3 pass (helper, backfill ≤5% thiếu,
+  filter `max_risk_score=40` khớp); E2E PASS.

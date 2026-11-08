@@ -324,6 +324,10 @@ def _window_payload(metric: TraderMetric | None, window: str) -> dict[str, Any]:
     return {key: _float(getattr(metric, attr, None)) for key, attr in mapping.items()}
 
 
+def risk_score_missing(scored_rows: int) -> bool:
+    return scored_rows == 0
+
+
 def serialize_row(row) -> dict[str, Any]:
     universe, nickname, portfolio_type, status, metric, score = row
     metrics = (metric.metrics if metric else None) or {}
@@ -400,6 +404,15 @@ async def list_traders(
     )
     window_missing = not bool(window_rows)
 
+    risk_missing = False
+    if filters.max_risk_score is not None:
+        scored_rows = await db.scalar(
+            select(func.count())
+            .select_from(TraderMetric)
+            .where(TraderMetric.risk_score.is_not(None))
+        )
+        risk_missing = risk_score_missing(int(scored_rows or 0))
+
     column = sort_columns(window).get(sort_by, TraderScore.score)
     ordering = asc(column) if sort_dir == "asc" else desc(column)
     rows = (
@@ -420,6 +433,7 @@ async def list_traders(
         "config_version": version,
         "window": window,
         "window_missing": window_missing,
+        "risk_score_missing": risk_missing,
     }
 
 

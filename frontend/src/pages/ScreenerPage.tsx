@@ -850,6 +850,13 @@ export default function ScreenerPage() {
         </p>
       ) : null}
 
+      {data?.risk_score_missing ? (
+        <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-warn">
+          Chưa có điểm rủi ro cho trader nào — bộ lọc “Điểm rủi ro” sẽ trả rỗng cho tới khi
+          chạy backfill risk.
+        </p>
+      ) : null}
+
       {screener.isLoading ? (
         <div className="h-64 animate-pulse rounded-2xl bg-panel" />
       ) : screener.isError ? (
@@ -945,6 +952,9 @@ export default function ScreenerPage() {
                   <td className="px-3 py-3 text-right text-body">{number(item.max_leverage, 1, "x")}</td>
                   <td className={`px-3 py-3 ${RISK_STYLES[item.risk_level ?? "unknown"] ?? ""}`}>
                     {label(RISK_LEVEL_LABELS, item.risk_level, "Chưa rõ")}
+                    <p className="text-xs text-faint">
+                      Điểm rủi ro: {item.risk_score === null || item.risk_score === undefined ? "N/A" : number(item.risk_score, 1)}
+                    </p>
                   </td>
                 </tr>
               ))}

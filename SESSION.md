@@ -760,6 +760,9 @@ Nguồn: `docs/0/05-ke-hoach-do-tuoi-du-lieu-va-data-health.md`.
 - B5.0.9: `as_of` của dữ liệu published lấy từ `metrics.provenance.performance_at`
   (agent profile/search, screener, API detail), `computed_at` trả riêng; evidence dùng as_of nguồn.
   `test_as_of` pass (hai mốc khác nhau, as_of == performance_at).
+- B5.0.10: backfill `risk → score → rank` (529/532 có risk_score; 3 excluded không có
+  trader_metrics). Screener trả `meta.risk_score_missing`, UI hiện điểm rủi ro từng dòng +
+  banner khi thiếu. `test_risk_score_filter` 3 pass; E2E PASS.
 
 Hiện tượng: hỏi "các nhóm a b c và bị loại là gì" → "Hết 8 bước tool mà chưa có đáp án."
 Bằng chứng: `knowledge_chunks = 0`; `agent_tool_calls` của phiên 126 gọi `search_knowledge`

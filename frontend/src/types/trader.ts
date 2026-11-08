@@ -173,6 +173,7 @@ export interface ScreenerResponse {
   config_version: number;
   window?: string;
   window_missing?: boolean;
+  risk_score_missing?: boolean;
 }
 
 export interface FunnelSummary {
