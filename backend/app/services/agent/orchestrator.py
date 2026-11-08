@@ -188,6 +188,8 @@ async def run_chat(
     total_prompt = 0
     total_completion = 0
     total_cost = 0.0
+    seen_calls: set[tuple[str, str]] = set()
+    repeats = 0
 
     try:
         for _step in range(max_steps):
@@ -195,9 +197,10 @@ async def run_chat(
             if elapsed > settings.agent_timeout_seconds:
                 yield SseEvent("warning", {"message": "Hết thời gian 120s, dừng tool loop"})
                 break
+            force_final = _step >= max_steps - 1 or repeats >= 2
             try:
                 result, errors = await call_agent_model(
-                    history, specs, api_key, transport=transport,
+                    history, [] if force_final else specs, api_key, transport=transport,
                 )
             except Exception as exc:  # noqa: BLE001 - primary+fallback đều lỗi
                 if evidence:
@@ -211,6 +214,9 @@ async def run_chat(
             total_prompt += result.prompt_tokens or 0
             total_completion += result.completion_tokens or 0
             total_cost += result.cost_usd or 0
+            if force_final:
+                assistant_text = (result.text or "").strip()
+                break
             if not result.tool_calls:
                 assistant_text = result.text or ""
                 break
@@ -218,6 +224,32 @@ async def run_chat(
                 yield SseEvent(
                     "tool_call", {"tool": call.name, "arguments": call.arguments}
                 )
+                signature = (
+                    call.name,
+                    json.dumps(call.arguments, ensure_ascii=False, sort_keys=True, default=str),
+                )
+                if signature in seen_calls:
+                    repeats += 1
+                    yield SseEvent(
+                        "warning",
+                        {
+                            "message": (
+                                f"Tool {call.name} đã gọi với cùng tham số — dùng kết quả "
+                                "trước, không gọi lại."
+                            )
+                        },
+                    )
+                    history.append(
+                        {
+                            "role": "user",
+                            "content": (
+                                f"[tool {call.name}] Đã gọi trước đó với cùng tham số. "
+                                "Dùng kết quả cũ và trả lời ngay, không gọi lại tool."
+                            ),
+                        }
+                    )
+                    continue
+                seen_calls.add(signature)
                 tool_started = time.perf_counter()
                 try:
                     tool_result = await asyncio.wait_for(
@@ -270,8 +302,44 @@ async def run_chat(
                     {"role": "user", "content": f"[tool {call.name}] {observation}"}
                 )
         else:
-            assistant_text = assistant_text or "Hết 8 bước tool mà chưa có đáp án."
-            yield SseEvent("warning", {"message": "Đạt tối đa 8 bước tool"})
+            yield SseEvent(
+                "warning",
+                {"message": f"Đạt tối đa {max_steps} bước tool — tổng hợp từ kết quả đã có"},
+            )
+
+        if not assistant_text.strip():
+            try:
+                final_result, _errors = await call_agent_model(
+                    history
+                    + [
+                        {
+                            "role": "user",
+                            "content": (
+                                "Hãy trả lời ngay bằng tiếng Việt từ dữ liệu đã có ở trên. "
+                                "Không gọi thêm tool. Nếu thiếu dữ liệu thì nói rõ là thiếu."
+                            ),
+                        }
+                    ],
+                    [],
+                    api_key,
+                    transport=transport,
+                )
+                assistant_text = (final_result.text or "").strip()
+                total_prompt += final_result.prompt_tokens or 0
+                total_completion += final_result.completion_tokens or 0
+                total_cost += final_result.cost_usd or 0
+            except Exception:  # noqa: BLE001 - model lỗi, dùng fallback tất định
+                assistant_text = ""
+        if not assistant_text.strip():
+            assistant_text = (
+                template_from_evidence(evidence)
+                if evidence
+                else (
+                    "Tôi chưa trả lời được câu này từ dữ liệu hiện có. "
+                    "Bạn thử hỏi cụ thể hơn (ví dụ: nhóm A/B/C là gì, Sharpe, MDD, "
+                    "hoặc một mã trader cụ thể)."
+                )
+            )
 
         checked = verify_answer(assistant_text, facts, row_ids or None)
         all_warnings = list(checked["warnings"]) + check_units(checked["answer"], facts)

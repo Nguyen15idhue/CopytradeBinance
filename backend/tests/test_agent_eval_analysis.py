@@ -311,11 +311,14 @@ async def test_e8_data_health(monkeypatch) -> None:
 
 @pytest.mark.asyncio
 async def test_e9_knowledge_path_and_line(monkeypatch) -> None:
+    fixture_path = "test/eval_risk_rules.py"
     async with SessionLocal() as db:
-        await db.execute(delete(KnowledgeChunk))
+        await db.execute(
+            delete(KnowledgeChunk).where(KnowledgeChunk.path == fixture_path)
+        )
         db.add(
             KnowledgeChunk(
-                source_type="code", path="backend/app/services/risk_rules.py",
+                source_type="code", path=fixture_path,
                 line_start=42, line_end=60, heading="compute_risk_score",
                 content="risk_score công thức gồm MDD leverage sharpe concentration",
                 commit_sha="eval",
@@ -325,8 +328,8 @@ async def test_e9_knowledge_path_and_line(monkeypatch) -> None:
     try:
         def answer(messages):
             observation = _observations(messages)
-            assert "risk_rules.py" in observation
-            return "Công thức risk_score nằm trong backend/app/services/risk_rules.py"
+            assert "eval_risk_rules.py" in observation
+            return "Công thức risk_score nằm trong test/eval_risk_rules.py"
 
         events = await _run(
             monkeypatch,
@@ -336,10 +339,12 @@ async def test_e9_knowledge_path_and_line(monkeypatch) -> None:
             "risk_score tính thế nào",
         )
         refs = {item["ref"] for item in _facts_from_done(events)}
-        assert any("risk_rules.py:42" in ref for ref in refs)
+        assert any("eval_risk_rules.py:42" in ref for ref in refs)
     finally:
         async with SessionLocal() as db:
-            await db.execute(delete(KnowledgeChunk))
+            await db.execute(
+                delete(KnowledgeChunk).where(KnowledgeChunk.path == fixture_path)
+            )
             await db.commit()
 
 

@@ -50,13 +50,18 @@ async def test_search_top_safe_deterministic() -> None:
 
 
 @pytest.mark.asyncio
-async def test_search_risk_score_empty_is_structured() -> None:
-    # DB live chưa backfill risk_score → tool trả rỗng có cấu trúc, không lỗi.
+async def test_search_risk_score_filter_and_empty_case() -> None:
     async with SessionLocal() as db:
         result = await search_traders(db, {"risk_score_max": 40, "limit": 10})
         assert result.error is None
-        assert result.data["items"] == []
-        assert result.meta["row_ids"] == []
+        for item in result.data["items"]:
+            assert item["risk_score"] is not None and item["risk_score"] <= 40
+
+        # Không có trader nào risk_score <= -1 → rỗng nhưng vẫn có cấu trúc.
+        empty = await search_traders(db, {"risk_score_max": -1, "limit": 10})
+        assert empty.error is None
+        assert empty.data["items"] == []
+        assert empty.meta["row_ids"] == []
 
 
 @pytest.mark.asyncio

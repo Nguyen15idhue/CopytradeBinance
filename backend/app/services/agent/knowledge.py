@@ -101,9 +101,21 @@ def chunk_file(relative: str, content: str) -> list[Chunk]:
     return _chunk_window("code", relative, content.splitlines())
 
 
-def collect_files(repo_root: Path) -> list[Path]:
-    roots = [repo_root / "docs", repo_root / "backend" / "app",
-             repo_root / "frontend" / "src"]
+def repo_root() -> Path:
+    """Tìm gốc repo: thư mục chứa docs/ và app/ (host) hoặc /app (container)."""
+    for candidate in Path(__file__).resolve().parents:
+        if (candidate / "docs").is_dir():
+            return candidate
+    return Path.cwd()
+
+
+def collect_files(root: Path) -> list[Path]:
+    roots = [
+        root / "docs",
+        root / "backend" / "app",
+        root / "app",
+        root / "frontend" / "src",
+    ]
     files: list[Path] = []
     for root in roots:
         if not root.is_dir():
@@ -115,7 +127,7 @@ def collect_files(repo_root: Path) -> list[Path]:
                 continue
             if path.stat().st_size > MAX_FILE_BYTES:
                 continue
-            if _allowed(str(path.relative_to(repo_root))):
+            if _allowed(str(path.relative_to(root))):
                 files.append(path)
     return files
 
@@ -132,17 +144,17 @@ def current_commit_sha(repo_root: Path) -> str | None:
 
 
 async def index_files(
-    db: AsyncSession, repo_root: Path, dry_run: bool = False,
+    db: AsyncSession, root: Path, dry_run: bool = False,
 ) -> dict[str, Any]:
-    sha = current_commit_sha(repo_root)
-    files = collect_files(repo_root)
+    sha = current_commit_sha(root)
+    files = collect_files(root)
     chunks: list[Chunk] = []
     for path in files:
         try:
             content = path.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError):
             continue
-        chunks.extend(chunk_file(str(path.relative_to(repo_root)), content))
+        chunks.extend(chunk_file(str(path.relative_to(root)), content))
     stats = {"files": len(files), "chunks": len(chunks), "commit_sha": sha,
              "dry_run": dry_run}
     if dry_run:
@@ -189,10 +201,43 @@ async def search_index(
          "heading": row.heading, "snippet": headline or row.content[:500]}
         for row, headline in rows
     ]
+    if scope != "code":
+        from app.services.agent.knowledge_base import search_concepts
+
+        seen = {item.get("heading") for item in items}
+        for concept in search_concepts(cleaned, 2):
+            if concept["heading"] not in seen:
+                items.append(concept)
+            if len(items) >= limit:
+                break
+        items = items[:limit]
+    used_kb = bool(items) and all(item.get("anchor") for item in items)
+    if not items:
+        from app.services.agent.knowledge_base import search_concepts
+
+        items = search_concepts(cleaned, limit)
+        if items:
+            return ToolResult(
+                data={"items": items, "total": len(items), "scope": scope,
+                      "source": "concept_kb"},
+                meta={"source": "docs", "as_of": utcnow_iso(), "row_ids": [],
+                      "kb_fallback": True},
+                evidence=[
+                    EvidenceItem(
+                        id=f"kb:{item['path']}:{index}",
+                        label=item["heading"] or item["path"],
+                        value=item["path"],
+                        unit="path",
+                        source="docs",
+                        as_of=utcnow_iso(),
+                    )
+                    for index, item in enumerate(items)
+                ],
+            )
     return ToolResult(
         data={"items": items, "total": len(items), "scope": scope},
         meta={"source": "docs" if scope == "docs" else "code",
-              "as_of": utcnow_iso(), "row_ids": []},
+              "as_of": utcnow_iso(), "row_ids": [], "kb_fallback": used_kb},
         evidence=[
             EvidenceItem(id=f"kb:{item['path']}:{item['line_start']}",
                          label=item["heading"] or item["path"],

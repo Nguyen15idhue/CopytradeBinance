@@ -699,3 +699,21 @@ Kết quả refresh (`collector_cli`):
 - Chỉ nút "+ Mới" mới bỏ ghim; xoá phiên đang mở cũng bỏ ghim. Phiên bị xoá/không còn quyền
   → tự bỏ ghim và hiện gợi ý câu hỏi, không lỗi.
 - E2E thêm checkpoint "Agent giữ phiên sau đóng/reload" (mock `GET /agent/sessions/1`), PASS.
+
+## 21. Fix câu hỏi khái niệm bị "Hết 8 bước tool" (08/11/2026)
+
+Hiện tượng: hỏi "các nhóm a b c và bị loại là gì" → "Hết 8 bước tool mà chưa có đáp án."
+Bằng chứng: `knowledge_chunks = 0`; `agent_tool_calls` của phiên 126 gọi `search_knowledge`
+4 lần (luôn rỗng) + `sql_query` lỗi + `get_ranking` → hết 8 bước.
+
+Ba nguyên nhân và cách sửa:
+1. Index rỗng mà không có đường lui → thêm `knowledge_base.py` (14 concept tất định) và
+   `search_knowledge` luôn ghép concept; câu khái niệm trả lời được không cần index.
+2. Không index được trong container (image không có `docs/`) → mount `./docs:/app/docs:ro`;
+   `repo_root()` dò thư mục chứa `docs/` thay vì `parents[2]`. Index: 156 file → 964 chunk.
+3. Không có chốt chống lặp → chặn chữ ký `(tool,args)` trùng, `warning` khi lặp, buộc gọi
+   model không kèm tool ở bước cuối/lặp ≥2, fallback tất định; không bao giờ trả rỗng.
+
+Test: `test_agent_knowledge_base` 16 pass (14 câu + 2 integration), `test_agent_loop_guard`
+2 pass, full backend 254 pass. Smoke live cùng câu hỏi: trả đủ 4 nhóm A/B/C/bị loại,
+có citation `docs/ky-thuat/05-pheu-va-tier.md`.

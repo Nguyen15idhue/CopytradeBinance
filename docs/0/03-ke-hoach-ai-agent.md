@@ -622,3 +622,13 @@ Timeout: 120s/request, tool 10s, SQL 5s.
 - [x] Bổ sung: giữ phiên chat — `ct_agent_session_id` (localStorage) + `ct_agent_open` (sessionStorage);
   đóng X rồi mở lại hoặc reload vẫn vào đúng phiên đang chat, nút "+ Mới" mới bỏ ghim;
   E2E "Agent giữ phiên sau đóng/reload" PASS.
+- [x] Fix 08/11 — câu hỏi khái niệm bị "Hết 8 bước tool":
+  (a) `knowledge_base.py` 14 concept tất định (tier A/B/C/bị loại, Sharpe, MDD, WinRate,
+  risk_score, band, ranking, copier, khung, pre_score, profit factor, freshness, leverage);
+  `search_knowledge` luôn ghép concept, kể cả khi FTS rỗng → không còn phụ thuộc index.
+  (b) mount `./docs:/app/docs:ro` + sửa `repo_root()` để `knowledge_cli index` chạy trong container:
+  156 file → 964 chunk.
+  (c) orchestrator chặn lặp tool theo chữ ký, buộc trả lời khi `repeats>=2` hoặc bước cuối,
+  fallback không bao giờ rỗng.
+  Test: `test_agent_knowledge_base` (14 câu) + `test_agent_loop_guard` 2 case; full 254 pass;
+  smoke live câu "các nhóm a b c và bị loại là gì" trả đúng 4 nhóm kèm citation.

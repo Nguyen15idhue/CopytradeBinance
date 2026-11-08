@@ -30,11 +30,14 @@ async def test_search_knowledge_path_line() -> None:
     from app.core.database import SessionLocal
     from app.models.knowledge_chunk import KnowledgeChunk
 
+    fixture_path = "test/knowledge_fixture.py"
     async with SessionLocal() as db:
-        await db.execute(delete(KnowledgeChunk))
+        await db.execute(
+            delete(KnowledgeChunk).where(KnowledgeChunk.path == fixture_path)
+        )
         db.add(
             KnowledgeChunk(
-                source_type="code", path="backend/app/services/risk_rules.py",
+                source_type="code", path=fixture_path,
                 line_start=10, line_end=30, heading="compute_risk_score",
                 content="Công thức risk_score bằng 30*MDD cộng 20*leverage",
                 commit_sha="test",
@@ -45,7 +48,9 @@ async def test_search_knowledge_path_line() -> None:
         assert result.error is None
         assert result.data["items"]
         first = result.data["items"][0]
-        assert first["path"] == "backend/app/services/risk_rules.py"
+        assert first["path"] == fixture_path
         assert first["line_start"] == 10
-        await db.execute(delete(KnowledgeChunk))
+        await db.execute(
+            delete(KnowledgeChunk).where(KnowledgeChunk.path == fixture_path)
+        )
         await db.commit()

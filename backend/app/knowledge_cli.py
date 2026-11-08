@@ -3,16 +3,16 @@
 import argparse
 import asyncio
 import json
-from pathlib import Path
 
 from app.core.database import SessionLocal
-from app.services.agent.knowledge import count_chunks, index_files
+from app.services.agent.knowledge import count_chunks, index_files, repo_root
 
 
 async def cmd_index(dry_run: bool) -> int:
-    repo_root = Path(__file__).resolve().parents[2]
+    root = repo_root()
     async with SessionLocal() as db:
-        stats = await index_files(db, repo_root, dry_run=dry_run)
+        stats = await index_files(db, root, dry_run=dry_run)
+    stats["root"] = str(root)
     if not dry_run:
         async with SessionLocal() as db:
             stats["stored"] = await count_chunks(db)
