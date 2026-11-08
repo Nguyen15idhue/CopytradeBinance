@@ -70,6 +70,21 @@ class Settings(BaseSettings):
     agent_web_search_enabled: bool = True
     agent_web_search_max_results: int = 5
 
+    # Copy plan (Phase 6e) — biên form Binance, có thể override qua .env
+    copy_limits_version: str = "2026-11-binance-copy-form-v1"
+    copy_ratio_min_usd: float = 10.0
+    copy_ratio_max_usd: float = 300_000.0
+    copy_amount_order_min_usd: float = 10.0
+    copy_amount_order_max_usd: float = 50_000.0
+    copy_amount_copy_min_usd: float = 10.0
+    copy_amount_copy_max_usd: float = 300_000.0
+    copy_tp_min_pct: float = 0.0
+    copy_tp_max_pct: float = 2_000.0
+    copy_sl_min_pct: float = 0.0
+    copy_sl_max_pct: float = 95.0
+    copy_max_cost_order_pct_min: float = 5.0
+    copy_max_cost_order_pct_max: float = 95.0
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [item.strip() for item in self.cors_origins.split(",") if item.strip()]

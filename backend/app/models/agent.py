@@ -43,6 +43,8 @@ class AgentMessage(Base):
     citations: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
     assumptions: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
     missing_data: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
+    copy_plan: Mapped[dict | None] = mapped_column(JSONB)
+    copy_plan_version: Mapped[int | None] = mapped_column(Integer)
     tokens: Mapped[int | None] = mapped_column(Integer)
     cost_usd: Mapped[float] = mapped_column(Numeric(10, 6), nullable=False, default=0)
     latency_ms: Mapped[int | None] = mapped_column(Integer)

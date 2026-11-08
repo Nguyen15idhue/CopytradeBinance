@@ -806,3 +806,18 @@ Ba nguyên nhân và cách sửa:
 Test: `test_agent_knowledge_base` 16 pass (14 câu + 2 integration), `test_agent_loop_guard`
 2 pass, full backend 254 pass. Smoke live cùng câu hỏi: trả đủ 4 nhóm A/B/C/bị loại,
 có citation `docs/ky-thuat/05-pheu-va-tier.md`.
+
+
+## Phase 6e — Tư vấn cấu hình copy (plan `docs/0/06-...`)
+
+Quyết định đã chốt (08/11/2026), áp dụng cho toàn bộ plan 06:
+- Q1: `risk_policy` mặc định `balanced`.
+- Q2: không tự chọn mode khi cả hai hợp lệ; trả `needs_choice`.
+- Q3: MVP không thu thập volume 24h; `low_liquidity = null` + missing.
+- Q4: không lưu “khả dụng” vào DB.
+- Q5: `max_cost_order_pct` = safe 5 / balanced 10 / aggressive 20 / custom user.
+
+B6.1.1: tạo `services/copy_plan/limits.py` (`COPY_LIMITS_VERSION`), Settings override
+trong `core/config.py`, migration `0021_agent_copy_plan` thêm `agent_messages.copy_plan`
++ `copy_plan_version`; `test_copy_plan_limits` 4 pass, `test_agent_schema` 4 pass;
+alembic up/down/up OK, head `0021_agent_copy_plan`.

@@ -939,7 +939,7 @@ Tóm tắt: không auto-trading, không realtime WebSocket, không Paper Copy tr
 
 > Kế hoạch, chưa triển khai. Checklist sẽ tick kèm bằng chứng khi làm.
 
-- [ ] B6.1.1 Chốt spec + hằng số form Binance + migration `0021_agent_copy_plan`.
+- [x] B6.1.1 Chốt spec + hằng số form Binance + migration `0021_agent_copy_plan`. → Bằng chứng: `copy_plan/limits.py`; Settings override; migration `0021` up/down/up; `test_copy_plan_limits` 4 pass + `test_agent_schema` 4 pass; head `0021_agent_copy_plan`.
 - [ ] B6.1.2 Hàm thuần `copy_plan/planner.py` + `policy.py` + `validate.py` + unit test.
 - [ ] B6.1.3 Adapter dữ liệu: copy constraints, margin mode từ `positions.isolated`, symbol stats.
 - [ ] B6.1.4 Tool `build_copy_plan` + evidence + `meta.as_of`.
