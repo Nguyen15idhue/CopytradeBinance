@@ -921,7 +921,7 @@ Tóm tắt: không auto-trading, không realtime WebSocket, không Paper Copy tr
 
 > Bổ sung V7–V9 ngày 08/11/2026 sau khi kiểm tra sai lệch số 7D của trader `5076854789130646529`.
 
-- [ ] B5.0.1 Chốt spec + migration manifest.
+- [x] B5.0.1 Chốt spec + migration manifest. → Bằng chứng: `RAW-ARCHIVE-SPEC.md`; migration `0019` + 2 index; `test_models` 5 pass.
 - [ ] B5.0.2 Refactor RawArchive (`latest_previous`, gzip, atomic).
 - [ ] B5.0.3 Retention + CLI dry-run.
 - [ ] B5.0.4 API status nhanh + archive-stats.

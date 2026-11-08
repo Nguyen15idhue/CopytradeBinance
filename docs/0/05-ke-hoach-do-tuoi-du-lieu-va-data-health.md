@@ -677,3 +677,13 @@ Quy tắc:
 - `/data-health` có skeleton từng phần, thời gian đã tải, trạng thái cập nhật, lỗi + thử lại.
 - Test backend/frontend/E2E pass; docs cập nhật; `check_refs` 0 lỗi.
 - Báo cáo 1–3 dòng kèm commit hash khi hoàn thành.
+
+---
+
+## 10. Tiến độ triển khai
+
+- [x] B5.0.1 Chốt spec + migration manifest — `docs/kehoach/RAW-ARCHIVE-SPEC.md`,
+  migration `0019_raw_archive_manifest` (bảng + 2 index), model `RawArchiveManifest`.
+  → Bằng chứng: `alembic upgrade head → downgrade -1 → upgrade head` OK; psql xác nhận
+  `ix_raw_manifest_created (created_at DESC)` + `ix_raw_manifest_layer_status`;
+  `test_models` 5 pass; ruff pass.

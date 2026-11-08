@@ -15,6 +15,7 @@ from app.models.knowledge_chunk import KnowledgeChunk
 from app.models.performance import PerformanceMetric
 from app.models.position import Position
 from app.models.ranking_snapshot import RankingSnapshot
+from app.models.raw_manifest import RawArchiveManifest
 from app.models.risk_event import RiskEvent
 from app.models.saved_view import SavedView
 from app.models.scoring_config import ScoringConfig
@@ -47,6 +48,7 @@ __all__ = [
     "PortfolioSnapshot",
     "Position",
     "RankingSnapshot",
+    "RawArchiveManifest",
     "RiskEvent",
     "SavedView",
     "ScoringConfig",

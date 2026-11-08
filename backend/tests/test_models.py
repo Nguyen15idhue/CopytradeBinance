@@ -33,3 +33,16 @@ def test_trader_metric_multi_window_columns() -> None:
     }
     missing = expected - set(table.columns.keys())
     assert not missing, f"Thiếu cột đa khung: {sorted(missing)}"
+
+
+def test_raw_archive_manifest_table() -> None:
+    table = Base.metadata.tables["raw_archive_manifests"]
+    required = {
+        "scan_id", "layer", "endpoint", "mode", "status", "path_latest",
+        "path_previous", "files", "bytes", "records", "checksum", "error",
+        "created_at", "rotated_at", "purged_at",
+    }
+    assert required <= set(table.columns.keys())
+    index_names = {index.name for index in table.indexes}
+    assert "ix_raw_manifest_layer_status" in index_names
+    assert "ix_raw_manifest_created" in index_names
