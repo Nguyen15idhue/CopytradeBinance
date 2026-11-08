@@ -74,6 +74,8 @@ class AgentAnswer:
     missing_data: list[str] = field(default_factory=list)
     confidence: str = "medium"
     next_actions: list[dict[str, Any]] = field(default_factory=list)
+    copy_plan: dict[str, Any] | None = None
+    copy_plan_version: int | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -84,6 +86,8 @@ class AgentAnswer:
             "missing_data": self.missing_data,
             "confidence": self.confidence,
             "next_actions": self.next_actions,
+            "copy_plan": to_jsonable(self.copy_plan),
+            "copy_plan_version": self.copy_plan_version,
         }
 
 

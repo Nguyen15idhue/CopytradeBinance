@@ -943,7 +943,7 @@ Tóm tắt: không auto-trading, không realtime WebSocket, không Paper Copy tr
 - [x] B6.1.2 Hàm thuần `copy_plan/planner.py` + `policy.py` + `validate.py` + unit test. → Bằng chứng: `planner.py`/`policy.py`/`validate.py`; `test_copy_plan_planner` 18 pass + `test_copy_plan_limits` 4 pass; mode/amount/cost 10 USDT/SL policy/symbols/advanced/validate.
 - [x] B6.1.3 Adapter dữ liệu: copy constraints, margin mode từ `positions.isolated`, symbol stats. → Bằng chứng: `copy_plan/data.py`; normalize margin/TradFi/summarize; `test_copy_plan_data` 3 unit pass + integration trader thật pass; ruff pass.
 - [x] B6.1.4 Tool `build_copy_plan` + evidence + `meta.as_of`. → Bằng chứng: `agent/copy_plan_tool.py`; input schema 16 tham số; evidence min/MDD/worst/leverage/margin/symbol; `test_agent_copy_plan` 4 pass (integration); `test_copy_plan_data` 4 pass.
-- [ ] B6.1.5 Agent routing/prompt + `AgentAnswer.copy_plan` + SSE `done` + lưu DB.
+- [x] B6.1.5 Agent routing/prompt + `AgentAnswer.copy_plan` + SSE `done` + lưu DB. → Bằng chứng: `schema.py`; `orchestrator.py` (prompt, capture, template, SSE); `api/v1/agent.py` session; `test_agent_copy_plan_flow` 3 pass + `test_agent_copy_plan` 4 pass; docs/api + 12-ai.
 - [ ] B6.1.6 Verifier `verify_copy_plan` + confidence/warning.
 - [ ] B6.1.7 Frontend `CopyPlanCard` + i18n + trạng thái.
 - [ ] B6.1.8 (Optional) Nguồn volume 24h để lọc thanh khoản thấp + bảng TradFi.

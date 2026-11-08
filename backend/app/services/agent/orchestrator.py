@@ -27,7 +27,12 @@ SYSTEM_PROMPT = (
     "Khi câu hỏi liên quan ngắn hạn hay dài hạn, nêu rõ khung 7D/30D/90D/180D và "
     "hiển thị đủ các khung liên quan. Khung thiếu dữ liệu thì ghi unknown, không bịa số. "
     "Hệ thống chỉ có dữ liệu vị thế ĐÃ ĐÓNG (position-history); không có vị thế đang mở, "
-    "không có funding, không có PnL từng copier — không được nói 'đang' cho vị thế."
+    "không có funding, không có PnL từng copier — không được nói 'đang' cho vị thế. "
+    "Khi người dùng hỏi 'có x USDT copy trader y thì cấu hình thế nào': gọi "
+    "get_trader_profile và build_copy_plan; trả lời theo đúng copy_plan, không tự tính lại "
+    "số, không đổi null thành 0; nêu rõ mode, số tiền copy, min/max, tổng cắt lỗ và các "
+    "mục để mặc định Binance. Dùng 'cấu hình tham chiếu', không dùng 'nên copy/đầu tư'. "
+    "Nếu thiếu capital/available/risk_policy thì hỏi lại thay vì giả định."
 )
 
 _RATE: dict[str, list[float]] = {}
@@ -90,6 +95,36 @@ def template_from_evidence(evidence: list[dict]) -> str:
     return f"Dựa trên {len(evidence)} kết quả truy vấn (model gặp lỗi nên tóm tắt tự động):\n{body}"
 
 
+def _plan_value(plan: dict, key: str) -> Any:
+    field = plan.get(key) or {}
+    return field.get("value") if isinstance(field, dict) else None
+
+
+def template_from_copy_plan(plan: dict) -> str:
+    """Fallback tất định: render cấu hình từ plan, không phụ thuộc model."""
+    mode = _plan_value(plan, "copy_mode") or "chưa chọn"
+    amount = _plan_value(plan, "copy_amount_usd")
+    cost = _plan_value(plan, "cost_per_order_usd")
+    total_sl = _plan_value(plan, "total_stop_loss_usd")
+    sl = _plan_value(plan, "stop_loss_pct")
+    tp = _plan_value(plan, "take_profit_pct")
+    lines = [
+        f"- Loại sao chép: {mode}",
+        f"- Số tiền sao chép: {amount if amount is not None else 'chưa có'} USDT",
+    ]
+    if cost is not None:
+        lines.append(f"- Chi phí mỗi lệnh: {cost} USDT")
+    lines.append(
+        f"- Tổng cắt lỗ tham chiếu: {total_sl if total_sl is not None else 'chưa có'} USDT"
+    )
+    lines.append(f"- Cắt lỗ vị thế: {sl if sl is not None else 'mặc định Binance'}%")
+    lines.append(f"- Chốt lời: {tp if tp is not None else 'mặc định Binance'}%")
+    missing = plan.get("missing_fields") or []
+    if missing:
+        lines.append("- Thiếu dữ liệu: " + ", ".join(str(item) for item in missing))
+    return "Cấu hình tham chiếu từ dữ liệu hiện có:\n" + "\n".join(lines)
+
+
 async def get_or_create_session(
     db: AsyncSession, user_id: UUID, session_id: int | None, model: str,
     title_hint: str | None = None,
@@ -142,6 +177,8 @@ async def _save_message(
         citations=(answer.citations if answer else []),
         assumptions=(answer.assumptions if answer else []),
         missing_data=(answer.missing_data if answer else []),
+        copy_plan=(answer.copy_plan if answer else None),
+        copy_plan_version=(answer.copy_plan_version if answer else None),
         tokens=tokens,
         cost_usd=cost,
         latency_ms=latency_ms,
@@ -188,6 +225,8 @@ async def run_chat(
     max_steps = settings.agent_max_steps
     api_key = await get_ai_api_key(db)
     assistant_text = ""
+    copy_plan: dict[str, Any] | None = None
+    copy_plan_version: int | None = None
     total_prompt = 0
     total_completion = 0
     total_cost = 0.0
@@ -206,6 +245,13 @@ async def run_chat(
                     history, [] if force_final else specs, api_key, transport=transport,
                 )
             except Exception as exc:  # noqa: BLE001 - primary+fallback đều lỗi
+                if copy_plan:
+                    assistant_text = template_from_copy_plan(copy_plan)
+                    yield SseEvent(
+                        "warning",
+                        {"message": f"Model lỗi ({str(exc)[:120]}) — trả lời từ copy_plan"},
+                    )
+                    break
                 if evidence:
                     assistant_text = template_from_evidence(evidence)
                     yield SseEvent(
@@ -281,6 +327,9 @@ async def run_chat(
                     )
                 )
                 if tool_result is not None and tool_result.ok:
+                    if call.name == "build_copy_plan" and isinstance(tool_result.data, dict):
+                        copy_plan = tool_result.data
+                        copy_plan_version = tool_result.data.get("version")
                     for item in tool_result.evidence:
                         evidence.append(item.to_dict())
                         facts.append(
@@ -335,12 +384,16 @@ async def run_chat(
                 assistant_text = ""
         if not assistant_text.strip():
             assistant_text = (
-                template_from_evidence(evidence)
-                if evidence
+                template_from_copy_plan(copy_plan)
+                if copy_plan
                 else (
-                    "Tôi chưa trả lời được câu này từ dữ liệu hiện có. "
-                    "Bạn thử hỏi cụ thể hơn (ví dụ: nhóm A/B/C là gì, Sharpe, MDD, "
-                    "hoặc một mã trader cụ thể)."
+                    template_from_evidence(evidence)
+                    if evidence
+                    else (
+                        "Tôi chưa trả lời được câu này từ dữ liệu hiện có. "
+                        "Bạn thử hỏi cụ thể hơn (ví dụ: nhóm A/B/C là gì, Sharpe, MDD, "
+                        "hoặc một mã trader cụ thể)."
+                    )
                 )
             )
 
@@ -349,6 +402,9 @@ async def run_chat(
         for warning in all_warnings:
             yield SseEvent("warning", {"message": warning})
         missing = [] if facts else ["chưa có dữ liệu từ tool"]
+        if copy_plan:
+            missing.extend(str(item) for item in (copy_plan.get("missing_fields") or []))
+        missing = list(dict.fromkeys(missing))
         freshness_values = [
             float(fact["value"])
             for fact in facts
@@ -401,6 +457,8 @@ async def run_chat(
             assumptions=contract["assumptions"],
             missing_data=contract["missing_data"],
             confidence=contract["confidence"],
+            copy_plan=copy_plan,
+            copy_plan_version=copy_plan_version,
         )
         latency = round((time.perf_counter() - started) * 1000)
         msg = await _save_message(
@@ -427,6 +485,8 @@ async def run_chat(
                 "session_id": session.id,
                 "message_id": msg.id,
                 "answer": answer.answer,
+                "copy_plan": to_jsonable(answer.copy_plan),
+                "copy_plan_version": answer.copy_plan_version,
                 "model": model,
                 "usage": {
                     "prompt_tokens": total_prompt,

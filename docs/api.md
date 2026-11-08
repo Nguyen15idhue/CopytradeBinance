@@ -117,6 +117,16 @@ Budget dùng `ai_usage.feature='agent'`; model từ `AI_MODEL_PRIMARY`, fallback
 (resolve qua Settings override). Không gọi live trong test — mock transport OpenRouter.
 Lỗi: 403 viewer, 404 session/message, 409 `AGENT_DISABLED`, 429 `AGENT_RATE_LIMITED`/`AGENT_BUDGET_EXCEEDED`.
 
+### Copy plan trong chat (Phase 6e)
+
+- Tool `build_copy_plan` trả `copy_plan` 18 trường form Binance + `warnings/missing_fields`.
+- SSE `done` có thêm `copy_plan`, `copy_plan_version` (hiện `1`).
+- `GET /agent/sessions/{id}` trả `copy_plan`, `copy_plan_version` trong từng message.
+- Thiếu dữ liệu → `value=null`, `status=missing`, `source=missing`; không đổi thành `0`.
+- Giới hạn form lấy từ `COPY_LIMITS_*` trong Settings, version `2026-11-binance-copy-form-v1`;
+  khi Binance đổi form chỉ cần đổi env/constant, không sửa logic.
+- Câu trả lời dùng “cấu hình tham chiếu”, không phải lời khuyên đầu tư.
+
 ## Risk Monitor
 
 | Method | Endpoint | Mô tả |

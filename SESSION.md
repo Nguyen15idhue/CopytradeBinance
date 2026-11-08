@@ -838,3 +838,8 @@ planner, trả plan kèm evidence (min ratio/amount, MDD, worst ROI, max/avg lev
 margin mode, profit sharing, top symbol share) và `meta.as_of/limits_version`.
 `test_agent_copy_plan` 4 pass (integration trader thật, missing trader, capital sai);
 `test_copy_plan_data` 4 pass.
+
+B6.1.5: `AgentAnswer` thêm `copy_plan/copy_plan_version`; orchestrator capture plan từ tool,
+lưu `agent_messages.copy_plan`, SSE `done` trả kèm, fallback `template_from_copy_plan`;
+system prompt có nhánh “x USDT copy trader y”; session API trả plan. Test
+`test_agent_copy_plan_flow` 3 pass + `test_agent_copy_plan` 4 pass; docs/api + `12-ai`.

@@ -99,7 +99,14 @@ async def session_detail(
         {
             "session": _serialize_session(session),
             "messages": [
-                {"id": m.id, "role": m.role, "content": m.content} for m in rows
+                {
+                    "id": m.id,
+                    "role": m.role,
+                    "content": m.content,
+                    "copy_plan": m.copy_plan,
+                    "copy_plan_version": m.copy_plan_version,
+                }
+                for m in rows
             ],
         },
         request,
