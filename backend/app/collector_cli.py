@@ -154,18 +154,37 @@ async def cmd_deep() -> int:
     return 0
 
 
+async def cmd_archive_retention(dry_run: bool) -> int:
+    from app.services.storage.retention import run_retention
+
+    try:
+        async with CollectorLock("lock:collector:retention"):
+            async with SessionLocal() as db:
+                result = await run_retention(db, dry_run=dry_run)
+                print(json.dumps(result, ensure_ascii=False, default=str))
+    except LockUnavailable as exc:
+        print(json.dumps({"skipped": True, "reason": str(exc)}, ensure_ascii=False))
+        return 2
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="CLI collector Phase 2")
     parser.add_argument(
         "command",
         choices=[
             "scan", "recompute", "perf", "detail", "trades", "metrics", "audit",
-            "risk", "score", "rank", "deep",
+            "risk", "score", "rank", "deep", "archive-retention",
         ],
+    )
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Chỉ in danh sách, không thực thi"
     )
     args = parser.parse_args()
     if args.command == "scan":
         return asyncio.run(cmd_scan())
+    if args.command == "archive-retention":
+        return asyncio.run(cmd_archive_retention(args.dry_run))
     if args.command == "recompute":
         return asyncio.run(cmd_recompute())
     if args.command == "perf":

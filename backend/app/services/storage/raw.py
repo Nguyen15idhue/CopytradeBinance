@@ -64,6 +64,7 @@ class RawArchive:
                 endpoint=endpoint,
                 mode=self.mode,
                 status="writing",
+                created_at=moment,
             )
             db.add(manifest)
             await db.flush()

@@ -70,6 +70,9 @@ docker compose exec backend python -m app.collector_cli rank
 
 # Audit false negative 50 trader excluded
 docker compose exec backend python -m app.collector_cli audit
+
+# Retention raw archive (audit mode); --dry-run chỉ in danh sách
+docker compose exec backend python -m app.collector_cli archive-retention --dry-run
 ```
 
 UI: `/screener`, `/traders/:id`, `/compare?ids=a,b`, `/risk`, `/ranking`, `/settings`,

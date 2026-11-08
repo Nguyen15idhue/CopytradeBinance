@@ -695,3 +695,9 @@ Quy tắc:
   không còn `.tmp`; stats không gọi `rglob`; audit ghi bundle theo ngày).
   Chạy thật 2 lần scan: `list-public` 8.926 records / 5,3 MB; `list-signal` 2.181 / 1,2 MB;
   lần 2 tạo `previous.jsonl.gz` (03:20) + `latest` (03:23); manifest 4 dòng success.
+- [x] B5.0.3 Retention + CLI — `services/storage/retention.py`: `latest_previous` không xoá;
+  `audit` nén sau `RAW_ARCHIVE_COMPRESS_AFTER_DAYS`, xoá quá `RAW_ARCHIVE_AUDIT_RETENTION_DAYS`,
+  đánh dấu manifest `purged`; worker có job `retention` mỗi ngày (lock riêng);
+  CLI `python -m app.collector_cli archive-retention [--dry-run]`.
+  → Bằng chứng: `test_raw_retention` 2 pass (latest/previous không bị xoá; dry-run không xoá,
+  chạy thật xoá + purged manifest); CLI dry-run in đúng mode hiện tại.

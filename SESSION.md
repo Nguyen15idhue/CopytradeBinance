@@ -732,6 +732,9 @@ Nguồn: `docs/0/05-ke-hoach-do-tuoi-du-lieu-va-data-health.md`.
   thay vì 373 file. Config mới: `RAW_ARCHIVE_MODE/HOT_VERSIONS/COMPRESS_AFTER_DAYS/AUDIT_RETENTION_DAYS`.
   Chạy thật 2 scan: latest 8.926 + 2.181 records (~6,5 MB tổng), lần 2 sinh `previous` (03:20);
   manifest 4 dòng success. `test_raw_archive` 4 pass.
+- B5.0.3: `services/storage/retention.py` (`latest_previous` không xoá; `audit` nén/xoá theo
+  config + đánh dấu manifest `purged`), job `retention` hằng ngày trong worker (lock riêng),
+  CLI `archive-retention [--dry-run]`. `test_raw_retention` 2 pass; CLI dry-run OK.
 
 Hiện tượng: hỏi "các nhóm a b c và bị loại là gì" → "Hết 8 bước tool mà chưa có đáp án."
 Bằng chứng: `knowledge_chunks = 0`; `agent_tool_calls` của phiên 126 gọi `search_knowledge`

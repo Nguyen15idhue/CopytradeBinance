@@ -25,6 +25,7 @@ def intervals_from(values: dict[str, int]) -> dict[str, timedelta]:
         "perf": timedelta(hours=values["deep_interval_hours_watch"]),
         "detail": timedelta(hours=values["deep_interval_hours_qualified"]),
         "trades": timedelta(hours=values["deep_interval_hours_high"]),
+        "retention": timedelta(days=1),
     }
 
 
@@ -61,7 +62,24 @@ def due_jobs(
     ]
 
 
+async def _run_retention() -> None:
+    from app.services.storage.retention import run_retention
+
+    try:
+        async with CollectorLock("lock:collector:retention"):
+            async with SessionLocal() as db:
+                result = await run_retention(db)
+                logger.info("retention xong: %s", result)
+    except LockUnavailable:
+        logger.info("Job retention bỏ qua vì khóa đang được giữ")
+    except Exception:  # noqa: BLE001 - không làm chết scheduler
+        logger.exception("Job retention thất bại")
+
+
 async def run_stage(kind: str) -> None:
+    if kind == "retention":
+        await _run_retention()
+        return
     lock_key = "lock:collector:scan" if kind == "scan" else "lock:collector:deep"
     adapter = BinanceBapiAdapter()
     try:
