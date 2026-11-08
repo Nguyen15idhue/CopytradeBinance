@@ -832,3 +832,9 @@ B6.1.3: `copy_plan/data.py` nạp constraints/metrics, suy margin mode đa số 
 `positions.isolated` + confidence, symbol stats từ positions/trades (notional, share,
 TradFi estimated), `low_liquidity = null`. `test_copy_plan_data` 3 unit pass +
 integration trader thật pass; ruff pass.
+
+B6.1.4: tool `build_copy_plan` (`agent/copy_plan_tool.py`) nhận 16 tham số, gọi adapter +
+planner, trả plan kèm evidence (min ratio/amount, MDD, worst ROI, max/avg leverage,
+margin mode, profit sharing, top symbol share) và `meta.as_of/limits_version`.
+`test_agent_copy_plan` 4 pass (integration trader thật, missing trader, capital sai);
+`test_copy_plan_data` 4 pass.
