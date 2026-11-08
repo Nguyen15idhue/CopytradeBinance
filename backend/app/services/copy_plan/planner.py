@@ -4,7 +4,12 @@ import math
 from typing import Any
 
 from app.services.copy_plan.limits import DEFAULT_LIMITS, CopyLimits
-from app.services.copy_plan.policy import RiskPolicy, compute_total_stop_loss, resolve_policy
+from app.services.copy_plan.policy import (
+    RiskPolicy,
+    compute_stop_loss_pct,
+    compute_total_stop_loss,
+    resolve_policy,
+)
 
 PLAN_VERSION = 1
 
@@ -78,6 +83,10 @@ def build_copy_plan(
 
     policy: RiskPolicy = resolve_policy(inputs.get("risk_policy"))
     assumptions.append(policy.note)
+    assumptions.append(
+        "Hệ thống tự chọn cấu hình tham chiếu; người dùng có thể yêu cầu đổi mode, "
+        "SL/TP, symbol hoặc cài đặt nâng cao."
+    )
 
     r_min = _num(constraints.get("fixed_radio_min_copy_usd"))
     a_min = _num(constraints.get("fixed_amount_min_copy_usd"))
@@ -101,6 +110,8 @@ def build_copy_plan(
     if preferred not in (None, "fixed_ratio", "fixed_amount"):
         raise ValueError("preferred_mode không hợp lệ")
     blocked: list[dict[str, str]] = []
+    auto_selected = False
+    can_copy: bool | None = False
     mode: str | None
     mode_status = "ok"
     mode_note: str | None = None
@@ -110,11 +121,20 @@ def build_copy_plan(
         mode_status = "missing"
         mode_note = "Không có dữ liệu min copy của trader."
         missing.append("copy_mode.min_copy")
-        can_copy: bool | None = None
+        can_copy = None
     elif preferred is not None:
         ok = ratio_ok if preferred == "fixed_ratio" else amount_ok
         if ok:
             mode = preferred
+            mode_note = f"Người dùng chọn {preferred}."
+        elif eligible_modes:
+            mode = eligible_modes[0]
+            auto_selected = True
+            mode_note = (
+                f"{preferred} không hợp lệ với {copy_upper:.2f} USDT; "
+                f"tự chọn {mode}."
+            )
+            warnings.append(mode_note)
         else:
             mode = None
             mode_status = "blocked"
@@ -123,12 +143,14 @@ def build_copy_plan(
             )
             blocked.append({"mode": preferred, "reason": mode_note})
             can_copy = False
-    elif len(eligible_modes) == 1:
-        mode = eligible_modes[0]
-    elif len(eligible_modes) == 2:
-        mode = None
-        mode_status = "needs_choice"
-        mode_note = "Cả hai mode đều hợp lệ; cần người dùng chọn."
+    elif eligible_modes:
+        mode = "fixed_ratio" if "fixed_ratio" in eligible_modes else eligible_modes[0]
+        auto_selected = True
+        mode_note = (
+            "Tự chọn fixed_ratio để copy theo tỷ lệ vốn."
+            if mode == "fixed_ratio"
+            else "Tự chọn fixed_amount vì fixed_ratio không đủ min."
+        )
     else:
         mode = None
         mode_status = "blocked"
@@ -153,8 +175,6 @@ def build_copy_plan(
             warnings.append(
                 f"Số tiền copy {copy_amount:.2f} USDT nhỏ hơn min {mode_min} USDT của {mode}."
             )
-    else:
-        can_copy = can_copy if "can_copy" in locals() else (ratio_ok or amount_ok)
 
     if available is not None and copy_amount > available:
         copy_amount = round(available, 2)
@@ -225,7 +245,7 @@ def build_copy_plan(
         cost_field = _field(
             None,
             "computed" if mode == "fixed_ratio" else "default",
-            "inapplicable" if mode == "fixed_ratio" else "needs_choice",
+            "inapplicable" if mode == "fixed_ratio" else "missing",
             min=limits.amount_order_min_usd,
             max=limits.amount_order_max_usd,
             note="mode fixed_ratio không dùng chi phí mỗi lệnh"
@@ -250,22 +270,32 @@ def build_copy_plan(
         total_sl = round(_clamp(custom_total, 0.01, capital), 2)
         if custom_total != total_sl:
             warnings.append("total_stop_loss_usd đã được clamp trong khoảng 0–capital.")
+        total_sl_source = "user"
     else:
         total_sl = compute_total_stop_loss(capital, mdd_loss, worst_loss, policy)
-    total_sl_cap = min(capital, copy_amount) if copy_amount > 0 else capital
-    if total_sl is not None and total_sl > total_sl_cap:
-        total_sl = round(total_sl_cap, 2)
-    if total_sl is None:
-        missing.append("total_stop_loss_usd")
-        total_sl_field = _field(
-            None, "missing", "missing", unit="USDT",
-            note="Thiếu MDD 90D và worst position ROI.",
+        total_sl_source = (
+            "computed"
+            if (mdd_loss is not None or worst_loss is not None)
+            else "default"
         )
-    else:
+    total_sl_cap = min(capital, copy_amount) if copy_amount > 0 else capital
+    if total_sl > total_sl_cap:
+        total_sl = round(total_sl_cap, 2)
+    if total_sl_source == "computed":
         evidence_key = "worst_position_roi" if worst_loss is not None else "mdd_90d"
         total_sl_field = _field(
             total_sl, "computed", "ok", unit="USDT",
             evidence_id=_trader_evidence(trader_id, evidence_key),
+        )
+    elif total_sl_source == "user":
+        total_sl_field = _field(
+            total_sl, "user", "ok", unit="USDT",
+            note="người dùng nhập",
+        )
+    else:
+        total_sl_field = _field(
+            total_sl, "default", "defaulted", unit="USDT",
+            note=f"theo cap {policy.name} ({policy.total_stop_loss_cap_pct:.0%} vốn)",
         )
 
     user_sl = _num(inputs.get("stop_loss_pct"))
@@ -278,18 +308,21 @@ def build_copy_plan(
             )
         sl_field = _field(sl_pct, "user", "ok", unit="%",
                           min=limits.sl_min_pct, max=limits.sl_max_pct)
-    elif worst_roi is not None:
-        sl_pct = _clamp(math.ceil(abs(worst_roi)), limits.sl_min_pct, limits.sl_max_pct)
-        sl_field = _field(
-            sl_pct, "computed", "ok", unit="%",
-            min=limits.sl_min_pct, max=limits.sl_max_pct,
-            evidence_id=_trader_evidence(trader_id, "worst_position_roi"),
-            note="bằng mức lỗ lớn nhất đã quan sát",
-        )
     else:
-        missing.append("stop_loss_pct")
-        sl_field = _field(None, "missing", "missing", unit="%",
-                          min=limits.sl_min_pct, max=limits.sl_max_pct)
+        sl_pct = compute_stop_loss_pct(worst_roi, policy)
+        if worst_roi is not None:
+            sl_field = _field(
+                sl_pct, "computed", "ok", unit="%",
+                min=limits.sl_min_pct, max=limits.sl_max_pct,
+                evidence_id=_trader_evidence(trader_id, "worst_position_roi"),
+                note=f"theo worst ROI nhưng cap {policy.stop_loss_cap_pct:.0f}%",
+            )
+        else:
+            sl_field = _field(
+                sl_pct, "default", "defaulted", unit="%",
+                min=limits.sl_min_pct, max=limits.sl_max_pct,
+                note=f"theo cap {policy.name} ({policy.stop_loss_cap_pct:.0f}%)",
+            )
 
     user_tp = _num(inputs.get("take_profit_pct"))
     if user_tp is not None:
@@ -302,9 +335,11 @@ def build_copy_plan(
         tp_field = _field(tp_pct, "user", "ok", unit="%",
                           min=limits.tp_min_pct, max=limits.tp_max_pct)
     else:
-        tp_field = _field(None, "default", "user_choice", unit="%",
-                          min=limits.tp_min_pct, max=limits.tp_max_pct,
-                          note="không có dữ liệu để suy; dùng mặc định Binance")
+        tp_field = _field(
+            None, "default", "defaulted", unit="%",
+            min=limits.tp_min_pct, max=limits.tp_max_pct,
+            note="không đặt TP; để lead đóng lệnh (có thể đổi sau)",
+        )
 
     # --- symbol / margin / leverage / advanced ---------------------------
     symbol_stats = symbol_stats or {}
@@ -326,8 +361,18 @@ def build_copy_plan(
         symbols_field = _field(custom_symbols, "user", "ok", mode="custom",
                                note="danh sách người dùng nhập")
     elif scope == "all":
-        symbols_field = _field(None, "default", "user_choice", mode="all",
-                               note="copy toàn bộ symbol")
+        symbols_field = _field(
+            None, "default", "defaulted", mode="all",
+            note="đã chọn copy toàn bộ symbol theo lead",
+        )
+        top = top_symbols[0] if top_symbols else None
+        if isinstance(top, dict) and _num(top.get("share_pct")) is not None:
+            share = _num(top.get("share_pct")) or 0
+            if share >= 60:
+                warnings.append(
+                    f"Tập trung cao: {top.get('symbol')} chiếm {share:.1f}% notional; "
+                    "có thể yêu cầu loại symbol này nếu muốn."
+                )
     else:
         symbols_field = _field(None, "missing", "missing", mode=scope,
                                note="chưa có volume 24h để lọc thanh khoản thấp")
@@ -338,13 +383,16 @@ def build_copy_plan(
         "low_liquidity": low_liquidity,
         "top": top_symbols,
     }
-    if allow_tradfi is not None:
+    if allow_tradfi is None:
+        allow_tradfi = True
+        symbols_block["tradfi_allowed"] = True
+    else:
         symbols_block["tradfi_allowed"] = bool(allow_tradfi)
         if not allow_tradfi and tradfi:
             warnings.append(
                 "Đã tắt TradFi nhưng lead có giao dịch cặp TradFi: " + ", ".join(tradfi)
             )
-    if low_liquidity is None and "symbols.low_liquidity" not in missing:
+    if low_liquidity is None and scope == "exclude_low_liquidity":
         missing.append("symbols.low_liquidity")
 
     if margin_mode and margin_mode.get("mode"):
@@ -378,22 +426,25 @@ def build_copy_plan(
     if user_slippage is not None:
         slippage_field = _field(user_slippage, "user", "ok", unit="%")
     else:
-        missing.append("max_slippage_pct")
         slippage_field = _field(
-            None, "missing", "missing", unit="%",
-            note="hệ thống không có dữ liệu slippage; dùng mặc định Binance",
+            policy.max_slippage_pct, "default", "defaulted", unit="%",
+            note=f"giá trị tham chiếu theo chính sách {policy.name}; có thể đổi sau",
         )
 
+    advanced_defaults = {
+        "copy_existing_positions": False,
+        "better_entry_price": True,
+        "close_all_at_take_profit": False,
+        "auto_invest": False,
+    }
     advanced: dict[str, dict[str, Any]] = {}
-    for key in (
-        "copy_existing_positions",
-        "better_entry_price",
-        "close_all_at_take_profit",
-        "auto_invest",
-    ):
+    for key, default_value in advanced_defaults.items():
         value = inputs.get(key)
         if value is None:
-            advanced[key] = _field(None, "default", "user_choice")
+            advanced[key] = _field(
+                default_value, "default", "defaulted",
+                note="giá trị tham chiếu; có thể đổi sau",
+            )
         else:
             advanced[key] = _field(bool(value), "user", "ok")
 
@@ -419,6 +470,7 @@ def build_copy_plan(
         mode, "computed", mode_status,
         eligible_modes=eligible_modes,
         blocked_modes=blocked,
+        auto_selected=auto_selected,
         note=mode_note,
     )
 

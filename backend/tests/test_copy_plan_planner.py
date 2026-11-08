@@ -45,10 +45,11 @@ def _symbols() -> dict:
     }
 
 
-def test_both_modes_need_choice() -> None:
+def test_both_modes_auto_fixed_ratio() -> None:
     plan = build_copy_plan(_inputs(), _constraints(), _metrics())
-    assert plan["copy_mode"]["value"] is None
-    assert plan["copy_mode"]["status"] == "needs_choice"
+    assert plan["copy_mode"]["value"] == "fixed_ratio"
+    assert plan["copy_mode"]["status"] == "ok"
+    assert plan["copy_mode"]["auto_selected"] is True
     assert plan["copy_mode"]["eligible_modes"] == ["fixed_ratio", "fixed_amount"]
     assert plan["can_copy"] is True
     assert plan["copy_amount_usd"]["value"] == 100.0
@@ -63,16 +64,17 @@ def test_preferred_ratio_eligible() -> None:
     assert plan["copy_amount_usd"]["value"] == 100.0
 
 
-def test_preferred_ratio_blocked_does_not_switch() -> None:
+def test_preferred_ratio_invalid_falls_back_to_amount() -> None:
     plan = build_copy_plan(
         _inputs(capital_usd=50.0, preferred_mode="fixed_ratio"),
         _constraints(),
         _metrics(),
     )
-    assert plan["copy_mode"]["value"] is None
-    assert plan["copy_mode"]["status"] == "blocked"
-    assert plan["can_copy"] is False
-    assert plan["copy_mode"]["blocked_modes"][0]["mode"] == "fixed_ratio"
+    assert plan["copy_mode"]["value"] == "fixed_amount"
+    assert plan["copy_mode"]["status"] == "ok"
+    assert plan["copy_mode"]["auto_selected"] is True
+    assert plan["can_copy"] is True
+    assert any("tự chọn fixed_amount" in item for item in plan["warnings"])
 
 
 def test_only_amount_mode_selects_automatically() -> None:
@@ -120,18 +122,18 @@ def test_total_stop_loss_policies() -> None:
         _inputs(risk_policy="aggressive"), _constraints(), _metrics()
     )
     assert safe["total_stop_loss_usd"]["value"] == 20.0
-    assert balanced["total_stop_loss_usd"]["value"] == 35.0
+    assert balanced["total_stop_loss_usd"]["value"] == 30.0
     assert aggressive["total_stop_loss_usd"]["value"] == 43.75
     assert balanced["stop_loss_pct"]["value"] == 35
 
 
-def test_total_stop_loss_missing_when_metrics_null() -> None:
+def test_total_stop_loss_falls_back_to_policy_cap() -> None:
     plan = build_copy_plan(
         _inputs(), _constraints(), _metrics(mdd=None, worst=None)
     )
-    assert plan["total_stop_loss_usd"]["value"] is None
-    assert plan["total_stop_loss_usd"]["status"] == "missing"
-    assert "total_stop_loss_usd" in plan["missing_fields"]
+    assert plan["total_stop_loss_usd"]["value"] == 30.0
+    assert plan["total_stop_loss_usd"]["status"] == "defaulted"
+    assert "total_stop_loss_usd" not in plan["missing_fields"]
 
 
 def test_user_tp_sl_are_clamped() -> None:
@@ -194,16 +196,17 @@ def test_margin_and_leverage_copy_lead() -> None:
     assert plan["leverage"]["effective"] is None
 
 
-def test_advanced_defaults_are_null_user_choice() -> None:
+def test_advanced_defaults_are_auto_selected() -> None:
     plan = build_copy_plan(_inputs(), _constraints(), _metrics())
-    for key in (
-        "copy_existing_positions",
-        "better_entry_price",
-        "close_all_at_take_profit",
-        "auto_invest",
-    ):
-        assert plan[key]["value"] is None
-        assert plan[key]["status"] == "user_choice"
+    expected = {
+        "copy_existing_positions": False,
+        "better_entry_price": True,
+        "close_all_at_take_profit": False,
+        "auto_invest": False,
+    }
+    for key, value in expected.items():
+        assert plan[key]["value"] is value
+        assert plan[key]["status"] == "defaulted"
 
 
 def test_valid_plan_has_no_warnings() -> None:
@@ -228,7 +231,9 @@ def test_valid_plan_has_no_warnings() -> None:
 def test_validate_flags_missing_evidence_and_bounds() -> None:
     plan = build_copy_plan(_inputs(), _constraints(), _metrics())
     warnings = validate_plan(plan, set(), DEFAULT_LIMITS)
-    assert "copy_plan_evidence_missing" in warnings
+    assert "copy_plan_evidence_unknown:1234567890:fixed_ratio_min_copy_usd" in warnings
+    plan["copy_amount_usd"]["evidence_id"] = None
+    assert "copy_plan_evidence_missing" in validate_plan(plan, set(), DEFAULT_LIMITS)
     plan["total_stop_loss_usd"]["value"] = 999
     assert "total_stop_loss_over_capital" in validate_plan(plan, None, DEFAULT_LIMITS)
 
@@ -240,3 +245,29 @@ def test_validate_flags_can_copy_below_min() -> None:
     plan["copy_amount_usd"]["value"] = 1
     warnings = validate_plan(plan, None, DEFAULT_LIMITS)
     assert "can_copy_true_below_mode_min" in warnings
+
+
+def test_small_capital_plan_is_complete_no_questions() -> None:
+    plan = build_copy_plan(
+        _inputs(capital_usd=20.0, available_usd=20.0),
+        _constraints(r=10.0, a=10.0),
+        _metrics(mdd=40.0, worst=-179.6),
+        symbol_stats={
+            "top": [
+                {"symbol": "1000PEPEUSDT", "share_pct": 73.67},
+                {"symbol": "PUMPUSDT", "share_pct": 9.74},
+            ],
+            "tradfi": [],
+        },
+        margin_mode={"mode": "cross", "confidence": 1.0},
+    )
+    assert plan["copy_mode"]["value"] == "fixed_ratio"
+    assert plan["can_copy"] is True
+    assert plan["stop_loss_pct"]["value"] == 35
+    assert plan["total_stop_loss_usd"]["value"] == 6.0
+    assert plan["max_slippage_pct"]["value"] == 0.5
+    assert plan["take_profit_pct"]["value"] is None
+    assert plan["take_profit_pct"]["status"] == "defaulted"
+    assert plan["auto_invest"]["value"] is False
+    assert any("Tập trung cao" in item for item in plan["warnings"])
+    assert plan["missing_fields"] == []

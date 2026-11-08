@@ -85,9 +85,9 @@ Agent phải:
 2. Trả về **một object `copy_plan`** phủ đủ 18 trường form ở mục 1.2.
 3. Trường nào tính được → có giá trị + `evidence_id` + `as_of`.
 4. Trường nào không có dữ liệu → `null` + `status: "missing"` + lý do, **không đổi thành 0**.
-5. Trường nào là lựa chọn của người dùng (optional) → `null` + `status: "user_choice"`,
-   chỉ điền khi người dùng nói rõ.
-6. Không đưa lời khuyên đầu tư; dùng ngôn ngữ “cấu hình tham chiếu theo chính sách”.
+5. Trường optional (TP, slippage, advanced, symbol scope) → tự chọn giá trị theo policy,
+   `status: "defaulted"` + note; **không hỏi lại từng mục**.
+6. Không đưa lời khuyên đầu tư; dùng ngôn ngữ “cấu hình tham chiếu”.
 7. Không bịa số, không vượt giới hạn form Binance.
 
 ### 2.2 Tiêu chí nghiệm thu (AC)
@@ -104,6 +104,7 @@ Agent phải:
 | AC8 | Thiếu dữ liệu → có trong `missing_data`, UI hiện “mặc định Binance” | E2E |
 | AC9 | Cùng input → cùng plan (không phụ thuộc LLM) | Gọi tool 2 lần |
 | AC10 | Các câu hỏi cũ (top 10, Sharpe, MDD, so sánh) không hồi quy | Regression suite |
+| AC11 | Không còn `needs_choice`; plan luôn có mode + SL + tổng SL + slippage + advanced cụ thể | Unit + E2E |
 
 ---
 
@@ -116,7 +117,7 @@ Agent phải:
 | D3 | `null` + `status` cho mọi trường thiếu; không dùng 0 thay thế | Đúng nguyên tắc dữ liệu của dự án |
 | D4 | Giới hạn form Binance là **hằng số phiên bản** (`COPY_LIMITS_VERSION`) | Binance đổi form thì đổi 1 chỗ, có test |
 | D5 | “Khả dụng” là input người dùng, không scrape tài khoản | Hệ thống không giữ API key/số dư |
-| D6 | Chỉ tự chọn mode khi **đúng một** mode hợp lệ; cả hai hợp lệ → trả cả hai + hỏi lại | Tránh tự ý chọn thay người dùng |
+| D6 | Tự chọn mode theo policy: ưu tiên `fixed_ratio` nếu hợp lệ, fallback `fixed_amount`; preferred mode không hợp lệ cũng fallback, không chặn | Một câu trả lời đầy đủ, người dùng đổi sau nếu muốn |
 | D7 | Tổng cắt lỗ suy từ MDD/worst position + chính sách, cap ở vốn | Có nguồn, không bịa |
 | D8 | Margin mode/đòn bẩy của lead suy từ `positions` (derived), đánh dấu `confidence` | Không có field setting trực tiếp trong snapshot |
 | D9 | Slippage/auto invest/TP mặc định = `null` + “dùng mặc định Binance” | Không có dữ liệu, không bịa |
@@ -129,7 +130,7 @@ Agent phải:
 | # | Câu hỏi | Đề xuất mặc định |
 |---|---|---|
 | Q1 | Chính sách rủi ro mặc định khi người dùng không nêu | `balanced` |
-| Q2 | Có tự chọn mode khi cả hai hợp lệ không | Không; trả cả hai + hỏi |
+| Q2 | Có tự chọn mode khi cả hai hợp lệ không | Có; ưu tiên `fixed_ratio`, fallback `fixed_amount` |
 | Q3 | Có thu thập volume 24h để lọc thanh khoản thấp trong MVP không | Không; để `null` + missing, làm ở bước 6.1.8 (optional) |
 | Q4 | Có lưu “khả dụng” vào DB không | Không; chỉ lưu trong plan message |
 | Q5 | Ngưỡng `max_cost_order_pct` theo policy | safe 5, balanced 10, aggressive 20 (%); user custom được |
@@ -185,6 +186,9 @@ nếu model viết số khác plan, verifier cảnh báo và UI hiển thị pla
 - `status=missing` → `value=null`, phải có `note`.
 
 ### 5.2 Schema đầy đủ
+
+> Ví dụ dưới đây là bản trước tinh chỉnh 6.1.10; hành vi hiện tại tự chọn mode/SL/TP/
+> slippage/advanced (xem §18). Cấu trúc field giữ nguyên.
 
 ```json
 {
@@ -374,8 +378,8 @@ amount_ok  = a_min != null and copy_upper >= a_min
 - `preferred_mode` có nhưng không hợp lệ → `copy_mode=null`, `status=blocked`,
   liệt kê lý do; **không tự đổi mode**.
 - Không có `preferred_mode`:
-  - cả hai hợp lệ → `value=null`, `status=needs_choice`, trả `eligible_modes`;
-  - đúng một hợp lệ → chọn mode đó;
+  - cả hai hợp lệ → tự chọn `fixed_ratio` (copy theo tỷ lệ vốn), `auto_selected=true`;
+  - chỉ một hợp lệ → chọn mode đó;
   - không mode nào → `can_copy=false`, `status=blocked`.
 
 ### 6.4 Số tiền copy / “Tối đa” / “Khả dụng”
@@ -423,17 +427,19 @@ worst_loss  = capital_usd * abs(worst_position_roi) / 100
 
 Chính sách (hằng số sản phẩm, ghi rõ trong `assumptions`):
 
-| Policy | `max_cost_order_pct` | `total_stop_loss_usd` |
-|---|---|---|
-| `safe` | 5 | `min(capital_usd, mdd_loss)` |
-| `balanced` | 10 | `min(capital_usd, max(mdd_loss, worst_loss))` |
-| `aggressive` | 20 | `min(capital_usd, max(mdd_loss, worst_loss) * 1.25)` |
-| `custom` | user | user, validate `0 < value <= capital_usd` |
+| Policy | `max_cost_order_pct` | `total_stop_loss_usd` | `stop_loss_pct` cap | slippage |
+|---|---|---|---|---|
+| `safe` | 5 | `min(20% vốn, mdd_loss)` | 20% | 0.3% |
+| `balanced` | 10 | `min(30% vốn, max(mdd_loss, worst_loss))` | 35% | 0.5% |
+| `aggressive` | 20 | `min(50% vốn, max(mdd_loss, worst_loss) * 1.25)` | 50% | 1% |
+| `custom` | user | user, validate `0 < value <= capital_usd` | user | user |
 
-- `mdd_loss` và `worst_loss` đều null → `total_stop_loss=null`, `status=missing`.
-- `stop_loss_pct = clamp(ceil(abs(worst_position_roi)), 0, 95)` nếu có; null nếu không.
-- `take_profit_pct = null` mặc định (không có dữ liệu để suy); chỉ nhận input người dùng.
-- `close_all_at_take_profit` mặc định `null` (user choice).
+- Không có MDD/worst → `total_stop_loss = cap policy × vốn`, `status=defaulted`.
+- `stop_loss_pct = min(ceil(abs(worst_position_roi)), cap policy)` nếu có; nếu không,
+  `= cap policy`, `status=defaulted`.
+- `take_profit_pct = null` + `status=defaulted`, note “không đặt TP; để lead đóng lệnh”.
+- `close_all_at_take_profit`, `copy_existing_positions`, `auto_invest` = false;
+  `better_entry_price` = true; tất cả `source=default`, `status=defaulted`, có note.
 
 > Đây là **cấu hình tham chiếu**, không phải khuyến nghị đầu tư. Câu trả lời phải kèm
 > `DISCLAIMER` và không dùng động từ “nên copy/đầu tư”.
@@ -450,13 +456,17 @@ symbol_stats = group by symbol:
 top = 10 symbol theo share_pct
 ```
 
-- `symbol_scope=all` → `symbols.value=null`, `status=user_choice`, kèm `top` để tham khảo.
+- `symbol_scope=all` → `symbols.value=null`, `status=defaulted`, note “copy toàn bộ symbol
+  theo lead”, kèm `top`; nếu top symbol ≥ 60% → warning tập trung cao.
 - `symbol_scope=custom` → validate từng symbol có trong lịch sử của lead;
   symbol lạ → warning, vẫn echo nhưng đánh dấu `source=user`.
 - `tradfi` → nhận diện theo bảng hằng số `TRADFI_SYMBOLS` (XAU, XAG, EUR, GBP, JPY, …);
   đánh dấu `source=computed`, `confidence=estimated` vì Binance không trả cờ TradFi.
+  Mặc định `allow_tradfi=true` (theo lead).
 - `low_liquidity`:
   - Chưa có volume 24h → `null`, `status=missing`, note “dùng mặc định Binance”.
+  - Chỉ thêm `symbols.low_liquidity` vào `missing_fields` khi người dùng chọn
+    `exclude_low_liquidity`.
   - Nếu bước 6.1.8 thêm nguồn volume → mới trả danh sách.
 - Tuyệt đối không gọi “symbol ít giao dịch bởi lead” là “thanh khoản thấp”.
 
@@ -469,9 +479,10 @@ top = 10 symbol theo share_pct
   - nếu không có position → `null`, `status=missing`.
 - **Đòn bẩy**: `value="copy_lead"`, `lead_max`, `lead_avg` từ metrics; `effective=null`
   vì Binance mới là nơi tính đòn bẩy hiệu lực.
-- **Slippage**: chỉ nhận input; mặc định `null` + “dùng mặc định Binance”.
-- **Auto invest / copy existing / better entry / close all at TP**: `null` + `user_choice`;
-  chỉ echo khi người dùng nói rõ.
+- **Slippage**: theo policy (safe 0.3%, balanced 0.5%, aggressive 1%), `source=default`,
+  `status=defaulted`, note “giá trị tham chiếu; có thể đổi sau”. User nhập thì echo.
+- **Auto invest / copy existing / better entry / close all at TP**: tự chọn false/true/false/false
+  theo policy, `source=default`, `status=defaulted`; user nói rõ thì echo.
 
 ### 6.9 Bảng xung đột & cách xử lý
 
@@ -480,10 +491,10 @@ top = 10 symbol theo share_pct
 | `capital > available` | Dùng `available`, warning, `can_copy=false` nếu `< min` |
 | `copy_amount > platform max` | Cap ở max, warning |
 | `copy_amount < mode min` | `can_copy=false`, không sinh cost/total SL giả |
-| `preferred_mode` không hợp lệ | `blocked`, không tự đổi |
+| `preferred_mode` không hợp lệ | fallback mode còn hợp lệ; nếu không còn mode nào → `blocked` |
 | `raw cost < order min` | Nâng cost lên min, tính lại `effective_pct` |
 | `effective_pct > 95` | `infeasible`, `can_copy=false` |
-| Không có `mdd_90d` và `worst_position_roi` | `total_stop_loss=null`, missing |
+| Không có `mdd_90d` và `worst_position_roi` | `total_stop_loss = cap policy × vốn`, `defaulted` |
 | Không có slot | `can_copy=false` + lý do “hết slot” |
 | Symbol custom không có trong lịch sử | Warning, vẫn echo `source=user` |
 
@@ -814,3 +825,31 @@ Khác biệt so với kế hoạch:
   tính tổng cắt lỗ (không vượt phần vốn thực dùng).
 - `i18n/vi.ts` không sửa vì đang có thay đổi của người dùng; card dùng chuỗi tiếng Việt
   inline giống phần còn lại của AgentPanel.
+
+
+---
+
+## 18. Tinh chỉnh 6.1.10 — tự chọn đủ cấu hình (08/11/2026)
+
+Phản hồi thực tế: plan cũ trả `needs_choice` cho mode, SL 95% và để nhiều mục
+`user_choice`, buộc người dùng tự quyết từng bước. Đã đổi hành vi:
+
+| Mục | Trước | Sau |
+|---|---|---|
+| Copy mode | Cả hai hợp lệ → `needs_choice` | Tự chọn `fixed_ratio`; preferred không hợp lệ → fallback mode còn lại |
+| Stop loss % | `ceil(abs(worst ROI))`, tới 95% | `min(worst ROI, cap policy)`; balanced cap 35% |
+| Tổng cắt lỗ | Có thể bằng 100% vốn | Cap policy: safe 20%, balanced 30%, aggressive 50% |
+| Slippage | `null` + missing | Policy default 0.3/0.5/1% + note |
+| TP | `user_choice` | Không đặt TP (`defaulted`), để lead đóng lệnh |
+| Advanced | `user_choice` | copy existing false, better entry true, close-all false, auto-invest false |
+| Symbol scope | `user_choice` | Copy all theo lead; warning nếu top symbol ≥ 60%; có thể đổi sau |
+
+Quy tắc trả lời mới:
+- Không hỏi người dùng chọn mode/SL/TP/slippage/advanced; đưa **một cấu hình hoàn chỉnh**.
+- Cuối câu trả lời chỉ nêu ngắn: “có thể yêu cầu đổi mode, SL/TP, symbol hoặc cài đặt khác”.
+- Vẫn giữ disclaimer “cấu hình tham chiếu, không phải lời khuyên đầu tư”.
+- `mode.auto_selected=true` để UI hiện badge “Tự chọn”.
+
+Test bổ sung: `test_small_capital_plan_is_complete_no_questions` (20 USDT, worst −179.6%):
+mode `fixed_ratio`, SL 35%, tổng SL 6 USDT, slippage 0.5%, TP null/defaulted,
+advanced defaults, warning tập trung 1000PEPE 73.67%, `missing_fields=[]`.

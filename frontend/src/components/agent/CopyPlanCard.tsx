@@ -155,7 +155,10 @@ export default function CopyPlanCard({ plan }: { plan: AgentCopyPlan }) {
             <div className="rounded-lg border border-line bg-panel px-2.5 py-2">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xs text-muted">Loại sao chép</span>
-                <Badge label={modeLabel} tone={statusTone(plan.copy_mode.status)} />
+                <Badge
+                  label={plan.copy_mode.auto_selected ? "Tự chọn" : modeLabel}
+                  tone={statusTone(plan.copy_mode.status)}
+                />
               </div>
               <p className="mt-1 text-sm font-medium text-strong">{modeLabel}</p>
               {plan.copy_mode.note ? (

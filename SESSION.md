@@ -862,3 +862,9 @@ B6.1.9: QA cuối plan 06 — backend **320 pass** (`RUN_INTEGRATION=1`), ruff p
 `npm run build` pass; E2E **25 checkpoint PASS** (gồm Agent copy plan card desktop +
 mobile 375); migration head `0021_agent_copy_plan` (up/down/up); check_refs 174/0;
 check_tech_docs 20/20. Kết quả chi tiết + hash từng bước ở `docs/0/06-...` §17.
+
+B6.1.10 (theo phản hồi thực tế): bỏ `needs_choice`; tự chọn `fixed_ratio` khi cả hai mode
+hợp lệ, fallback `fixed_amount` nếu preferred không hợp lệ; SL cap policy (safe 20 /
+balanced 35 / aggressive 50%), tổng SL cap 20/30/50% vốn, slippage 0.3/0.5/1%,
+TP defaulted (không đặt), advanced false/true/false/false, symbol scope all + warning
+tập trung ≥60%. Prompt không hỏi từng mục, chỉ nêu có thể đổi sau. Kế hoạch 06 §18.
